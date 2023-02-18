@@ -29,7 +29,12 @@ public class ImagesController : ControllerBase
     public async Task<ActionResult<UploadImageResponse>> UploadImage([FromForm] UploadImageRequest request)
     {
         //add image to storage
-        var id = await _imageStore.AddImage(request);
+        using var stream = new MemoryStream();
+        request.File.CopyTo(stream);
+
+        
+
+        await _imageStore.AddImage(request.File.FileName, stream);
         return Ok(new UploadImageResponse(id));
     }
     

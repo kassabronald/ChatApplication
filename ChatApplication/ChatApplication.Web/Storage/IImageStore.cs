@@ -5,6 +5,6 @@ namespace ChatApplication.Storage;
 
 public interface IImageStore
 {
-    Task AddImage(string blobName, byte[] image);
+    Task AddImage(string blobName, MemoryStream data);
     Task<byte[]?> GetImage(string id);
 }
