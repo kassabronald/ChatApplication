@@ -31,9 +31,6 @@ public class ImagesController : ControllerBase
         //add image to storage
         using var stream = new MemoryStream();
         request.File.CopyTo(stream);
-
-        
-
         await _imageStore.AddImage(request.File.FileName, stream);
         return Ok(new UploadImageResponse(id));
     }

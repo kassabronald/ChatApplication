@@ -48,4 +48,52 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact]
+    public async Task AddProfile()
+    {
+        var profile = new Profile("foobar", "Foo", "Bar", "12345");
+        var response = await _httpClient.PostAsync("/Profile",
+            new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal("http://localhost/Profile/foobar", response.Headers.GetValues("Location").First());
+        _profileStoreMock.Verify(mock => mock.AddProfile(profile), Times.Once);
+    }
+    
+    [Fact]
+    public async Task AddProfile_Conflict()
+    {
+        var profile = new Profile("foobar", "Foo", "Bar", "12345");
+        _profileStoreMock.Setup(m => m.GetProfile(profile.username))
+            .ReturnsAsync(profile);
+
+        var response = await _httpClient.PostAsync("/Profile",
+            new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        
+        _profileStoreMock.Verify(m => m.AddProfile(profile), Times.Never);
+    }
+    
+    [Theory]
+    [InlineData(null, "Foo", "Bar", "12345")]
+    [InlineData("", "Foo", "Bar", "12345")]
+    [InlineData(" ", "Foo", "Bar", "12345")]
+    [InlineData("foobar", null, "Bar", "12345")]
+    [InlineData("foobar", "", "Bar", "12345")]
+    [InlineData("foobar", "   ", "Bar", "12345")]
+    [InlineData("foobar", "Foo", "", "12345")]
+    [InlineData("foobar", "Foo", null, "12345")]
+    [InlineData("foobar", "Foo", " ", "12345")]
+    [InlineData("foobar", "Foo", "Bar", "")]
+    [InlineData("foobar", "Foo", "Bar", " ")]
+    [InlineData("foobar", "Foo", "Bar", null)]
+    public async Task AddProfile_InvalidArgs(string username, string firstName, string lastName, string ProfilePictureId )
+    {
+        var profile = new Profile(username, firstName, lastName, ProfilePictureId);
+        var response = await _httpClient.PostAsync("/Profile",
+            new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        _profileStoreMock.Verify(mock => mock.AddProfile(profile), Times.Never);
+    }
+
 }
