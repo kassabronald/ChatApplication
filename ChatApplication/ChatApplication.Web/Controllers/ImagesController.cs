@@ -13,8 +13,7 @@ public class ImagesController : ControllerBase
         _imageStore = imageStore;
     }
     [HttpGet("{id}")]
-    public async Task<ActionResult<FileContentResult>> 
-        DownloadImage(string id)
+    public async Task<ActionResult<FileContentResult>> DownloadImage(string id)
     {
         byte[] image = await _imageStore.GetImage(id);
         if (image.isnull)
