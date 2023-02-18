@@ -30,11 +30,15 @@ public class ImagesController : ControllerBase
     {
         //add image to storage
         using var stream = new MemoryStream();
-        request.File.CopyTo(stream);
+        await request.File.CopyToAsync(stream);
 
         
 
-        await _imageStore.AddImage(request.File.FileName, stream);
+        var id = await _imageStore.AddImage(request.File.FileName, stream);
+        if (id == null)
+        {
+            return BadRequest("Failed to upload image");
+        }
         return Ok(new UploadImageResponse(id));
     }
     
