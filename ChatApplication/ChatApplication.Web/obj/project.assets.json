@@ -466,11 +466,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\kassa\\Desktop\\EECE\\EECE 503E\\Coding\\Labs\\LAB3\\Coding\\ChatApplication\\ChatApplication\\ChatApplication\\ChatApplication.csproj",
-      "projectName": "ChatApplication",
-      "projectPath": "C:\\Users\\kassa\\Desktop\\EECE\\EECE 503E\\Coding\\Labs\\LAB3\\Coding\\ChatApplication\\ChatApplication\\ChatApplication\\ChatApplication.csproj",
+      "projectUniqueName": "C:\\Users\\kassa\\Desktop\\EECE\\EECE 503E\\Coding\\Labs\\LAB3\\Coding\\ChatApplication\\ChatApplication\\ChatApplication.Web\\ChatApplication.Web.csproj",
+      "projectName": "ChatApplication.Web",
+      "projectPath": "C:\\Users\\kassa\\Desktop\\EECE\\EECE 503E\\Coding\\Labs\\LAB3\\Coding\\ChatApplication\\ChatApplication\\ChatApplication.Web\\ChatApplication.Web.csproj",
       "packagesPath": "C:\\Users\\kassa\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\kassa\\Desktop\\EECE\\EECE 503E\\Coding\\Labs\\LAB3\\Coding\\ChatApplication\\ChatApplication\\ChatApplication\\obj\\",
+      "outputPath": "C:\\Users\\kassa\\Desktop\\EECE\\EECE 503E\\Coding\\Labs\\LAB3\\Coding\\ChatApplication\\ChatApplication\\ChatApplication.Web\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

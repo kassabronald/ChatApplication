@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FiVYCN89OhySsmqrKsyWmEUx/Y1W2ggjX8lLoRUEmNqccuRhaeNnFa+h3BZ0MQ6hHt8+i7E3JOJQLMO9s/2WWw==",
+  "dgSpecHash": "dmTNLL+p4QuchRvIqbSHTF4r/I5ZSSnuJHwmnMbuoIkNsb8ZxS0cvoSzdGG1mDCtxCQAgAE1U+1v0ia46M2JTA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\kassa\\Desktop\\EECE\\EECE 503E\\Coding\\Labs\\LAB3\\Coding\\ChatApplication\\ChatApplication\\ChatApplication\\ChatApplication.csproj",
+  "projectFilePath": "C:\\Users\\kassa\\Desktop\\EECE\\EECE 503E\\Coding\\Labs\\LAB3\\Coding\\ChatApplication\\ChatApplication\\ChatApplication.Web\\ChatApplication.Web.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\kassa\\.nuget\\packages\\microsoft.aspnetcore.openapi\\7.0.2\\microsoft.aspnetcore.openapi.7.0.2.nupkg.sha512",
     "C:\\Users\\kassa\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
