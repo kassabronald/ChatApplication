@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ChatApplication.Storage;
+using ChatApplication.Web.Dtos;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApplication.Controllers;
 
@@ -13,15 +15,22 @@ public class ImagesController : ControllerBase
         _imageStore = imageStore;
     }
     [HttpGet("{id}")]
-    public async Task<ActionResult<FileContentResult>> 
-        DownloadImage(string id)
+    public async Task<ActionResult<FileContentResult>> DownloadImage(string id)
     {
-        byte[] image = await _imageStore.GetImage(id);
-        if (image.isnull)
+        var image = await _imageStore.GetImage(id);
+        if (image == null)
         {
             return NotFound($"An image with id {id} was not found");
         }
         return File(image, "image/png");
+    }
+    
+    [HttpPost]
+    public async Task<ActionResult<UploadImageResponse>> UploadImage([FromForm] UploadImageRequest request)
+    {
+        //add image to storage
+        var id = await _imageStore.AddImage(request);
+        return Ok(new UploadImageResponse(id));
     }
     
     
