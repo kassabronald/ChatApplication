@@ -17,11 +17,14 @@ public class ImagesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<FileContentResult>> DownloadImage(string id)
     {
+        return Ok(new FileContentResult(null, (string) null));
         var image = await _imageStore.GetImage(id);
+        
         if (image == null)
         {
-            return NotFound($"An image with id {id} was not found");
+            return NotFound("Image not found");
         }
+        
         return File(image, "image/png");
     }
     
