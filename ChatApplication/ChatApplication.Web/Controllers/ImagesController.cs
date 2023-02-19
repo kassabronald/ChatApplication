@@ -39,9 +39,9 @@ public class ImagesController : ControllerBase
         var id = await _imageStore.AddImage(request.File.FileName, stream);
         if (id == null)
         {
-            return BadRequest("Failed to upload image");
+            return Conflict("This file already exists");
         }
-        return Ok(new UploadImageResponse(id));
+        return CreatedAtAction(nameof(DownloadImage), new {id}, new UploadImageResponse(id));
     }
     
     
