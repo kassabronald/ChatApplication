@@ -2,6 +2,8 @@
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc;
+
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,26 +19,32 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     
     public ImagesControllerTests(WebApplicationFactory<Program> factory)
     {
+
         // DRY: Don't repeat yourself
+
         _httpClient = factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureTestServices(services => { services.AddSingleton(_imageStoreMock.Object); });
         }).CreateClient();
     }
+
     
+    
+
     [Fact]
+
     public async Task GetImage()
     {
-        var id = "123";
-        var image = new byte[] {1, 2, 3};
-        _imageStoreMock.Setup(m => m.GetImage(id))
-            .ReturnsAsync(image);
-
-        var response = await _httpClient.GetAsync($"/images/123");
+        var image = new byte[] {1, 2, 3, 4, 5};
+        var imageId = "123";
+        _imageStoreMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(image);
+        var response = await _httpClient.GetAsync($"/Images/{imageId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var f= new FileContentResult(image, "image/png");
-        var g = new FileContentResult(response.Content.ReadAsByteArrayAsync().Result, "image/png");
-        
-        //Assert.Equal(f, g  );
+        FileContent fileContentResult = new(image, "image/jpeg");
+        var json = await response.Content.ReadAsStringAsync();
+        var actualFileContent = JsonConvert.DeserializeObject<FileContent>(json);
+        Assert.Equivalent(fileContentResult,actualFileContent);
     }
+    
 }
+
