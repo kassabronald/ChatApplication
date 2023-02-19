@@ -1,0 +1,44 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\jadmo\AppData\Local\JetBrains\Rider2022.3\resharper-host\temp\Rider\vAny\CoverageData\_ChatApplication.-1351940084\Snapshot\snapshot.utdcvr</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=0de46ffa_002D1f56_002D4407_002D8fb1_002D6a6c85d87473/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="AddNewProfile #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\kassa\AppData\Local\JetBrains\Rider2022.3\resharper-host\temp\Rider\vAny\CoverageData\_ChatApplication.-1853443453\Snapshot\snapshot.utdcvr</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=00ba12e0_002D6b9a_002D493d_002Da35d_002D38bf21dbfce4/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="ProfileControllerTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryProfileStoreTests.AddNewProfile&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3389d0a9_002Dd341_002D4137_002Da2b8_002D29e1e167eeb4/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="AddNewProfile" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryProfileStoreTests.AddNewProfile&lt;/TestId&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=203f0477_002D5ae8_002D420c_002D91fe_002D7eb2aba39de2/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="ProfileControllerTests #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Controllers.ProfileControllerTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Controllers.ImagesControllerTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=35090ab7_002D43ed_002D4477_002D8ed7_002Dcb4edc019546/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="AddNewProfile #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryProfileStoreTests.AddNewProfile&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=454ad12a_002D16d1_002D4347_002D8689_002Db66663adc9b2/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="AddNewProfile #5" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryProfileStoreTests.AddNewProfile&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c46909bb_002D79fb_002D469c_002Da120_002Da0f78103e19e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="InMemoryProfileStoreTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryProfileStoreTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryImageStoreTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e02a0e9e_002D68f2_002D47d9_002D9dc1_002D0113be8789d0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="AddNewProfile #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryProfileStoreTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryImageStoreTests.AddImage&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryImageStoreTests.AddImage_InvalidArgs&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryImageStoreTests.GetImage_InvalidArgs&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryImageStoreTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+</wpf:ResourceDictionary>
