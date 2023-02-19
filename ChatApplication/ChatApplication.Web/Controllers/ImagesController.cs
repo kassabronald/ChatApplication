@@ -33,14 +33,16 @@ public class ImagesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<UploadImageResponse>> UploadImage([FromForm] UploadImageRequest request)
     {
-        //add image to storage
+        string contentType = request.File.ContentType.ToLower();
+        
+        if (contentType != "image/jpeg" && contentType != "image/png")
+        {
+            return BadRequest("Only JPEG and PNG images are supported");
+        }
+        
         using var stream = new MemoryStream();
         await request.File.CopyToAsync(stream);
         var id = await _imageStore.AddImage(request.File.FileName, stream);
-        if (id == null)
-        {
-            return Conflict("This file already exists");
-        }
         return CreatedAtAction(nameof(DownloadImage), new {id}, new UploadImageResponse(id));
     }
     
