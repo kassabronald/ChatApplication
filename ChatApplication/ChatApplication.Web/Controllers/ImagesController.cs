@@ -37,6 +37,8 @@ public class ImagesController : ControllerBase
             return BadRequest("Only JPEG and PNG and JPG images are supported");
         }
         
+        
+        
         using var stream = new MemoryStream();
         await request.File.CopyToAsync(stream);
         var id = await _imageStore.AddImage(request.File.FileName, stream, request.File.ContentType);
