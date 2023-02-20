@@ -13,8 +13,10 @@ public class InMemoryImageStoreTests
         var data = new MemoryStream();
         await data.WriteAsync(Encoding.UTF8.GetBytes("foobar"));
         var blobName = "foobar";
-        var id=await _store.AddImage(blobName, data);
-        Assert.Equal(data.ToArray(), await _store.GetImage(id));
+        var id=await _store.AddImage(blobName, data, "image/jpeg");
+        var image = await _store.GetImage(id);
+        Assert.Equal(data.ToArray(), image.FileContents);
+        Assert.Equal("image/jpeg", image.ContentType);
     }
     
     [Fact]
@@ -24,15 +26,20 @@ public class InMemoryImageStoreTests
     }
     
     [Theory]
-    [InlineData(null, new byte[0])]
-    [InlineData("", new byte[0])]
-    [InlineData(" ", new byte[0])]
-    [InlineData("foobar", new byte[0])]
-    public async Task AddImage_InvalidArgs(string blobname, byte[] data)
+    [InlineData(null, new byte[0], "image/jpeg")]
+    [InlineData("", new byte[0], "image/jpeg")]
+    [InlineData(" ", new byte[0], "image/jpeg")]
+    [InlineData("foobar", new byte[0], "image/jpeg")]
+    [InlineData("foobar", new byte[0], "image/pdf")]
+    [InlineData("foobar", new byte[0], "")]
+    [InlineData("foobar", new byte[0], " ")]
+    [InlineData("foobar", new byte[0], null)]
+
+    public async Task AddImage_InvalidArgs(string blobname, byte[] data, string contentType)
     {
         await Assert.ThrowsAsync<ArgumentException>(async () =>
         {
-            await _store.AddImage(blobname, new MemoryStream(data));
+            await _store.AddImage(blobname, new MemoryStream(data), contentType);
         });
     }
     

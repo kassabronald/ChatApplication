@@ -15,17 +15,14 @@ public class ImagesController : ControllerBase
         _imageStore = imageStore;
     }
     [HttpGet("{id}")]
-    public async Task<ActionResult<FileContent>> DownloadImage(string id)
+    public async Task<IActionResult> DownloadImage(string id)
     {
         var image = await _imageStore.GetImage(id);
-        
         if (image == null)
         {
             return NotFound("Image not found");
         }
-
-        FileContent fileContentResult = new(image, "image/jpeg");        
-        return Ok(fileContentResult);
+        return image;
 
 
     }
@@ -35,14 +32,14 @@ public class ImagesController : ControllerBase
     {
         string contentType = request.File.ContentType.ToLower();
         
-        if (contentType != "image/jpeg" && contentType != "image/png")
+        if (contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/jpg")
         {
-            return BadRequest("Only JPEG and PNG images are supported");
+            return BadRequest("Only JPEG and PNG and JPG images are supported");
         }
         
         using var stream = new MemoryStream();
         await request.File.CopyToAsync(stream);
-        var id = await _imageStore.AddImage(request.File.FileName, stream);
+        var id = await _imageStore.AddImage(request.File.FileName, stream, request.File.ContentType);
         return CreatedAtAction(nameof(DownloadImage), new {id}, new UploadImageResponse(id));
     }
     

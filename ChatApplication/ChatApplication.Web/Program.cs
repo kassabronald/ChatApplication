@@ -17,6 +17,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<CosmosSettings>(builder.Configuration.GetSection("Cosmos"));
 
+builder.Services.AddSingleton<IImageStore, InMemoryImageStore>();
+
 builder.Services.AddSingleton<IProfileStore, CosmosProfileStore>();
 builder.Services.AddSingleton(sp =>
 {
