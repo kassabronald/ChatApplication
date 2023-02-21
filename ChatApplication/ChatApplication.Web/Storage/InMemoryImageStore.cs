@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using FormFile = Microsoft.AspNetCore.Http.FormFile;
 
 namespace ChatApplication.Storage;
 
@@ -27,7 +26,7 @@ public class InMemoryImageStore : IImageStore
     {
         if (string.IsNullOrWhiteSpace(id))
         {
-            return null;
+            throw new ArgumentException("Invalid id", nameof(id));  
         }
         return _images.TryGetValue(id, out var image) ? image : null;
     }

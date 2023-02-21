@@ -12,13 +12,20 @@
     &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryProfileStoreTests.AddNewProfile&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6903b519_002D3d39_002D4ad0_002Dba2b_002D388876da3213/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="UploadImage" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6903b519_002D3d39_002D4ad0_002Dba2b_002D388876da3213/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="UploadImage" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Controllers.ImagesControllerTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::4671F871-356F-4B9D-8873-0A8CC24D734A::net7.0::ChatApplication.Web.IntegrationTests.CosmosProfileStoreTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryImageStoreTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryProfileStoreTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Controllers.ProfileControllerTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::4671F871-356F-4B9D-8873-0A8CC24D734A::net7.0::ChatApplication.Web.IntegrationTests.BlobImageStoreTests.AddImage&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=75572b67_002Ddd12_002D4bd3_002D8330_002D9a80db77267d/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="AddImage" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::4671F871-356F-4B9D-8873-0A8CC24D734A::net7.0::ChatApplication.Web.IntegrationTests.BlobImageStoreTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Storage.InMemoryImageStoreTests.GetImage_InvalidArgs&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c46909bb_002D79fb_002D469c_002Da120_002Da0f78103e19e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="InMemoryProfileStoreTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;

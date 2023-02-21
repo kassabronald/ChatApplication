@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace ChatApplication.Storage;
 
@@ -12,13 +13,39 @@ public class BlobImageStore: IImageStore
     {
         _blobContainerClient = blobContainerClientClient;
     }
-    public Task<string?> AddImage(string blobName, MemoryStream data, string contentType)
+    public async Task<string?> AddImage(string blobName, MemoryStream data, string contentType)
     {
-        throw new NotImplementedException();
+        if(data==null || data.Length==0)
+            throw new ArgumentException("Data is empty", nameof(data));
+        if (contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/jpg")
+            throw new ArgumentException("Invalid content type", nameof(contentType));
+        var id = Guid.NewGuid().ToString();
+        BlobClient blobClient = _blobContainerClient.GetBlobClient(id);
+        BlobHttpHeaders headers = new BlobHttpHeaders
+        {
+            ContentType = contentType
+        };
+        data.Position = 0;
+        await blobClient.UploadAsync(data, headers);
+        return id;
     }
 
-    public Task<FileContentResult?> GetImage(string id)
+    public async Task<FileContentResult?> GetImage(string id)
     {
-        throw new NotImplementedException();
+        if (String.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentException("Invalid id", nameof(id));
+        }
+        var blobClient =  _blobContainerClient.GetBlobClient(id);
+        if(!await blobClient.ExistsAsync())
+            return null;
+        BlobProperties properties = await blobClient.GetPropertiesAsync();
+        var response = await blobClient.DownloadAsync();
+        
+        await using var memoryStream = new MemoryStream();
+        await response.Value.Content.CopyToAsync(memoryStream);
+        var bytes = memoryStream.ToArray();
+
+        return new FileContentResult(bytes, properties.ContentType);
     }
 }

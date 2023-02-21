@@ -49,7 +49,10 @@ public class InMemoryImageStoreTests
     [InlineData(" ")]
     public async Task GetImage_InvalidArgs(string id)
     {
-        Assert.Null( await _store.GetImage(id));
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+        {
+            await _store.GetImage(id);
+        });
         
     }
 
