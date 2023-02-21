@@ -49,4 +49,14 @@ public class InMemoryProfileStoreTests
     {
         Assert.Null(await _store.GetProfile("foobar"));
     }
+
+    [Fact]
+
+    public async Task DeleteProfile()
+    {
+        var profile = new Profile(username: "foobar", firstName: "Foo", lastName: "Bar", ProfilePictureId: "123");
+        await _store.AddProfile(profile);
+        await _store.DeleteProfile(profile.username);
+        Assert.Null(await _store.GetProfile(profile.username));
+    }
 }

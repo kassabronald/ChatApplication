@@ -440,3 +440,6 @@ C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\Ch
 C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web.IntegrationTests\obj\Debug\net7.0\ChatApplication.Web.IntegrationTests.pdb
 C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web.IntegrationTests\obj\Debug\net7.0\ChatApplication.Web.IntegrationTests.genruntimeconfig.cache
 C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web.IntegrationTests\obj\Debug\net7.0\ref\ChatApplication.Web.IntegrationTests.dll
+C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web.IntegrationTests\bin\Debug\net7.0\Azure.Storage.Blobs.dll
+C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web.IntegrationTests\bin\Debug\net7.0\Azure.Storage.Common.dll
+C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web.IntegrationTests\bin\Debug\net7.0\System.IO.Hashing.dll

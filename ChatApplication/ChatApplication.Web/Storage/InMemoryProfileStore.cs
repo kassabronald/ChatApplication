@@ -29,6 +29,12 @@ public class InMemoryProfileStore : IProfileStore
         if (!_profiles.ContainsKey(username)) return Task.FromResult<Profile?>(null);
         return Task.FromResult<Profile?>(_profiles[username]);
     }
+    
+    public Task DeleteProfile(string username)
+    {
+         _profiles.Remove(username);
+        return Task.CompletedTask;
+    }
 
     
 }

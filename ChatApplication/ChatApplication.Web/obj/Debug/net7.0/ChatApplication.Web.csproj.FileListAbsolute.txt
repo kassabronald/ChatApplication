@@ -97,3 +97,6 @@ C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\Ch
 C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Drawing.Common.dll
 C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
+C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web\bin\Debug\net7.0\Azure.Storage.Blobs.dll
+C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web\bin\Debug\net7.0\Azure.Storage.Common.dll
+C:\Users\kassa\Desktop\EECE\EECE 503E\Coding\Labs\LAB3\Coding\ChatApplication\ChatApplication\ChatApplication.Web\bin\Debug\net7.0\System.IO.Hashing.dll

@@ -21,9 +21,9 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
         return Task.CompletedTask;
     }
 
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
-        return Task.CompletedTask;
+        await _store.DeleteProfile(_profile.username);
     }
     
     public CosmosProfileStoreTests(WebApplicationFactory<Program> factory)
@@ -80,6 +80,25 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
 
         });
 
+    }
+
+    [Fact]
+
+    public async Task DeleteProfile()
+    {
+        await _store.AddProfile(_profile);
+        await _store.DeleteProfile(_profile.username);
+        Assert.Null(await _store.GetProfile(_profile.username));
+    }
+
+    [Fact]
+
+    public async Task DeleteEmptyProfile()
+    {
+        await Assert.ThrowsAsync<CosmosException>(async () =>
+        {
+            await _store.DeleteProfile("");
+        });
     }
     
 }

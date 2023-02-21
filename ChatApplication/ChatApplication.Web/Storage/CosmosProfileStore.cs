@@ -58,6 +58,26 @@ public class CosmosProfileStore : IProfileStore
             throw;
         }
     }
+    
+    public async Task DeleteProfile(string username)
+    {
+        try
+        {
+            await Container.DeleteItemAsync<Profile>(
+                id: username,
+                partitionKey: new PartitionKey(username)
+            );
+        }
+        catch (CosmosException e)
+        {
+            if (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                return;
+            }
+
+            throw;
+        }
+    }
     private ProfileEntity ToEntity(Profile profile)
     {
         return new ProfileEntity(
