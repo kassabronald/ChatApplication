@@ -80,7 +80,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
             ContentType = "image/jpeg"
         };
         var uploadRequest = new UploadImageRequest(file);
-        _imageStoreMock.Setup(m => m.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), It.IsAny<String>())).ReturnsAsync(imageId);
+        _imageStoreMock.Setup(m => m.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), "image/jpeg"));
         
         using var formData = new MultipartFormDataContent();
         var requestContent = new StreamContent(uploadRequest.File.OpenReadStream());
@@ -91,14 +91,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         var response = await _httpClient.PostAsync("/Images", formData);
         
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal("http://localhost/Images/123", response.Headers.Location?.ToString());
-        
-        var uploadImageResponseActual = new UploadImageResponse(imageId);
-        var json = await response.Content.ReadAsStringAsync();
-        var uploadImageResponseExpected = JsonConvert.DeserializeObject<UploadImageResponse>(json);
-        
-        Assert.Equal(uploadImageResponseExpected, uploadImageResponseActual);
-        _imageStoreMock.Verify(mock => mock.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Once);
+        _imageStoreMock.Verify(mock => mock.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), "image/jpeg"), Times.Once);
     }
     
     [Fact]
@@ -115,7 +108,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
             ContentType = "image/pdf"
         };
         var uploadRequest = new UploadImageRequest(file);
-        _imageStoreMock.Setup(m => m.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), It.IsAny<String>())).ReturnsAsync(imageId);
+        _imageStoreMock.Setup(m => m.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), It.IsAny<String>()));
         
         using var formData = new MultipartFormDataContent();
         formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
@@ -126,6 +119,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
 
         _imageStoreMock.Verify(mock => mock.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Never);
     }
+    
 
     
 }

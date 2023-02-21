@@ -19,9 +19,9 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
         return Task.CompletedTask;
     }
 
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
-        return Task.CompletedTask;
+        await _store.DeleteImage(blobName);
     }
     
     public BlobImageStoreTests(WebApplicationFactory<Program> factory)
@@ -33,8 +33,8 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
     
     public async Task AddImage()
     {
-        var picId = await _store.AddImage(blobName, _data, _contentType);
-        var actual = await _store.GetImage(picId);
+        await _store.AddImage(blobName, _data, _contentType);
+        var actual = await _store.GetImage(blobName);
         var actualData = new MemoryStream(actual!.FileContents);
         Assert.Equal(_data.ToArray(), actualData.ToArray());
         Assert.Equal(_contentType, actual.ContentType);
@@ -75,4 +75,25 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
             await _store.GetImage(id);
         });
     }
+    
+    [Fact]
+
+    public async Task DeleteProfile()
+    {
+        await _store.AddImage(blobName, _data, _contentType);
+        await _store.DeleteImage(blobName);
+        Assert.Null(await _store.GetImage(blobName));
+    }
+
+    [Fact]
+
+    public async Task DeleteEmptyProfile()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+        {
+            await _store.DeleteImage("");
+        });
+    }
+    
+    
 }

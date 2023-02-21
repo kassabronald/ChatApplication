@@ -13,8 +13,8 @@ public class InMemoryImageStoreTests
         var data = new MemoryStream();
         await data.WriteAsync(Encoding.UTF8.GetBytes("foobar"));
         var blobName = "foobar";
-        var id=await _store.AddImage(blobName, data, "image/jpeg");
-        var image = await _store.GetImage(id);
+        await _store.AddImage(blobName, data, "image/jpeg");
+        var image = await _store.GetImage(blobName);
         Assert.Equal(data.ToArray(), image.FileContents);
         Assert.Equal("image/jpeg", image.ContentType);
     }
@@ -54,6 +54,28 @@ public class InMemoryImageStoreTests
             await _store.GetImage(id);
         });
         
+    }
+    
+    [Fact]
+
+    public async Task DeleteProfile()
+    {
+        
+        var data = new MemoryStream();
+        await data.WriteAsync(Encoding.UTF8.GetBytes("foobar"));
+        await _store.AddImage("hello", data, "image/jpeg");
+        await _store.DeleteImage("hello");
+        Assert.Null(await _store.GetImage("hello"));
+    }
+
+    [Fact]
+
+    public async Task DeleteEmptyProfile()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+        {
+            await _store.DeleteImage("");
+        });
     }
 
     

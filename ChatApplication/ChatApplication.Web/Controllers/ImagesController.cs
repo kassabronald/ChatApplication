@@ -41,7 +41,8 @@ public class ImagesController : ControllerBase
         
         using var stream = new MemoryStream();
         await request.File.CopyToAsync(stream);
-        var id = await _imageStore.AddImage(request.File.FileName, stream, request.File.ContentType);
+        var id = Guid.NewGuid().ToString();
+        await _imageStore.AddImage(id, stream, request.File.ContentType);
         return CreatedAtAction(nameof(DownloadImage), new {id}, new UploadImageResponse(id));
     }
     

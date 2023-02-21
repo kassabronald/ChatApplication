@@ -13,21 +13,21 @@ public class BlobImageStore: IImageStore
     {
         _blobContainerClient = blobContainerClientClient;
     }
-    public async Task<string?> AddImage(string blobName, MemoryStream data, string contentType)
+    public async Task AddImage(string blobName, MemoryStream data, string contentType)
     {
         if(data==null || data.Length==0)
             throw new ArgumentException("Data is empty", nameof(data));
         if (contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/jpg")
             throw new ArgumentException("Invalid content type", nameof(contentType));
-        var id = Guid.NewGuid().ToString();
-        BlobClient blobClient = _blobContainerClient.GetBlobClient(id);
+        
+        BlobClient blobClient = _blobContainerClient.GetBlobClient(blobName);
         BlobHttpHeaders headers = new BlobHttpHeaders
         {
             ContentType = contentType
         };
         data.Position = 0;
         await blobClient.UploadAsync(data, headers);
-        return id;
+
     }
 
     public async Task<FileContentResult?> GetImage(string id)
@@ -47,5 +47,17 @@ public class BlobImageStore: IImageStore
         var bytes = memoryStream.ToArray();
 
         return new FileContentResult(bytes, properties.ContentType);
+    }
+    
+    public async Task DeleteImage(string id)
+    {
+        if (String.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentException("Invalid id", nameof(id));
+        }
+        var blobClient =  _blobContainerClient.GetBlobClient(id);
+        if(!await blobClient.ExistsAsync())
+            return;
+        await blobClient.DeleteAsync();
     }
 }

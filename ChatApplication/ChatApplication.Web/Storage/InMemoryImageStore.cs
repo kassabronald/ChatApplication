@@ -6,20 +6,15 @@ public class InMemoryImageStore : IImageStore
 {
     private readonly Dictionary<string, FileContentResult> _images = new();
 
-    public async Task<string?> AddImage(string blobName, MemoryStream data, string contentType)
+    public async Task AddImage(string blobName, MemoryStream data, string contentType)
     {
         if (data==null || data.Length==0 || string.IsNullOrWhiteSpace(blobName) || contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/jpg")
         {
             throw new ArgumentException($"Missing arguments");
         }
 
-        var id="";
-        while (_images.ContainsKey(id = Guid.NewGuid().ToString()))
-        {
-        }
 
-        _images.Add(id, new FileContentResult(data.ToArray(), contentType));
-        return id;
+        _images.Add(blobName, new FileContentResult(data.ToArray(), contentType));
     }
 
     public async Task<FileContentResult?> GetImage(string id)
@@ -29,5 +24,14 @@ public class InMemoryImageStore : IImageStore
             throw new ArgumentException("Invalid id", nameof(id));  
         }
         return _images.TryGetValue(id, out var image) ? image : null;
+    }
+    
+    public async Task DeleteImage(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentException("Invalid id", nameof(id));  
+        }
+        _images.Remove(id);
     }
 }
