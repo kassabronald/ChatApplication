@@ -1,4 +1,5 @@
-﻿using ChatApplication.Storage;
+﻿using ChatApplication.Services;
+using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,11 +12,13 @@ namespace ChatApplication.Controllers;
 public class ProfileController : ControllerBase
 
 {
-    private readonly IProfileStore _profileStore;
+    private readonly IProfileStore _profileStore; //just updates db
+    private readonly IProfileService _profileService; //does the logic
+    //Single responsibility principle
     
-    public ProfileController(IProfileStore profileStore)
+    public ProfileController(IProfileService profileService)
     {
-        _profileStore = profileStore;
+        _profileService = profileService;
     }
     
     
