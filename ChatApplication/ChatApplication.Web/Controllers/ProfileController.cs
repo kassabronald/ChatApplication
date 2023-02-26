@@ -12,7 +12,6 @@ namespace ChatApplication.Controllers;
 public class ProfileController : ControllerBase
 
 {
-    private readonly IProfileStore _profileStore; //just updates db
     private readonly IProfileService _profileService; //does the logic
     //Single responsibility principle
     
@@ -25,7 +24,8 @@ public class ProfileController : ControllerBase
     [HttpGet("{username}")]
     public async Task<ActionResult<Profile>> GetProfile(string username)
     {
-        var profile = await _profileStore.GetProfile(username);
+        
+        var profile = await _profileService.GetProfile(username);
         if (profile == null)
         {
             return NotFound($"A User with username {username} was not found");
@@ -36,12 +36,12 @@ public class ProfileController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Profile>> AddProfile(Profile profile)
     {
-        var existingProfile = await _profileStore.GetProfile(profile.username);
+        var existingProfile = await _profileService.GetProfile(profile.username);
         if (existingProfile != null)
         {
             return Conflict($"A user with username {profile.username} already exists");
         }
-        await _profileStore.AddProfile(profile);
+        await _profileService.AddProfile(profile);
         return CreatedAtAction(nameof(GetProfile), new {username = profile.username},
             profile);
 

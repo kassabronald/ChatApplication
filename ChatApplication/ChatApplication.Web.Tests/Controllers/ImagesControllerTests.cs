@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text;
+using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Components.Forms;
@@ -21,7 +22,7 @@ namespace ChatApplication.Web.Tests.Controllers;
 
 public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IImageStore> _imageStoreMock = new();
+    private readonly Mock<IImageService> _imageServiceMock = new();
     private readonly HttpClient _httpClient;
     
     public ImagesControllerTests(WebApplicationFactory<Program> factory)
@@ -31,7 +32,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
 
         _httpClient = factory.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureTestServices(services => { services.AddSingleton(_imageStoreMock.Object); });
+            builder.ConfigureTestServices(services => { services.AddSingleton(_imageServiceMock.Object); });
         }).CreateClient();
     }
 
@@ -46,7 +47,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         var imageId = "123";
         
         FileContentResult fileContentResultExpected = new(image, "image/jpeg");
-        _imageStoreMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(fileContentResultExpected);
+        _imageServiceMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(fileContentResultExpected);
         
         var response = await _httpClient.GetAsync($"/Images/{imageId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -80,7 +81,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
             ContentType = "image/jpeg"
         };
         var uploadRequest = new UploadImageRequest(file);
-        _imageStoreMock.Setup(m => m.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), "image/jpeg"));
+        _imageServiceMock.Setup(m => m.AddImage(It.IsAny<MemoryStream>(), "image/jpeg")).ReturnsAsync(imageId);
         
         using var formData = new MultipartFormDataContent();
         var requestContent = new StreamContent(uploadRequest.File.OpenReadStream());
@@ -91,7 +92,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         var response = await _httpClient.PostAsync("/Images", formData);
         
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        _imageStoreMock.Verify(mock => mock.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), "image/jpeg"), Times.Once);
+        _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), "image/jpeg"), Times.Once);
     }
     
     [Fact]
@@ -108,7 +109,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
             ContentType = "image/pdf"
         };
         var uploadRequest = new UploadImageRequest(file);
-        _imageStoreMock.Setup(m => m.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), It.IsAny<String>()));
+        _imageServiceMock.Setup(m => m.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()));
         
         using var formData = new MultipartFormDataContent();
         formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
@@ -117,7 +118,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-        _imageStoreMock.Verify(mock => mock.AddImage(It.IsAny<String>(), It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Never);
+        _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Never);
     }
     
 

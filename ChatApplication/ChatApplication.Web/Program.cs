@@ -1,5 +1,6 @@
 using Azure.Storage.Blobs;
 using ChatApplication.Configuration;
+using ChatApplication.Services;
 using ChatApplication.Storage;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
@@ -33,6 +34,9 @@ builder.Services.AddSingleton(sp =>
     var cosmosOptions = sp.GetRequiredService<IOptions<CosmosSettings>>();
     return new CosmosClient(cosmosOptions.Value.ConnectionString);
 });
+
+builder.Services.AddSingleton<IImageService, ImageService>();
+builder.Services.AddSingleton<IProfileService, ProfileService>();
 
 
 var app = builder.Build();

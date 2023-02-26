@@ -1,4 +1,5 @@
-﻿using ChatApplication.Storage;
+﻿using ChatApplication.Services;
+using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,16 +9,16 @@ namespace ChatApplication.Controllers;
 [Route("[controller]")]
 public class ImagesController : ControllerBase
 {
-    private readonly IImageStore _imageStore;
+    private readonly IImageService _imageService;
     
-    public ImagesController(IImageStore imageStore)
+    public ImagesController(IImageService imageService)
     {
-        _imageStore = imageStore;
+        _imageService = imageService;
     }
     [HttpGet("{id}")]
     public async Task<IActionResult> DownloadImage(string id)
     {
-        var image = await _imageStore.GetImage(id);
+        var image = await _imageService.GetImage(id);
         if (image == null)
         {
             return NotFound("Image not found");
@@ -41,8 +42,8 @@ public class ImagesController : ControllerBase
         
         using var stream = new MemoryStream();
         await request.File.CopyToAsync(stream);
-        var id = Guid.NewGuid().ToString();
-        await _imageStore.AddImage(id, stream, request.File.ContentType);
+        var id = await _imageService.AddImage(stream, request.File.ContentType);
+        
         return CreatedAtAction(nameof(DownloadImage), new {id}, new UploadImageResponse(id));
     }
     

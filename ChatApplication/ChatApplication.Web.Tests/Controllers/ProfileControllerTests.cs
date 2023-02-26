@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text;
+using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -14,14 +15,14 @@ namespace ChatApplication.Web.Tests.Controllers;
 
 public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IProfileStore> _profileStoreMock = new();
+    private readonly Mock<IProfileService> _profileServiceMock = new();
     private readonly HttpClient _httpClient;
     
     public ProfileControllerTests(WebApplicationFactory<Program> factory)
     {
         _httpClient = factory.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureTestServices(services => { services.AddSingleton(_profileStoreMock.Object); });
+            builder.ConfigureTestServices(services => { services.AddSingleton(_profileServiceMock.Object); });
         }).CreateClient();
     }
 
@@ -29,7 +30,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     public async Task GetProfile()
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
-        _profileStoreMock.Setup(m => m.GetProfile(profile.username))
+        _profileServiceMock.Setup(m => m.GetProfile(profile.username))
             .ReturnsAsync(profile);
         
         var response = await _httpClient.GetAsync($"/Profile/{profile.username}");
@@ -41,7 +42,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     [Fact]
     public async Task GetProfile_NotFound()
     {
-        _profileStoreMock.Setup(m => m.GetProfile("foobar"))
+        _profileServiceMock.Setup(m => m.GetProfile("foobar"))
             .ReturnsAsync((Profile?)null);
 
         var response = await _httpClient.GetAsync($"/Profile/foobar");
@@ -56,21 +57,21 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.Equal("http://localhost/Profile/foobar", response.Headers.GetValues("Location").First());
-        _profileStoreMock.Verify(mock => mock.AddProfile(profile), Times.Once);
+        _profileServiceMock.Verify(mock => mock.AddProfile(profile), Times.Once);
     }
     
     [Fact]
     public async Task AddProfile_Conflict()
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
-        _profileStoreMock.Setup(m => m.GetProfile(profile.username))
+        _profileServiceMock.Setup(m => m.GetProfile(profile.username))
             .ReturnsAsync(profile);
 
         var response = await _httpClient.PostAsync("/Profile",
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         
-        _profileStoreMock.Verify(m => m.AddProfile(profile), Times.Never);
+        _profileServiceMock.Verify(m => m.AddProfile(profile), Times.Never);
     }
     
     [Theory]
@@ -93,7 +94,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        _profileStoreMock.Verify(mock => mock.AddProfile(profile), Times.Never);
+        _profileServiceMock.Verify(mock => mock.AddProfile(profile), Times.Never);
     }
 
 }
