@@ -150,6 +150,37 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Never);
     }
     
+    
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData(null)]
+    
+
+
+    public async Task UploadImageBadRequestId(string id)
+    {
+        var image = new byte[] { 1, 2, 3, 4, 5 };
+        var imageId = id;
+        var fileName = "test.png";
+        var streamFile = new MemoryStream(image);
+        IFormFile file = new FormFile(streamFile, 0, streamFile.Length, "id_from_form", fileName)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "image/png"
+        };
+        var uploadRequest = new UploadImageRequest(file); 
+        _imageServiceMock.Setup(m => m.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()));
+            
+        using var formData = new MultipartFormDataContent(); 
+        formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
+        var response = await _httpClient.PostAsync("/Images", formData);
+        
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Never);
+    }
+    
 
     
 }
