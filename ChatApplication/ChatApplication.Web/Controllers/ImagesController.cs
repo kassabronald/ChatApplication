@@ -1,4 +1,5 @@
-﻿using ChatApplication.Services;
+﻿using ChatApplication.Exceptions;
+using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc;
@@ -18,12 +19,22 @@ public class ImagesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> DownloadImage(string id)
     {
-        var image = await _imageService.GetImage(id);
-        if (image == null)
+        FileContentResult? image;
+        try
+        {
+            image = await _imageService.GetImage(id);
+        }
+        catch(ArgumentException e)
+        {
+            return BadRequest("Invalid image id");
+        }
+        catch(ImageNotFoundException e)
         {
             return NotFound("Image not found");
         }
+
         return image;
+
 
 
     }
@@ -37,11 +48,10 @@ public class ImagesController : ControllerBase
         {
             return BadRequest("Only JPEG and PNG and JPG images are supported");
         }
-        
-        
-        
         using var stream = new MemoryStream();
         await request.File.CopyToAsync(stream);
+        if (stream.Length == 0)
+            return BadRequest("File is empty");
         var id = await _imageService.AddImage(stream, request.File.ContentType);
         
         return CreatedAtAction(nameof(DownloadImage), new {id}, new UploadImageResponse(id));

@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text;
+using ChatApplication.Exceptions;
 using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
@@ -63,6 +64,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     [Fact]
     public async Task GetImageNotFound()
     {
+        _imageServiceMock.Setup(m => m.GetImage("123")).ThrowsAsync(new ImageNotFoundException());
         var response = await _httpClient.GetAsync($"/Images/123");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -97,7 +99,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     
     [Fact]
     
-    public async Task UploadImageBadRequest()
+    public async Task UploadImageBadRequestContentType()
     {
         var image = new byte[] { 1, 2, 3, 4, 5 };
         var imageId = "123";
@@ -107,6 +109,33 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         {
             Headers = new HeaderDictionary(),
             ContentType = "image/pdf"
+        };
+        var uploadRequest = new UploadImageRequest(file);
+        _imageServiceMock.Setup(m => m.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()));
+        
+        using var formData = new MultipartFormDataContent();
+        formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
+        
+        var response = await _httpClient.PostAsync("/Images", formData);
+        
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Never);
+    }
+    
+    
+    [Fact]
+    
+    public async Task UploadImageBadRequestEmptyFile()
+    {
+        var image = new byte[] {};
+        var imageId = "123";
+        var fileName = "test.jpg";
+        var streamFile = new MemoryStream(image);
+        IFormFile file = new FormFile(streamFile, 0, streamFile.Length, "id_from_form", fileName)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "image/jpg"
         };
         var uploadRequest = new UploadImageRequest(file);
         _imageServiceMock.Setup(m => m.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()));

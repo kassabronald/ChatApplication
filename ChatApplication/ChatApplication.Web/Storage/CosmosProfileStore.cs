@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using ChatApplication.Exceptions;
 using ChatApplication.Storage.Entities;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
@@ -38,7 +39,7 @@ public class CosmosProfileStore : IProfileStore
         {
             if (e is CosmosException cosmosException && cosmosException.StatusCode == HttpStatusCode.Conflict)
             {
-                throw new ArgumentException($"Profile with username {profile.username} already exists", nameof(profile));
+                throw new ProfileAlreadyExistsException($"Profile with username {profile.username} already exists", nameof(profile));
             }
 
             throw;

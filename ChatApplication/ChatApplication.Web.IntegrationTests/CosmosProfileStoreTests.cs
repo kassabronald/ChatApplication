@@ -1,4 +1,5 @@
-﻿using ChatApplication.Storage;
+﻿using ChatApplication.Exceptions;
+using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
@@ -107,8 +108,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
     public async Task AddProfileAlreadyExisting()
     {
         await _store.AddProfile(_profile);
-        //change to alreadyExistingProfileException + add tests for other types of exceptions
-        await Assert.ThrowsAsync<ArgumentException>(async () =>
+        await Assert.ThrowsAsync<ProfileAlreadyExistsException>(async () =>
         {
             await _store.AddProfile(_profile);
         });

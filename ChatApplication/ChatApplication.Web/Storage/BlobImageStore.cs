@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using ChatApplication.Exceptions;
 
 namespace ChatApplication.Storage;
 
@@ -17,9 +18,7 @@ public class BlobImageStore: IImageStore
     {
         if(data==null || data.Length==0)
             throw new ArgumentException("Data is empty", nameof(data));
-        if (contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/jpg")
-            throw new ArgumentException("Invalid content type", nameof(contentType));
-        
+
         BlobClient blobClient = _blobContainerClient.GetBlobClient(blobName);
         BlobHttpHeaders headers = new BlobHttpHeaders
         {
@@ -38,7 +37,7 @@ public class BlobImageStore: IImageStore
         }
         var blobClient =  _blobContainerClient.GetBlobClient(id);
         if(!await blobClient.ExistsAsync())
-            return null;
+             throw new ImageNotFoundException("No image found for this id");
         BlobProperties properties = await blobClient.GetPropertiesAsync();
         var response = await blobClient.DownloadAsync();
         

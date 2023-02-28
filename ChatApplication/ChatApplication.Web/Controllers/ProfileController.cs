@@ -1,7 +1,9 @@
-﻿using ChatApplication.Services;
+﻿using ChatApplication.Exceptions;
+using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Cosmos;
 
 namespace ChatApplication.Controllers;
 
@@ -36,19 +38,17 @@ public class ProfileController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Profile>> AddProfile(Profile profile)
     {
-        // var existingProfile = await _profileService.GetProfile(profile.username);
-        // if (existingProfile != null)
-        // {
-        //     return Conflict($"A user with username {profile.username} already exists");
-        // }
-
         try
         {
             await _profileService.AddProfile(profile);
         }
-        catch (Exception e)
+        catch (ImageNotFoundException e)
         {
             return BadRequest("There are no corresponding images for the profile");
+        }
+        catch (ProfileAlreadyExistsException e)
+        {
+            return Conflict("A profile with this username already exists");
         }
         
         return CreatedAtAction(nameof(GetProfile), new {username = profile.username},

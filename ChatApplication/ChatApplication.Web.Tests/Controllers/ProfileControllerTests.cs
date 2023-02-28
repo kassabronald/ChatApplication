@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text;
+using ChatApplication.Exceptions;
 using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
@@ -65,14 +66,12 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     public async Task AddProfile_Conflict()
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
-        _profileServiceMock.Setup(m => m.GetProfile(profile.username))
-            .ReturnsAsync(profile);
+        _profileServiceMock.Setup(m => m.AddProfile(profile))
+            .ThrowsAsync(new ProfileAlreadyExistsException());
 
         var response = await _httpClient.PostAsync("/Profile",
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        
-        _profileServiceMock.Verify(m => m.AddProfile(profile), Times.Never);
     }
     
     [Theory]
@@ -104,7 +103,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         _profileServiceMock.Setup(m=> m.AddProfile(profile))
-            .ThrowsAsync(new ArgumentException());
+            .ThrowsAsync(new ImageNotFoundException());
         var response = await _httpClient.PostAsync("/Profile",
                 new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

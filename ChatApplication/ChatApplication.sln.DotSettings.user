@@ -60,6 +60,9 @@
     &lt;TestId&gt;xUnit::4671F871-356F-4B9D-8873-0A8CC24D734A::net7.0::ChatApplication.Web.IntegrationTests.CosmosProfileStoreTests.AddProfileAlreadyExisting&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::4671F871-356F-4B9D-8873-0A8CC24D734A::net7.0::ChatApplication.Web.IntegrationTests.CosmosProfileStoreTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Services.ProfileServiceTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::4671F871-356F-4B9D-8873-0A8CC24D734A::net7.0::ChatApplication.Web.IntegrationTests.BlobImageStoreTests.GetNonExistingImage&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::4671F871-356F-4B9D-8873-0A8CC24D734A::net7.0::ChatApplication.Web.IntegrationTests.BlobImageStoreTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EC7AF3BE-BB7F-4BBA-B754-3C06C2061F62::net7.0::ChatApplication.Web.Tests.Controllers.ProfileControllerTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c46909bb_002D79fb_002D469c_002Da120_002Da0f78103e19e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="InMemoryProfileStoreTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;

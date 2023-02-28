@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using ChatApplication.Exceptions;
 using ChatApplication.Storage;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -61,7 +62,8 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
     
     public async Task GetNonExistingImage()
     {
-        Assert.Null(await _store.GetImage("foobar"));
+        await Assert.ThrowsAsync<ImageNotFoundException>(
+            async () => await _store.GetImage("foobar"));
     }
     
     [Theory]
@@ -80,9 +82,13 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
 
     public async Task DeleteProfile()
     {
+        
         await _store.AddImage(blobName, _data, _contentType);
         await _store.DeleteImage(blobName);
-        Assert.Null(await _store.GetImage(blobName));
+        await Assert.ThrowsAsync<ImageNotFoundException>(async () =>
+        {
+            await _store.GetImage(blobName);
+        });
     }
 
     [Fact]

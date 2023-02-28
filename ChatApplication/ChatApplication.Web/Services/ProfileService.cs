@@ -1,5 +1,6 @@
 ﻿using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
+using Microsoft.Azure.Cosmos;
 
 namespace ChatApplication.Services;
 
@@ -17,18 +18,9 @@ public class ProfileService : IProfileService
     
     public async Task AddProfile(Profile profile)
     {
-        //should we add the ExistingProfile check here?
-        try
-        {
-            var imageContent = await _imageStore.GetImage(profile.ProfilePictureId);
-        }
-        catch (Exception e)
-        {
-            if(e is ArgumentException)
-                throw new ArgumentException($"Image with id {profile.ProfilePictureId} does not exist");
-            throw;
-        }
+        var imageContent = await _imageStore.GetImage(profile.ProfilePictureId);
         await _profileStore.AddProfile(profile);
+
     }
 
     public async Task<Profile?> GetProfile(string username)
