@@ -36,12 +36,21 @@ public class ProfileController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Profile>> AddProfile(Profile profile)
     {
-        var existingProfile = await _profileService.GetProfile(profile.username);
-        if (existingProfile != null)
+        // var existingProfile = await _profileService.GetProfile(profile.username);
+        // if (existingProfile != null)
+        // {
+        //     return Conflict($"A user with username {profile.username} already exists");
+        // }
+
+        try
         {
-            return Conflict($"A user with username {profile.username} already exists");
+            await _profileService.AddProfile(profile);
         }
-        await _profileService.AddProfile(profile);
+        catch (Exception e)
+        {
+            return BadRequest("There are no corresponding images for the profile");
+        }
+        
         return CreatedAtAction(nameof(GetProfile), new {username = profile.username},
             profile);
 

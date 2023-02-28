@@ -63,7 +63,7 @@ public class ProfileServiceTests
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         var image = new byte[]{0,1,2};
         _imageStoreMock.Setup(m => m.GetImage(profile.ProfilePictureId))
-            .ReturnsAsync((FileContentResult?)null);
+            .ThrowsAsync(new ArgumentException());
         await Assert.ThrowsAsync<ArgumentException>(async () =>
         {
             await _profileService.AddProfile(profile);

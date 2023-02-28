@@ -18,10 +18,15 @@ public class ProfileService : IProfileService
     public async Task AddProfile(Profile profile)
     {
         //should we add the ExistingProfile check here?
-        var imageContent = await _imageStore.GetImage(profile.ProfilePictureId);
-        if (imageContent == null)
+        try
         {
-            throw new ArgumentException($"Image with id {profile.ProfilePictureId} does not exist");
+            var imageContent = await _imageStore.GetImage(profile.ProfilePictureId);
+        }
+        catch (Exception e)
+        {
+            if(e is ArgumentException)
+                throw new ArgumentException($"Image with id {profile.ProfilePictureId} does not exist");
+            throw;
         }
         await _profileStore.AddProfile(profile);
     }

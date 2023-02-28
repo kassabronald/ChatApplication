@@ -3,6 +3,7 @@ using System.Text;
 using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -96,5 +97,17 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         _profileServiceMock.Verify(mock => mock.AddProfile(profile), Times.Never);
     }
+    
+    
+    [Fact]
+    public async Task AddProfile_InvalidImage()
+    {
+        var profile = new Profile("foobar", "Foo", "Bar", "12345");
+        _profileServiceMock.Setup(m=> m.AddProfile(profile))
+            .ThrowsAsync(new ArgumentException());
+        var response = await _httpClient.PostAsync("/Profile",
+                new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
 
 }

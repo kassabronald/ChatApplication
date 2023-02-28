@@ -100,5 +100,18 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
             await _store.DeleteProfile("");
         });
     }
+
+
+    [Fact]
+
+    public async Task AddProfileAlreadyExisting()
+    {
+        await _store.AddProfile(_profile);
+        //change to alreadyExistingProfileException + add tests for other types of exceptions
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+        {
+            await _store.AddProfile(_profile);
+        });
+    }
     
 }

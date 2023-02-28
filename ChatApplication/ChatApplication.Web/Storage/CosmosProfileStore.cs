@@ -30,7 +30,19 @@ public class CosmosProfileStore : IProfileStore
         }
 
         var entity = ToEntity(profile);
-        await Container.UpsertItemAsync(entity);
+        try
+        {
+            await Container.CreateItemAsync(entity);
+        }
+        catch (Exception e)
+        {
+            if (e is CosmosException cosmosException && cosmosException.StatusCode == HttpStatusCode.Conflict)
+            {
+                throw new ArgumentException($"Profile with username {profile.username} already exists", nameof(profile));
+            }
+
+            throw;
+        }
         
     }
 
