@@ -181,6 +181,16 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Never);
     }
     
+    
+    [Fact]
+    public async Task GetImageInvalidId()
+    {
+        _imageServiceMock.Setup(m => m.GetImage("123")).ThrowsAsync(new ArgumentException());
+        var response = await _httpClient.GetAsync($"/Images/123");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        
+    }
+    
 
     
 }
