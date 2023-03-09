@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ChatApplication.Utils;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApplication.Storage;
 
 public class InMemoryImageStore : IImageStore
 {
-    private readonly Dictionary<string, FileContentResult> _images = new();
+    private readonly Dictionary<string, ImageUtil> _images = new();
 
     public async Task AddImage(string blobName, MemoryStream data, string contentType)
     {
@@ -14,10 +15,10 @@ public class InMemoryImageStore : IImageStore
         }
 
 
-        _images.Add(blobName, new FileContentResult(data.ToArray(), contentType));
+        _images.Add(blobName, new ImageUtil(data.ToArray(), contentType));
     }
 
-    public async Task<FileContentResult?> GetImage(string id)
+    public async Task<ImageUtil?> GetImage(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
         {

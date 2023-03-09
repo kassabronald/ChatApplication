@@ -2,6 +2,7 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using ChatApplication.Exceptions;
+using ChatApplication.Utils;
 
 namespace ChatApplication.Storage;
 
@@ -29,8 +30,9 @@ public class BlobImageStore: IImageStore
 
     }
 
-    public async Task<FileContentResult?> GetImage(string id)
+    public async Task<ImageUtil?> GetImage(string id)
     {
+        
         if (String.IsNullOrWhiteSpace(id))
         {
             throw new ArgumentException("Invalid id", nameof(id));
@@ -45,7 +47,7 @@ public class BlobImageStore: IImageStore
         await response.Value.Content.CopyToAsync(memoryStream);
         var bytes = memoryStream.ToArray();
 
-        return new FileContentResult(bytes, properties.ContentType);
+        return new ImageUtil(bytes, properties.ContentType);
     }
     
     public async Task DeleteImage(string id)

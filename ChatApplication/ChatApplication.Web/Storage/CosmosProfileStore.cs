@@ -29,7 +29,6 @@ public class CosmosProfileStore : IProfileStore
         {
             throw new ArgumentException($"Invalid profile {profile}", nameof(profile));
         }
-
         var entity = ToEntity(profile);
         try
         {

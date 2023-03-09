@@ -1,4 +1,5 @@
-﻿using ChatApplication.Web.Dtos;
+﻿using ChatApplication.Utils;
+using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApplication.Storage;
@@ -6,6 +7,6 @@ namespace ChatApplication.Storage;
 public interface IImageStore
 {
     Task AddImage(string blobName, MemoryStream data, string contentType);
-    Task<FileContentResult?> GetImage(string id);
+    Task<ImageUtil?> GetImage(string id);
     Task DeleteImage(string id);
 }

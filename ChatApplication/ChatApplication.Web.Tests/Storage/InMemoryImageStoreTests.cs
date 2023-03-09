@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using ChatApplication.Storage;
+using ChatApplication.Utils;
 
 namespace ChatApplication.Web.Tests.Storage;
 
@@ -15,8 +16,8 @@ public class InMemoryImageStoreTests
         var blobName = "foobar";
         await _store.AddImage(blobName, data, "image/jpeg");
         var image = await _store.GetImage(blobName);
-        Assert.Equal(data.ToArray(), image.FileContents);
-        Assert.Equal("image/jpeg", image.ContentType);
+        Assert.Equal(data.ToArray(), image._imageData);
+        Assert.Equal("image/jpeg", image._contentType);
     }
     
     [Fact]

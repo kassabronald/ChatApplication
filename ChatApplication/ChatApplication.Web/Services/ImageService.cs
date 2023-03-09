@@ -1,4 +1,5 @@
 ﻿using ChatApplication.Storage;
+using ChatApplication.Utils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApplication.Services;
@@ -18,7 +19,7 @@ public class ImageService : IImageService
         return id;
     }
 
-    public async Task<FileContentResult?> GetImage(string id)
+    public async Task<ImageUtil?> GetImage(string id)
     {
         return await _imageStore.GetImage(id);
     }

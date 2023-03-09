@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using ChatApplication.Exceptions;
 using ChatApplication.Storage;
+using ChatApplication.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,8 +9,6 @@ namespace ChatApplication.Web.IntegrationTests;
 
 public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
-    
-    
     private readonly IImageStore _store;
     private readonly string blobName = Guid.NewGuid().ToString();
     private readonly MemoryStream _data = new(new byte[] { 1, 2, 3 });
@@ -36,9 +35,9 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
     {
         await _store.AddImage(blobName, _data, _contentType);
         var actual = await _store.GetImage(blobName);
-        var actualData = new MemoryStream(actual!.FileContents);
+        var actualData = new MemoryStream(actual!._imageData);
         Assert.Equal(_data.ToArray(), actualData.ToArray());
-        Assert.Equal(_contentType, actual.ContentType);
+        Assert.Equal(_contentType, actual._contentType);
     }
     
     [Theory]

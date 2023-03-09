@@ -1,4 +1,5 @@
 ﻿using ChatApplication.Storage;
+using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
 

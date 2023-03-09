@@ -3,6 +3,7 @@ using System.Text;
 using ChatApplication.Exceptions;
 using ChatApplication.Services;
 using ChatApplication.Storage;
+using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
@@ -47,8 +48,8 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         var image = new byte[] {1, 2, 3, 4, 5};
         var imageId = "123";
         
-        FileContentResult fileContentResultExpected = new(image, "image/jpeg");
-        _imageServiceMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(fileContentResultExpected);
+        ImageUtil ExpectedImageUtil = new(image, "image/jpeg");
+        _imageServiceMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(ExpectedImageUtil);
         
         var response = await _httpClient.GetAsync($"/Images/{imageId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -56,8 +57,8 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         var contentActual = await response.Content.ReadAsByteArrayAsync();
         var contentTypeActual = response.Content.Headers.ContentType?.ToString();
         
-        Assert.Equal(fileContentResultExpected.FileContents, contentActual);
-        Assert.Equal(fileContentResultExpected.ContentType, contentTypeActual);
+        Assert.Equal(ExpectedImageUtil._imageData, contentActual);
+        Assert.Equal(ExpectedImageUtil._contentType, contentTypeActual);
         
     }
 

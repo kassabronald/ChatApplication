@@ -44,15 +44,13 @@ public class ProfileController : ControllerBase
         }
         catch (ImageNotFoundException e)
         {
-            return BadRequest("There are no corresponding images for the profile");
+            return BadRequest($"There are no corresponding images for the profile with username: {profile.username}");
         }
         catch (ProfileAlreadyExistsException e)
         {
-            return Conflict("A profile with this username already exists");
+            return Conflict($"A profile with username {profile.username} already exists");
         }
-        
         return CreatedAtAction(nameof(GetProfile), new {username = profile.username},
             profile);
-
     }
 }

@@ -2,6 +2,7 @@
 using System.Net;
 using ChatApplication.Services;
 using ChatApplication.Storage;
+using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -51,7 +52,7 @@ public class ProfileServiceTests
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         var image = new byte[]{0,1,2};
         _imageStoreMock.Setup(m => m.GetImage(profile.ProfilePictureId))
-            .ReturnsAsync(new FileContentResult(image, "image/png"));
+            .ReturnsAsync(new ImageUtil(image, "image/png"));
         _profileStoreMock.Setup(m => m.AddProfile(profile));
         await _profileService.AddProfile(profile);
         _profileStoreMock.Verify(mock => mock.AddProfile(profile), Times.Once);
