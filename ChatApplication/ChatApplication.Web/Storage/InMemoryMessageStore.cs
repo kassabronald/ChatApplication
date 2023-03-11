@@ -7,7 +7,7 @@ namespace ChatApplication.Storage;
 public class InMemoryMessageStore : IMessageStore
 {
     private readonly Dictionary<string, KeyValuePair<Message, UnixTime>> _messages = new();
-    public Task<UnixTime> AddMessage(Message message)
+    public async Task AddMessage(Message message)
     {
         if (message == null ||
             string.IsNullOrWhiteSpace(message.messageId) ||
@@ -25,6 +25,19 @@ public class InMemoryMessageStore : IMessageStore
         
         UnixTime time= new(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         _messages[message.messageId] = new(message, time);
-        return Task.FromResult(time);
+    }
+    
+    
+    //may be wrong implementation
+    public Task<Message[]> GetConversationMessages(string conversationId)
+    {
+        if (string.IsNullOrWhiteSpace(conversationId))
+        {
+            throw new ArgumentException($"Invalid conversation id {conversationId}", nameof(conversationId));
+        }
+        return Task.FromResult(_messages.Values
+            .Where(pair => pair.Key.conversationId == conversationId)
+            .Select(pair => pair.Key)
+            .ToArray());
     }
 }

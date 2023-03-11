@@ -1,3 +1,4 @@
+using System.Net;
 using ChatApplication.Exceptions;
 using ChatApplication.Services;
 using ChatApplication.Utils;
@@ -62,5 +63,35 @@ public class ConversationsController : ControllerBase
         }
         return Created($"conversations/{conversationId}/messages", new MessageResponse(timeSent.timestamp));
     }
+    
+    //post to create a conversationi
+    [HttpPost("conversations")]
+    public async Task<ActionResult<ConversationResponse>> CreateConversation(ConversationRequest conversationRequest)
+    {
+        if (String.IsNullOrWhiteSpace(conversationRequest.conversationId))
+        {
+            return BadRequest($"Conversation id is missing");
+        }
+        if (conversationRequest.participants == null || conversationRequest.participants.Length == 0)
+        {
+            return BadRequest($"Participants for the conversation with id : {conversationRequest.conversationId} are missing");
+        }
+        var conversation = new Conversation(conversationRequest.conversationId, conversationRequest.participants);
+        try
+        {
+            await _conversationService.CreateConversation(conversation);
+        }
+        catch (ConversationAlreadyExistsException)
+        {
+            return Conflict($"A conversation with id : {conversation.conversationId} already exists ");
+        }
+        catch (Exception)
+        {
+            return BadRequest("Bad request");
+        }
+        return Created($"conversations/{conversation.conversationId}", new ConversationResponse(conversation.conversationId));
+    }
+    
+    
     
 }

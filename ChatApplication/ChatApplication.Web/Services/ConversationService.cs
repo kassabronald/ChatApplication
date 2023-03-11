@@ -13,8 +13,17 @@ public class ConversationService : IConversationService
     {
         _messageStore = messageStore;
     }
-    public Task<UnixTime> AddMessage(Message message)
+    public async Task<UnixTime> AddMessage(Message message)
     {
-        return _messageStore.AddMessage(message);
+        await _messageStore.GetConversation(message.conversationId);
+        DateTimeOffset time = DateTimeOffset.UtcNow;
+        await _messageStore.ChangeMessageTime(message.messageId, time.ToUnixTimeSeconds());
+        await _messageStore.AddMessage(message);
+        return UnixTime(time.ToUnixTimeSeconds());
+    }
+    
+    public async Task<Message[]> GetConversationMessages(string conversationId)
+    {
+        return await _messageStore.GetConversationMessages(conversationId);
     }
 }

@@ -12,6 +12,9 @@ public interface IMessageStore
     /// <returns></returns>
     /// <throws><b>ConversationNotFoundException </b> if conversationId is not found<br></br> <br></br></throws>
     /// <throws><b>MessageAlreadyExistsException</b> if messageId already exists</throws>
-    Task<UnixTime> AddMessage(Message message);
+    Task AddMessage(Message message);
+    
+    
+    Task<Message[]> GetConversationMessages(string conversationId);
     
 }

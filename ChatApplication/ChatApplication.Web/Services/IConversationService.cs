@@ -6,4 +6,7 @@ namespace ChatApplication.Services;
 public interface IConversationService
 {
     Task<UnixTime> AddMessage(Message message);
+    
+    
+    
 }

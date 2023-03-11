@@ -20,30 +20,62 @@ public class CosmosMessageStore: IMessageStore
     private Container MessageContainer => _cosmosClient.GetDatabase("MainDatabase").GetContainer("Messages");
     private Container ConversationContainer => _cosmosClient.GetDatabase("MainDatabase").GetContainer("Conversations");
 
-    public async Task<UnixTime> AddMessage(Message message)
+    public async Task<Conversation> GetConversation(string conversationId)
     {
-        DateTime currentTime = DateTime.UtcNow;
-        long unixTime = ((DateTimeOffset)currentTime).ToUnixTimeSeconds();
         try
         {
-            var conversation = await ConversationContainer.ReadItemAsync<ConversationEntity>(message.conversationId,
-                new PartitionKey(message.conversationId) ,
+            var conversation = await ConversationContainer.ReadItemAsync<ConversationEntity>(conversationId,
+                new PartitionKey(conversationId) ,
                 new ItemRequestOptions
                 {
                     ConsistencyLevel = ConsistencyLevel.Session 
                 });
-            conversation.Resource.lastMessageTime = unixTime;
-            await ConversationContainer.ReplaceItemAsync(conversation.Resource, message.conversationId, new PartitionKey(message.conversationId));
+            return ToConversation(conversation.Resource);
+        }
+        catch(CosmosException e)
+        {
+            if (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new ConversationNotFoundException();
+            }
+
+            throw;
+        }
+    }
+
+
+    private Conversation ToConversation(ConversationEntity conversationEntity)
+    {
+        return new Conversation(
+            conversationEntity.id,
+            conversationEntity.Participants,
+            conversationEntity.lastMessageTime
+        );
+    }
+
+    public async Task ChangeConversationLastMessageTime(Conversation conversation, long lastMessageTime)
+    {
+        try
+        {
+            conversation.lastMessageTime = lastMessageTime;
+            await ConversationContainer.ReplaceItemAsync(conversation, conversation.conversationId,
+                new PartitionKey(conversation.conversationId));
         }
         catch (CosmosException e)
         {
             if (e.StatusCode == HttpStatusCode.NotFound)
             {
-                //TODO: IMPLEMENT
                 throw new ConversationNotFoundException();
             }
+
             throw;
         }
+    }
+
+    public async Task AddMessage(Message message)
+    {
+        
+        
         var entity = toEntity(message);
         try
         {
@@ -59,7 +91,7 @@ public class CosmosMessageStore: IMessageStore
             throw;
         }
         
-        return new UnixTime(unixTime);
+        
     }
 
     private MessageEntity toEntity(Message message)
@@ -70,4 +102,33 @@ public class CosmosMessageStore: IMessageStore
             SenderUsername: message.senderUsername,
             MessageContent: message.messageContent);
     }
+    
+    public async Task<Message[]> GetConversationMessages(string conversationId)
+    {
+        //get elements with same partition key from MessageContainer
+        var query = MessageContainer.GetItemQueryIterator<MessageEntity>(
+            new QueryDefinition("SELECT * FROM Conversaions WHERE Conversations.partitionKey = @partitionKey")
+                .WithParameter("@partitionKey", conversationId));
+        var messages = new List<Message>();
+        while (query.HasMoreResults)
+        {
+            var response = await query.ReadNextAsync();
+            foreach (var entity in response)
+            {
+                messages.Add(toMessage(entity));
+            }
+        }
+
+        return messages.ToArray();
+    }
+    private Message toMessage(MessageEntity entity)
+    {
+        return new Message(
+            messageId: entity.id,
+            senderUsername: entity.SenderUsername,
+            messageContent: entity.MessageContent,
+            conversationId: entity.partitionKey);
+    }
+    
+    
 };
