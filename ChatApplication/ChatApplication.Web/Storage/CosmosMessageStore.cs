@@ -53,11 +53,11 @@ public class CosmosMessageStore: IMessageStore
         );
     }
 
-    public async Task ChangeConversationLastMessageTime(Conversation conversation, long lastMessageTime)
+    public async Task ChangeConversationLastMessageTime(Conversation conversation, UnixTime lastMessageTime)
     {
         try
         {
-            conversation.lastMessageTime = lastMessageTime;
+            conversation.lastMessageTime = lastMessageTime.timestamp;
             await ConversationContainer.ReplaceItemAsync(conversation, conversation.conversationId,
                 new PartitionKey(conversation.conversationId));
         }

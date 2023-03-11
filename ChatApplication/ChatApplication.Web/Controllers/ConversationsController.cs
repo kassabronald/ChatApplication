@@ -49,7 +49,7 @@ public class ConversationsController : ControllerBase
         
     }
     
-    //post to create a conversationi
+
     [HttpPost("conversations")]
     public async Task<ActionResult<ConversationResponse>> CreateConversation(ConversationRequest conversationRequest)
     {

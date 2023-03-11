@@ -17,4 +17,8 @@ public interface IMessageStore
     
     Task<Message[]> GetConversationMessages(string conversationId);
     
+    Task<Conversation> GetConversation(string conversationId);
+    
+    Task ChangeConversationLastMessageTime(Conversation conversaiton, UnixTime time);
+    
 }

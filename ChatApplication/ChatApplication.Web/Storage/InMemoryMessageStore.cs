@@ -40,4 +40,14 @@ public class InMemoryMessageStore : IMessageStore
             .Select(pair => pair.Key)
             .ToArray());
     }
+    
+    public Task<Conversation> GetConversation(string conversationId)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public Task ChangeConversationLastMessageTime(Conversation conversaiton, UnixTime time)
+    {
+        throw new NotImplementedException();
+    }
 }
