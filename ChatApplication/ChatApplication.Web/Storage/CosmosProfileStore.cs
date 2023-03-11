@@ -40,10 +40,8 @@ public class CosmosProfileStore : IProfileStore
             {
                 throw new ProfileAlreadyExistsException($"Profile with username {profile.username} already exists", nameof(profile));
             }
-
             throw;
         }
-        
     }
 
     public async Task<Profile?> GetProfile(string username)
@@ -110,5 +108,4 @@ public class CosmosProfileStore : IProfileStore
             entity.ProfilePictureId
         );
     }
-    
 }
