@@ -15,11 +15,11 @@ public class ConversationService : IConversationService
     }
     public async Task<UnixTime> AddMessage(Message message)
     {
-        await _messageStore.GetConversation(message.conversationId);
+        var conversation = await _messageStore.GetConversation(message.conversationId);
         DateTimeOffset time = DateTimeOffset.UtcNow;
-        await _messageStore.ChangeMessageTime(message.messageId, time.ToUnixTimeSeconds());
+        await _messageStore.ChangeConversationLastMessageTime(conversation, time.ToUnixTimeSeconds());
         await _messageStore.AddMessage(message);
-        return UnixTime(time.ToUnixTimeSeconds());
+        return new UnixTime(time.ToUnixTimeSeconds());
     }
     
     public async Task<Message[]> GetConversationMessages(string conversationId)

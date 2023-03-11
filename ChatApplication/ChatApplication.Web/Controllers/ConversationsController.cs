@@ -49,32 +49,10 @@ public class ConversationsController : ControllerBase
         
     }
     
-    //post to create a conversationi
     [HttpPost("conversations")]
-    public async Task<ActionResult<ConversationResponse>> CreateConversation(ConversationRequest conversationRequest)
+    public async Task<ActionResult<StartConversationResponse>> CreateConversation(StartConversationRequest conversationRequest)
     {
-        if (String.IsNullOrWhiteSpace(conversationRequest.conversationId))
-        {
-            return BadRequest($"Conversation id is missing");
-        }
-        if (conversationRequest.participants == null || conversationRequest.participants.Length == 0)
-        {
-            return BadRequest($"Participants for the conversation with id : {conversationRequest.conversationId} are missing");
-        }
-        var conversation = new Conversation(conversationRequest.conversationId, conversationRequest.participants);
-        try
-        {
-            await _conversationService.CreateConversation(conversation);
-        }
-        catch (ConversationAlreadyExistsException)
-        {
-            return Conflict($"A conversation with id : {conversation.conversationId} already exists ");
-        }
-        catch (Exception)
-        {
-            return BadRequest("Bad request");
-        }
-        return Created($"conversations/{conversation.conversationId}", new ConversationResponse(conversation.conversationId));
+        return Ok();
     }
     
     
