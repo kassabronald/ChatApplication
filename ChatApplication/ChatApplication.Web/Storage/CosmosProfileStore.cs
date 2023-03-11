@@ -38,7 +38,7 @@ public class CosmosProfileStore : IProfileStore
         {
             if (e is CosmosException cosmosException && cosmosException.StatusCode == HttpStatusCode.Conflict)
             {
-                throw new ProfileAlreadyExistsException($"Profile with username {profile.username} already exists", nameof(profile));
+                throw new ProfileAlreadyExistsException($"Profile with username {profile.username} already exists");
             }
 
             throw;

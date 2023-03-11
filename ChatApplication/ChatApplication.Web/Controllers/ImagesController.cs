@@ -47,13 +47,13 @@ public class ImagesController : ControllerBase
         
         if (contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/jpg")
         {
-            return BadRequest("Only JPEG and PNG and JPG images are supported");
+            return BadRequest($"Only JPEG and PNG and JPG images are supported, not {contentType}");
         }
         using var stream = new MemoryStream();
         await request.File.CopyToAsync(stream);
         if (stream.Length == 0)
         {
-            return BadRequest("File is empty");
+            return BadRequest($"File {request.File.FileName} is empty");
         }
         var id = await _imageService.AddImage(stream, request.File.ContentType);
         
