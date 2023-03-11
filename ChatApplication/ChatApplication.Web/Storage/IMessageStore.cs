@@ -14,11 +14,12 @@ public interface IMessageStore
     /// <throws><b>MessageAlreadyExistsException</b> if messageId already exists</throws>
     Task AddMessage(Message message);
     
-    
     Task<Message[]> GetConversationMessages(string conversationId);
     
     Task<Conversation> GetConversation(string conversationId);
     
-    Task ChangeConversationLastMessageTime(Conversation conversaiton, UnixTime time);
+
+    Task ChangeConversationLastMessageTime(Conversation conversation, UnixTime lastMessageTime);
+
     
 }
