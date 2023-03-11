@@ -44,8 +44,6 @@ public class CosmosMessageStore: IMessageStore
             }
             throw;
         }
-        
-        
         var entity = toEntity(message);
         try
         {

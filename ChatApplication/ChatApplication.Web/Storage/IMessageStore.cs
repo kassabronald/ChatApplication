@@ -10,7 +10,8 @@ public interface IMessageStore
     /// </summary>
     /// <param name="message"></param>
     /// <returns></returns>
-    /// <throws>ChatApplication.Exceptions.ConversationNotFoundException</throws>
-    /// <throws>ChatApplication.Exceptions.MessageAlreadyExistsException</throws>
+    /// <throws><b>ConversationNotFoundException </b> if conversationId is not found<br></br> <br></br></throws>
+    /// <throws><b>MessageAlreadyExistsException</b> if messageId already exists</throws>
     Task<UnixTime> AddMessage(Message message);
+    
 }
