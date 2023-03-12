@@ -7,19 +7,17 @@ namespace ChatApplication.Services;
 public class ConversationService : IConversationService
 {
     private readonly IMessageStore _messageStore;
-    
-    
-    public ConversationService(IMessageStore messageStore)
+    private readonly IConversationStore _conversationStore;
+    public ConversationService(IMessageStore messageStore, IConversationStore conversationStore)
     {
         _messageStore = messageStore;
+        _conversationStore = conversationStore;
     }
-    public async Task<UnixTime> AddMessage(Message message)
+    public async Task AddMessage(Message message)
     {
-        var conversation = await _messageStore.GetConversation(message.conversationId);
-        DateTimeOffset time = DateTimeOffset.UtcNow;
-        await _messageStore.ChangeConversationLastMessageTime(conversation, new UnixTime(time.ToUnixTimeSeconds()));
+        var conversation = await _conversationStore.GetConversation(message.conversationId);
+        await _conversationStore.ChangeConversationLastMessageTime(conversation, message.createdUnixTime);
         await _messageStore.AddMessage(message);
-        return new UnixTime(time.ToUnixTimeSeconds());
     }
     
     public async Task<Message[]> GetConversationMessages(string conversationId)

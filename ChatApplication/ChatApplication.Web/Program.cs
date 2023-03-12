@@ -27,7 +27,7 @@ builder.Services.AddSingleton(sp =>
     return new BlobContainerClient(blobOptions.Value.ConnectionString, blobOptions.Value.ContainerName);
 });
 
-
+builder.Services.AddSingleton<IMessageStore, CosmosMessageStore>();
 builder.Services.AddSingleton<IProfileStore, CosmosProfileStore>();
 builder.Services.AddSingleton(sp =>
 {

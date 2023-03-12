@@ -16,66 +16,9 @@ public class CosmosMessageStore: IMessageStore
     {
         _cosmosClient = cosmosClient;
     }
-    
     private Container MessageContainer => _cosmosClient.GetDatabase("MainDatabase").GetContainer("Messages");
-    private Container ConversationContainer => _cosmosClient.GetDatabase("MainDatabase").GetContainer("Conversations");
-
-    public async Task<Conversation> GetConversation(string conversationId)
-    {
-        try
-        {
-            var conversation = await ConversationContainer.ReadItemAsync<ConversationEntity>(conversationId,
-                new PartitionKey(conversationId) ,
-                new ItemRequestOptions
-                {
-                    ConsistencyLevel = ConsistencyLevel.Session 
-                });
-            return ToConversation(conversation.Resource);
-        }
-        catch(CosmosException e)
-        {
-            if (e.StatusCode == HttpStatusCode.NotFound)
-            {
-                throw new ConversationNotFoundException();
-            }
-
-            throw;
-        }
-    }
-
-
-    private Conversation ToConversation(ConversationEntity conversationEntity)
-    {
-        return new Conversation(
-            conversationEntity.id,
-            conversationEntity.Participants,
-            conversationEntity.lastMessageTime
-        );
-    }
-
-    public async Task ChangeConversationLastMessageTime(Conversation conversation, UnixTime lastMessageTime)
-    {
-        try
-        {
-            conversation.lastMessageTime = lastMessageTime.timestamp;
-            await ConversationContainer.ReplaceItemAsync(conversation, conversation.conversationId,
-                new PartitionKey(conversation.conversationId));
-        }
-        catch (CosmosException e)
-        {
-            if (e.StatusCode == HttpStatusCode.NotFound)
-            {
-                throw new ConversationNotFoundException();
-            }
-
-            throw;
-        }
-    }
-
     public async Task AddMessage(Message message)
     {
-        
-        
         var entity = toEntity(message);
         try
         {
@@ -87,27 +30,31 @@ public class CosmosMessageStore: IMessageStore
             {
                 throw new MessageAlreadyExistsException($"Message with id {message.messageId} already exists");
             }
-
             throw;
         }
-        
-        
     }
-
-    private MessageEntity toEntity(Message message)
+    public async Task DeleteMessage(Message message)
     {
-        return new MessageEntity(
-            partitionKey: message.conversationId,
-            id: message.messageId,
-            SenderUsername: message.senderUsername,
-            MessageContent: message.messageContent);
+        try
+        {
+            await MessageContainer.DeleteItemAsync<Message>(
+                id: message.messageId,
+                partitionKey: new PartitionKey(message.conversationId)
+            );
+        }
+        catch (CosmosException e)
+        {
+            if (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                return;
+            }
+            throw;
+        }
     }
-    
     public async Task<Message[]> GetConversationMessages(string conversationId)
     {
-        //get elements with same partition key from MessageContainer
         var query = MessageContainer.GetItemQueryIterator<MessageEntity>(
-            new QueryDefinition("SELECT * FROM Conversaions WHERE Conversations.partitionKey = @partitionKey")
+            new QueryDefinition("SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey ORDER BY Messages.CreatedUnixTime DESC")
                 .WithParameter("@partitionKey", conversationId));
         var messages = new List<Message>();
         while (query.HasMoreResults)
@@ -118,7 +65,6 @@ public class CosmosMessageStore: IMessageStore
                 messages.Add(toMessage(entity));
             }
         }
-
         return messages.ToArray();
     }
     private Message toMessage(MessageEntity entity)
@@ -127,8 +73,17 @@ public class CosmosMessageStore: IMessageStore
             messageId: entity.id,
             senderUsername: entity.SenderUsername,
             messageContent: entity.MessageContent,
+            createdUnixTime: entity.CreatedUnixTime,
             conversationId: entity.partitionKey);
     }
     
-    
+    private MessageEntity toEntity(Message message)
+    {
+        return new MessageEntity(
+            partitionKey: message.conversationId,
+            id: message.messageId,
+            SenderUsername: message.senderUsername,
+            CreatedUnixTime:message.createdUnixTime,
+            MessageContent: message.messageContent);
+    }
 };

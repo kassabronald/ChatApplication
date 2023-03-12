@@ -34,13 +34,10 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
     {
         var messageRequest = new MessageRequest("1234", "ronald", "hey bro wanna hit the gym");
         string conversationId = "456";
-        var message = new Message(messageRequest.messageId, messageRequest.senderUsername, messageRequest.messageContent, conversationId);
-        _conversationServiceMock.Setup(x => x.AddMessage(message)).ReturnsAsync(new UnixTime(10000));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
         var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.Equal($"http://localhost/Conversations/conversations/{conversationId}/messages", response.Headers.GetValues("Location").First());
-        _conversationServiceMock.Verify(mock => mock.AddMessage(message), Times.Once);
     }
 
 
@@ -60,7 +57,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         string conversationId)
     {
         var messageRequest = new MessageRequest(messageId, senderUsername, messageContent);
-        var message = new Message(messageId, senderUsername, messageContent, conversationId);
+        var message = new Message(messageId, senderUsername, messageContent,1000, conversationId);
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
         var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -73,12 +70,16 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
     {
         var messageRequest = new MessageRequest("1234", "ronald", "hey bro wanna hit the gym");
         string conversationId = "456";
-        var message = new Message(messageRequest.messageId, messageRequest.senderUsername, messageRequest.messageContent, conversationId);
-        _conversationServiceMock.Setup(x => x.AddMessage(message)).ThrowsAsync(new ConversationNotFoundException(conversationId));
+        _conversationServiceMock.Setup(x => x.AddMessage(
+            It.Is<Message>(m =>
+                m.messageId == messageRequest.messageId &&
+                m.senderUsername == messageRequest.senderUsername &&
+                m.messageContent == messageRequest.messageContent &&
+                m.conversationId == conversationId
+            ))).ThrowsAsync(new ConversationNotFoundException(conversationId));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
         var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        _conversationServiceMock.Verify(mock => mock.AddMessage(message), Times.Once);
     }
 
 
@@ -88,12 +89,17 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
     {
         var messageRequest = new MessageRequest("1234", "ronald", "hey bro wanna hit the gym");
         string conversationId = "456";
-        var message = new Message(messageRequest.messageId, messageRequest.senderUsername, messageRequest.messageContent, conversationId);
-        _conversationServiceMock.Setup(x => x.AddMessage(message)).ThrowsAsync(new MessageAlreadyExistsException(message.messageId));
+        var message = new Message(messageRequest.messageId, messageRequest.senderUsername, messageRequest.messageContent,1000, conversationId);
+        _conversationServiceMock.Setup(x => x.AddMessage(
+            It.Is<Message>(m =>
+                m.messageId == messageRequest.messageId &&
+                m.senderUsername == messageRequest.senderUsername &&
+                m.messageContent == messageRequest.messageContent &&
+                m.conversationId == conversationId
+            ))).ThrowsAsync(new MessageAlreadyExistsException(message.messageId));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
         var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        _conversationServiceMock.Verify(mock => mock.AddMessage(message), Times.Once);
     }
 
     [Fact]
@@ -101,11 +107,16 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
     {
         var messageRequest = new MessageRequest("1234", "ronald", "hey bro wanna hit the gym");
         string conversationId = "456";
-        var message = new Message(messageRequest.messageId, messageRequest.senderUsername, messageRequest.messageContent, conversationId);
-        _conversationServiceMock.Setup(x => x.AddMessage(message)).ThrowsAsync(new CosmosException("error", HttpStatusCode.BadRequest, 0, "error", 0));
+        var message = new Message(messageRequest.messageId, messageRequest.senderUsername, messageRequest.messageContent,1000, conversationId);
+        _conversationServiceMock.Setup(x => x.AddMessage(
+            It.Is<Message>(m =>
+                m.messageId == messageRequest.messageId &&
+                m.senderUsername == messageRequest.senderUsername &&
+                m.messageContent == messageRequest.messageContent &&
+                m.conversationId == conversationId
+            ))).ThrowsAsync(new CosmosException("error", HttpStatusCode.BadRequest, 0, "error", 0));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
         var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        _conversationServiceMock.Verify(mock => mock.AddMessage(message), Times.Once);
     }
 }

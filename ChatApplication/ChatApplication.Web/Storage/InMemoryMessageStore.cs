@@ -41,6 +41,11 @@ public class InMemoryMessageStore : IMessageStore
             .ToArray());
     }
 
+    public Task DeleteMessage(Message message)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<Conversation> GetConversation(string conversationId)
     {
         throw new NotImplementedException();

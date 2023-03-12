@@ -25,12 +25,12 @@ public class ConversationsController : ControllerBase
 
     public async Task<ActionResult<MessageResponse?>> AddMessage(MessageRequest messageRequest, string conversationId)
     {
-        UnixTime timeSent;
+        DateTimeOffset time = DateTimeOffset.UtcNow;
         var message = new Message(messageRequest.messageId, messageRequest.senderUsername,
-            messageRequest.messageContent, conversationId);
+            messageRequest.messageContent,time.ToUnixTimeSeconds(), conversationId);
         try
         {
-            timeSent = await _conversationService.AddMessage(message);
+            await _conversationService.AddMessage(message);
         }
         catch (ConversationNotFoundException)
         {
@@ -45,17 +45,17 @@ public class ConversationsController : ControllerBase
             return BadRequest("Bad request");
         }
         //TODO: Change when we create get method.
-        return Created($"http://localhost/Conversations/conversations/{conversationId}/messages", new MessageResponse(timeSent.timestamp));
+        return Created($"http://localhost/Conversations/conversations/{conversationId}/messages", new MessageResponse(message.createdUnixTime));
         
     }
     
 
 
-    [HttpPost("conversations")]
-    public async Task<ActionResult<StartConversationResponse>> CreateConversation(StartConversationRequest conversationRequest)
-    {
-        return Ok();
-    }
+    // [HttpPost("conversations")]
+    // public async Task<ActionResult<StartConversationResponse>> CreateConversation(StartConversationRequest conversationRequest)
+    // {
+    //     return Ok();
+    // }
     
     
     
