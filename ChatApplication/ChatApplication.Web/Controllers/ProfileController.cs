@@ -26,11 +26,14 @@ public class ProfileController : ControllerBase
     [HttpGet("{username}")]
     public async Task<ActionResult<Profile>> GetProfile(string username)
     {
-        
-        var profile = await _profileService.GetProfile(username);
-        if (profile == null)
+        Profile profile;
+        try
         {
-            return NotFound($"A User with username {username} was not found");
+            profile = await _profileService.GetProfile(username);
+        }
+        catch (ProfileNotFoundException)
+        {
+            return NotFound($"A User with username {username} was not found"); 
         }
         return Ok(profile);
     }

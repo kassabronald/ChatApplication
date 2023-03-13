@@ -46,16 +46,37 @@ public class ConversationsController : ControllerBase
         }
         //TODO: Change when we create get method.
         return Created($"http://localhost/Conversations/conversations/{conversationId}/messages", new MessageResponse(message.createdUnixTime));
-        
     }
     
+    [HttpPost("conversations")]
+    public async Task<ActionResult<StartConversationResponse>> CreateConversation(StartConversationRequest conversationRequest)
+    {
+        var numberOfParticipants = conversationRequest.Participants.Count;
+        if (numberOfParticipants < 2)
+        {
+            return BadRequest($"A conversation must have at least 2 participants but only {numberOfParticipants} were provided");
+        }
 
-
-    // [HttpPost("conversations")]
-    // public async Task<ActionResult<StartConversationResponse>> CreateConversation(StartConversationRequest conversationRequest)
-    // {
-    //     return Ok();
-    // }
+        long createdTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        string id="";
+        try
+        {
+            id = await _conversationService.StartConversation(conversationRequest.FirstMessage.messageId,
+                conversationRequest.FirstMessage.senderUsername,
+                conversationRequest.FirstMessage.messageContent, createdTime,
+                conversationRequest.Participants);
+        }
+        catch (ProfileNotFoundException e)
+        {
+            return NotFound($"A profile with username : {e.MissingProfileUsername} was not found");
+        }
+        catch (ConversationAlreadyExistsException)
+        {
+            return Conflict($"A conversation with id : {id} already exists");
+        }
+        StartConversationResponse response = new StartConversationResponse(id, createdTime);
+        return Created($"http://localhost/Conversations/conversations/{id}", response);
+    }
     
     
     

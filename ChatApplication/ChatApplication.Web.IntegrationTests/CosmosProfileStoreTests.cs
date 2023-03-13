@@ -44,8 +44,8 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
     [Fact]
     public async Task GetNonExistingProfile()
     {
-        var nonExistingProfileUsername = _profile.username + "1";
-        Assert.Null(await _store.GetProfile(nonExistingProfileUsername));
+        await Assert.ThrowsAsync<ProfileNotFoundException>(async () => await _store.GetProfile(_profile.username + "1"));
+
     }
     
     [Fact]

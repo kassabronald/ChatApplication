@@ -44,7 +44,7 @@ public class CosmosProfileStore : IProfileStore
         }
     }
 
-    public async Task<Profile?> GetProfile(string username)
+    public async Task<Profile> GetProfile(string username)
     {
        
         try
@@ -63,7 +63,7 @@ public class CosmosProfileStore : IProfileStore
         {
             if (e.StatusCode == HttpStatusCode.NotFound)
             {
-                return null;
+                throw new ProfileNotFoundException($"Profile with username {username} does not exists", username);
             }
             throw;
         }

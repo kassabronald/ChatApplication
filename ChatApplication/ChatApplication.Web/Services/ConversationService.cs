@@ -8,10 +8,12 @@ public class ConversationService : IConversationService
 {
     private readonly IMessageStore _messageStore;
     private readonly IConversationStore _conversationStore;
-    public ConversationService(IMessageStore messageStore, IConversationStore conversationStore)
+    private readonly IProfileStore _profileStore;
+    public ConversationService(IMessageStore messageStore, IConversationStore conversationStore, IProfileStore profileStore)
     {
         _messageStore = messageStore;
         _conversationStore = conversationStore;
+        _profileStore = profileStore;
     }
     public async Task AddMessage(Message message)
     {
@@ -23,5 +25,26 @@ public class ConversationService : IConversationService
     public async Task<Message[]> GetConversationMessages(string conversationId)
     {
         return await _messageStore.GetConversationMessages(conversationId);
+    }
+
+    public async Task<string> StartConversation(string messageId, string senderUsername, string messageContent, long createdTime,
+        List<string> participants)
+    {
+        
+        string id = "";
+        foreach (var participantUsername in participants)
+        {
+            id += "_"+participantUsername;
+        }
+
+        List<Profile> participantsProfile = new List<Profile>();
+        foreach (var participantUsername in participants)
+        {
+            var profile = await _profileStore.GetProfile(participantUsername);
+            participantsProfile.Add(profile);
+        }
+        var conversation = new Conversation(id, participantsProfile, createdTime);
+        await _conversationStore.StartConversation(conversation);
+        return id;
     }
 }

@@ -11,10 +11,11 @@ public class ConversationServiceTests
 {
     private readonly Mock<IMessageStore> _messageStoreMock = new();
     private readonly Mock<IConversationStore> _conversationStoreMock = new();
+    private readonly Mock<IProfileStore> _profileStoreMock = new();
     private readonly ConversationService _conversationService;
     public ConversationServiceTests()
     {
-        _conversationService = new ConversationService(_messageStoreMock.Object, _conversationStoreMock.Object);
+        _conversationService = new ConversationService(_messageStoreMock.Object, _conversationStoreMock.Object, _profileStoreMock.Object);
     }
 
     [Fact]
@@ -23,7 +24,7 @@ public class ConversationServiceTests
     {
         var message = new Message("123", "jad", "bro got W rizz", 1000,"1234");
         var profile = new Profile("jad", "Jad", "Haddad", "12345");
-        var participants = new Profile[1] {profile};
+        var participants = new List<Profile> { profile };
         var conversation = new Conversation("1234", participants, 100000);
         _conversationStoreMock.Setup(m => m.GetConversation(message.conversationId)).ReturnsAsync(conversation);
         await _conversationService.AddMessage(message);
@@ -39,7 +40,8 @@ public class ConversationServiceTests
     {
         var message = new Message("123", "jad", "bro got W rizz",1000, "1234");
         var profile = new Profile("jad", "Jad", "Haddad", "12345");
-        var participants = new Profile[1] {profile};
+        //make a List<Profile>  A list not array
+        var participants = new List<Profile> { profile };
         var conversation = new Conversation("1234", participants, 100000);
         _conversationStoreMock.Setup(m => m.GetConversation(message.conversationId)).ThrowsAsync(new ConversationNotFoundException());
         await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>

@@ -45,8 +45,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     public async Task GetProfile_NotFound()
     {
         _profileServiceMock.Setup(m => m.GetProfile("foobar"))
-            .ReturnsAsync((Profile?)null);
-
+            .ThrowsAsync(new ProfileNotFoundException());
         var response = await _httpClient.GetAsync($"/Profile/foobar");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

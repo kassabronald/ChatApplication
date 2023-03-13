@@ -58,7 +58,37 @@ public class CosmosConversationStore : IConversationStore
             throw;
         }
     }
-    
+
+    public async Task StartConversation(Conversation conversation)
+    {
+        var entity = toEntity(conversation);
+        try
+        {
+            await ConversationContainer.CreateItemAsync(entity);
+        }
+        catch (CosmosException e)
+        {
+            if (e.StatusCode == HttpStatusCode.Conflict)
+            {
+                throw new ConversationAlreadyExistsException(
+                    $"Conversation with id :{conversation.conversationId} already exists");
+            }
+            throw;
+        }        
+
+    }
+
+    private object toEntity(Conversation conversation)
+    {
+        return new ConversationEntity
+        {
+            partitionKey = conversation.conversationId,
+            id = conversation.conversationId,
+            Participants = conversation.participants,
+            lastMessageTime = conversation.lastMessageTime
+        };
+    }
+
     private Conversation ToConversation(ConversationEntity conversationEntity)
     {
         return new Conversation(
