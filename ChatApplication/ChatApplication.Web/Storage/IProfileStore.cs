@@ -21,7 +21,7 @@ public interface IProfileStore
     /// <param name="username"></param>
     /// <returns>Profile?</returns>
     /// <throws><b>ArgumentException</b> if username is null or empty</throws>
-    Task<Profile?> GetProfile(string username);
+    Task<Profile> GetProfile(string username);
     
     Task DeleteProfile(string username);
 }

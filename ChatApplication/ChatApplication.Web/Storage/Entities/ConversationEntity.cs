@@ -6,7 +6,7 @@ public record ConversationEntity
 {
     public string partitionKey { get; init;}
     public string id { get; init;}
-    public Profile[] Participants { get; set; }
+    public List<Profile> Participants { get; set; }
     public long lastMessageTime { get; set; }
 }
     

@@ -24,7 +24,7 @@ public class ProfileService : IProfileService
 
     }
 
-    public async Task<Profile?> GetProfile(string username)
+    public async Task<Profile> GetProfile(string username)
     {
         var profile = await _profileStore.GetProfile(username);
         return profile;

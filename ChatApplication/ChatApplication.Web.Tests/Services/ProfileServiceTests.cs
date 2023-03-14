@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Net;
+using ChatApplication.Exceptions;
 using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Utils;
@@ -41,9 +42,9 @@ public class ProfileServiceTests
     public async Task GetProfile_NotFound()
     {
         _profileStoreMock.Setup(m => m.GetProfile("foobar"))
-            .ReturnsAsync((Profile?)null);
-        var actualProfile = await _profileService.GetProfile("foobar");
-        Assert.Null(actualProfile);
+            .ThrowsAsync(new ProfileNotFoundException());
+        
+        await Assert.ThrowsAsync<ProfileNotFoundException>(async () => await _profileService.GetProfile("foobar"));
     }
 
     [Fact]

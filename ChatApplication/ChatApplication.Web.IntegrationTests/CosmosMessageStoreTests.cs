@@ -11,9 +11,10 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
 {
     
     private readonly IMessageStore _store;
-    Message _message1 = new Message(Guid.NewGuid().ToString(), "ronald", "hey bro wanna hit the gym", 1002, "456");
-    Message _message2 = new Message(Guid.NewGuid().ToString(), "ronald", "hey bro wanna hit the gym", 1001, "456");
-    Message _message3 = new Message(Guid.NewGuid().ToString(), "ronald", "hey bro wanna hit the gym", 1000, "456");
+    private static string conversationId = Guid.NewGuid().ToString();
+    Message _message1 = new Message(Guid.NewGuid().ToString(), "ronald", "hey bro wanna hit the gym", 1002, conversationId);
+    Message _message2 = new Message(Guid.NewGuid().ToString(), "ronald", "hey bro wanna hit the gym", 1001, conversationId);
+    Message _message3 = new Message(Guid.NewGuid().ToString(), "ronald", "hey bro wanna hit the gym", 1000, conversationId);
     private readonly List<Message> _messageList;
 
     public Task InitializeAsync()
@@ -87,4 +88,5 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         var actual = await _store.GetConversationMessages(_messageList[0].conversationId);
         Assert.Equal(_messageList, actual);
     }
+    //should we check for bad inputs?
 }

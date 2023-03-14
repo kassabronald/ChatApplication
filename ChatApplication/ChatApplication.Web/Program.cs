@@ -28,6 +28,7 @@ builder.Services.AddSingleton(sp =>
 });
 
 builder.Services.AddSingleton<IMessageStore, CosmosMessageStore>();
+builder.Services.AddSingleton<IConversationStore, CosmosConversationStore>();
 builder.Services.AddSingleton<IProfileStore, CosmosProfileStore>();
 builder.Services.AddSingleton(sp =>
 {
@@ -37,6 +38,7 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddSingleton<IImageService, ImageService>();
 builder.Services.AddSingleton<IProfileService, ProfileService>();
+builder.Services.AddSingleton<IConversationService, ConversationService>();
 
 
 var app = builder.Build();
