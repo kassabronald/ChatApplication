@@ -44,15 +44,16 @@ public class ConversationService : IConversationService
         var message = new Message(messageId, senderUsername, messageContent, createdTime, id);
         await _messageStore.AddMessage(message);
         var conversation = new Conversation(id, participantsProfile, createdTime);
-        try
-        {
-            await _conversationStore.StartConversation(conversation);
-        }
-        catch (Exception)
-        {
-            await _messageStore.DeleteMessage(message);
-            throw;
-        }
+        await _conversationStore.StartConversation(conversation);
+        // try
+        // {
+        //     await _conversationStore.StartConversation(conversation);
+        // }
+        // catch (Exception)
+        // {
+        //     await _messageStore.DeleteMessage(message);
+        //     throw;
+        // }
         return id;
     }
 }
