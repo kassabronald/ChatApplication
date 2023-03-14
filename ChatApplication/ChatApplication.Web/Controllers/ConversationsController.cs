@@ -56,7 +56,15 @@ public class ConversationsController : ControllerBase
         {
             return BadRequest($"A conversation must have at least 2 participants but only {numberOfParticipants} were provided");
         }
-
+        var foundSenderUsername = false;
+        foreach (var participant in conversationRequest.Participants)
+        {
+            foundSenderUsername= foundSenderUsername || participant == conversationRequest.FirstMessage.senderUsername;
+        }
+        if(!foundSenderUsername)
+        {
+            return BadRequest($"The sender username : {conversationRequest.FirstMessage.senderUsername} was not found in the participants list");
+        }
         long createdTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         string id="";
         try
@@ -68,11 +76,15 @@ public class ConversationsController : ControllerBase
         }
         catch (ProfileNotFoundException e)
         {
-            return NotFound($"A profile with username : {e.MissingProfileUsername} was not found");
+            return NotFound(e.Message);
         }
-        catch (ConversationAlreadyExistsException)
+        catch (ConversationAlreadyExistsException e)
         {
-            return Conflict($"A conversation with id : {id} already exists");
+            return Conflict(e.Message);
+        }
+        catch (MessageAlreadyExistsException e)
+        {
+            return BadRequest(e.Message);
         }
         StartConversationResponse response = new StartConversationResponse(id, createdTime);
         return Created($"http://localhost/Conversations/conversations/{id}", response);

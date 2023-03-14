@@ -119,4 +119,26 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+
+    public async Task StartConversation()
+    {
+        var messageRequest = new MessageRequest("12345", "Ronald", "Haha Bro farex");
+        var participants = new List<string> {"Ronald", "Farex"};
+        var conversationRequest = new StartConversationRequest(participants, messageRequest);
+        _conversationServiceMock.Setup(x=> x.StartConversation(
+            messageRequest.messageId, 
+            messageRequest.senderUsername, 
+            messageRequest.messageContent, 
+            It.IsAny<long>(), 
+            participants)).ReturnsAsync("_Ronald_Farex");
+        var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
+        var response = await  _httpClient.PostAsync("Conversations/conversations", jsonContent);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal("http://localhost/Conversations/conversations/_Ronald_Farex", response.Headers.GetValues("Location").First());
+        var responseString = await response.Content.ReadAsStringAsync();
+        var answer = JsonConvert.DeserializeObject<StartConversationResponse>(responseString);
+        Assert.Equal("_Ronald_Farex", answer.conversationId);
+    }
 }

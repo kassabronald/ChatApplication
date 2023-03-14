@@ -30,21 +30,29 @@ public class ConversationService : IConversationService
     public async Task<string> StartConversation(string messageId, string senderUsername, string messageContent, long createdTime,
         List<string> participants)
     {
-        
         string id = "";
         foreach (var participantUsername in participants)
         {
             id += "_"+participantUsername;
         }
-
         List<Profile> participantsProfile = new List<Profile>();
         foreach (var participantUsername in participants)
         {
             var profile = await _profileStore.GetProfile(participantUsername);
             participantsProfile.Add(profile);
         }
+        var message = new Message(messageId, senderUsername, messageContent, createdTime, id);
+        await _messageStore.AddMessage(message);
         var conversation = new Conversation(id, participantsProfile, createdTime);
-        await _conversationStore.StartConversation(conversation);
+        try
+        {
+            await _conversationStore.StartConversation(conversation);
+        }
+        catch (Exception)
+        {
+            await _messageStore.DeleteMessage(message);
+            throw;
+        }
         return id;
     }
 }
