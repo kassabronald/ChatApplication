@@ -82,7 +82,6 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     {
         foreach (var message in _messageList)
         {
-            await _store.DeleteMessage(message);
             await _store.AddMessage(message);
         }
         var actual = await _store.GetConversationMessages(_messageList[0].conversationId);
