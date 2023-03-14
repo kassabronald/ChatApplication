@@ -6,7 +6,7 @@ namespace ChatApplication.Storage;
 
 public class InMemoryMessageStore : IMessageStore
 {
-    private readonly Dictionary<string, KeyValuePair<Message, UnixTime>> _messages = new();
+    private readonly Dictionary<string, KeyValuePair<Message, long>> _messages = new();
     public async Task AddMessage(Message message)
     {
         if (message == null ||
@@ -22,9 +22,7 @@ public class InMemoryMessageStore : IMessageStore
         {
             throw new MessageAlreadyExistsException(message.messageId);
         }
-        
-        UnixTime time= new(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-        _messages[message.messageId] = new(message, time);
+        _messages[message.messageId] = new(message, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
     }
     
     
@@ -60,7 +58,7 @@ public class InMemoryMessageStore : IMessageStore
     }
 
     
-    public Task ChangeConversationLastMessageTime(Conversation conversaiton, UnixTime time)
+    public Task ChangeConversationLastMessageTime(Conversation conversaiton, long time)
 
     {
         throw new NotImplementedException();
