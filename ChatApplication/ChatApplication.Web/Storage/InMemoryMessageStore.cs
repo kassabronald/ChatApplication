@@ -29,16 +29,24 @@ public class InMemoryMessageStore : IMessageStore
     
     
     //may be wrong implementation
-    public Task<Message[]> GetConversationMessages(string conversationId)
+    public async Task<List<Message>> GetConversationMessages(string conversationId)
     {
         if (string.IsNullOrWhiteSpace(conversationId))
         {
             throw new ArgumentException($"Invalid conversation id {conversationId}", nameof(conversationId));
         }
-        return Task.FromResult(_messages.Values
-            .Where(pair => pair.Key.conversationId == conversationId)
-            .Select(pair => pair.Key)
-            .ToArray());
+        //return this in list form
+        
+        List<Message> messages = new();
+        foreach (var message in _messages)
+        {
+            if (message.Value.Key.conversationId == conversationId)
+            {
+                messages.Add(message.Value.Key);
+            }
+        }
+
+        return messages;
     }
 
     public Task DeleteMessage(Message message)

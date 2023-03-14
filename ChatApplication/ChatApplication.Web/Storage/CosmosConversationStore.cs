@@ -45,8 +45,9 @@ public class CosmosConversationStore : IConversationStore
         try
         {
             conversation.lastMessageTime = lastMessageTime;
-            await ConversationContainer.ReplaceItemAsync(conversation, conversation.conversationId,
-                new PartitionKey(conversation.conversationId));
+            var entity = toEntity(conversation);
+            await ConversationContainer.ReplaceItemAsync<ConversationEntity>(entity,entity.id,
+                new PartitionKey(entity.partitionKey));
         }
         catch (CosmosException e)
         {
@@ -78,7 +79,26 @@ public class CosmosConversationStore : IConversationStore
 
     }
 
-    private object toEntity(Conversation conversation)
+    public async Task DeleteConversation(Conversation conversation)
+    {
+        try
+        {
+            await ConversationContainer.DeleteItemAsync<Conversation>(
+                id: conversation.conversationId,
+                partitionKey: new PartitionKey(conversation.conversationId)
+            );
+        }
+        catch (CosmosException e)
+        {
+            if (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                return;
+            }
+            throw;
+        }
+    }
+
+    private ConversationEntity toEntity(Conversation conversation)
     {
         return new ConversationEntity
         {

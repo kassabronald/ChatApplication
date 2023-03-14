@@ -68,4 +68,66 @@ public class ConversationServiceTests
         _messageStoreMock.Verify(mock => mock.AddMessage(message), Times.Once);
     }
 
+
+
+    [Fact]
+
+    public async Task StartConversation()
+    {
+        var messageId = "1234";
+        var senderUsername = "Ronald";
+        var messageContent = "aha aha aha";
+        long createdTime = 100000;
+        var participants = new List<string> {"Ronald", "Jad"};
+        var expectedId = "_Ronald_Jad";
+        var actualId = await _conversationService.StartConversation(messageId, senderUsername, messageContent, createdTime, participants);
+        Assert.Equal(expectedId, actualId);
+    }
+
+    [Fact]
+
+    public async Task StartConversation_ConversationAlreadyExists()
+    {
+        var messageId = "1234";
+        var senderUsername = "Ronald";
+        var messageContent = "aha aha aha";
+        long createdTime = 100000;
+        var participants = new List<string> {"Ronald", "Jad"};
+        var participantsProfile = new List<Profile>();
+        var expectedId = "";
+        foreach (var participant in participants)
+        {
+            expectedId += "_" + participant;
+            var profile = new Profile(participant, "ok", "gym", "1234");
+            participantsProfile.Add(profile);
+            _profileStoreMock.Setup(x => x.GetProfile(participant)).ReturnsAsync(profile);
+        }
+        var conversation = new Conversation(expectedId, participantsProfile, createdTime);
+        _conversationStoreMock.Setup(x => x.StartConversation(
+            It.Is<Conversation>(c => c.conversationId == expectedId && c.lastMessageTime==createdTime&& c.participants.All(p => typeof(Profile) == p.GetType())
+                                     && c.participants.Any(p => p.username == "Ronald")
+                                     && c.participants.Any(p => p.username == "Jad")
+            )
+        )).ThrowsAsync(new ConversationAlreadyExistsException());
+        
+        await Assert.ThrowsAsync<ConversationAlreadyExistsException>(async () =>
+            await _conversationService.StartConversation(messageId, senderUsername, messageContent, createdTime, participants));
+    }
+
+    [Fact]
+
+    public async Task StartConversation_MessageAlreadyExists()
+    {
+        var messageId = "1234";
+        var senderUsername = "Ronald";
+        var messageContent = "aha aha aha";
+        long createdTime = 100000;
+        var conversationId = "_Ronald_Jad";
+        var participants = new List<string> {"Ronald", "Jad"};
+        var message = new Message(messageId, senderUsername, messageContent, createdTime, conversationId);
+        _messageStoreMock.Setup(x => x.AddMessage(message)).ThrowsAsync(new MessageAlreadyExistsException());
+        await Assert.ThrowsAsync<MessageAlreadyExistsException>(async () =>
+            await _conversationService.StartConversation(messageId, senderUsername, messageContent, createdTime, participants));
+    }
+
 }

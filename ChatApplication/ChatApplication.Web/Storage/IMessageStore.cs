@@ -14,7 +14,7 @@ public interface IMessageStore
     /// <throws><b>MessageAlreadyExistsException</b> if messageId already exists</throws>
     Task AddMessage(Message message);
     
-    Task<Message[]> GetConversationMessages(string conversationId);
+    Task<List<Message> > GetConversationMessages(string conversationId);
     
     Task DeleteMessage(Message message);
     

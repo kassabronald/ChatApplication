@@ -22,7 +22,7 @@ public class ConversationService : IConversationService
         await _messageStore.AddMessage(message);
     }
     
-    public async Task<Message[]> GetConversationMessages(string conversationId)
+    public async Task<List<Message> > GetConversationMessages(string conversationId)
     {
         return await _messageStore.GetConversationMessages(conversationId);
     }

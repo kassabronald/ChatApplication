@@ -51,7 +51,7 @@ public class CosmosMessageStore: IMessageStore
             throw;
         }
     }
-    public async Task<Message[]> GetConversationMessages(string conversationId)
+    public async Task<List<Message> > GetConversationMessages(string conversationId)
     {
         var query = MessageContainer.GetItemQueryIterator<MessageEntity>(
             new QueryDefinition("SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey ORDER BY Messages.CreatedUnixTime DESC")
@@ -65,7 +65,7 @@ public class CosmosMessageStore: IMessageStore
                 messages.Add(toMessage(entity));
             }
         }
-        return messages.ToArray();
+        return messages;
     }
     private Message toMessage(MessageEntity entity)
     {
