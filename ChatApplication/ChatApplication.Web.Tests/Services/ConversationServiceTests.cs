@@ -68,4 +68,18 @@ public class ConversationServiceTests
         _messageStoreMock.Verify(mock => mock.AddMessage(message), Times.Once);
     }
 
+
+    [Fact]
+    public async Task StartConversation()
+    {
+        var message = new Message("123", "jad", "bro got W rizz",1000, "1234");
+        var profileJad = new Profile("jad", "Jad", "Haddad", "12345");
+        var profileRonald = new Profile("ronald", "ronald", "lemalin", "678910");
+        var participants = new List<Profile> { profileJad, profileRonald };
+        var conversation = new Conversation("1234", participants, 100000);
+        _conversationStoreMock.Setup(m => m.GetConversation(message.conversationId)).ReturnsAsync(conversation);
+        
+        
+    }
+
 }
