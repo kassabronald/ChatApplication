@@ -40,7 +40,7 @@ builder.Services.AddSingleton<IImageService, ImageService>();
 builder.Services.AddSingleton<IProfileService, ProfileService>();
 builder.Services.AddSingleton<IConversationService, ConversationService>();
 
-
+builder.Services.AddApplicationInsightsTelemetry();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

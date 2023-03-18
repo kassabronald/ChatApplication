@@ -22,7 +22,6 @@ public class ConversationsController : ControllerBase
     }
     
     [HttpPost("conversations/{conversationId}/messages")]
-
     public async Task<ActionResult<MessageResponse?>> AddMessage(MessageRequest messageRequest, string conversationId)
     {
         DateTimeOffset time = DateTimeOffset.UtcNow;
@@ -84,9 +83,9 @@ public class ConversationsController : ControllerBase
         }
         catch (MessageAlreadyExistsException e)
         {
-            return BadRequest(e.Message);
+            return Conflict(e.Message);
         }
-        StartConversationResponse response = new StartConversationResponse(id, createdTime);
+        var response = new StartConversationResponse(id, createdTime);
         return Created($"http://localhost/Conversations/conversations/{id}", response);
     }
     
