@@ -2,6 +2,7 @@
 using ChatApplication.Storage;
 using ChatApplication.Utils;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace ChatApplication.Web.Tests.Services;
@@ -13,7 +14,7 @@ public class ImageServiceTests
     
     public ImageServiceTests()
     {
-        _imageService = new ImageService(_imageStoreMock.Object);
+        _imageService = new ImageService(_imageStoreMock.Object, new Logger<ImageService>( new LoggerFactory()));
     }
     
     [Fact]
