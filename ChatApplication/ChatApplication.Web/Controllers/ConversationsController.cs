@@ -89,6 +89,16 @@ public class ConversationsController : ControllerBase
         return Created($"http://localhost/Conversations/conversations/{id}", response);
     }
     
+    [HttpGet("conversations/{conversationId}/messages")]
+    
+    public async Task<GetConversationMessagesResponse> GetConversationMessages(string conversationId, string? continuationToken
+        ,long? lastMessageTime, int? limit = 50)
+    {
+        var messages = await _conversationService.GetConversationMessages(conversationId);
+        var response = new GetConversationMessagesResponse("ok", messages);
+        return response;
+    }
+    
     
     
 }

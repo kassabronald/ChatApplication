@@ -1,7 +1,9 @@
-﻿using ChatApplication.Services;
+﻿using Castle.Core.Logging;
+using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Utils;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace ChatApplication.Web.Tests.Services;
@@ -10,10 +12,11 @@ public class ImageServiceTests
 {
     private readonly Mock<IImageStore> _imageStoreMock = new();
     private readonly ImageService _imageService;
+    private readonly Mock<ILogger<ImageService>> _logger = new();
     
     public ImageServiceTests()
     {
-        _imageService = new ImageService(_imageStoreMock.Object);
+        _imageService = new ImageService(_imageStoreMock.Object, _logger.Object);
     }
     
     [Fact]

@@ -40,7 +40,7 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     public async Task AddMessage()
     {
         await _store.AddMessage(_messageList[0]);
-        var actual = await _store.GetConversationMessages(_messageList[0].conversationId);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId);
         Assert.Equal(_messageList[0], actual[0]);
     }
 
@@ -60,9 +60,9 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     public async Task DeleteMessage()
     {
         await _store.AddMessage(_messageList[0]);
-        var ok = await _store.GetConversationMessages(_messageList[0].conversationId);
+        var ok = await _store.GetConversationMessagesUtil(_messageList[0].conversationId);
         await _store.DeleteMessage(_messageList[0]);
-        var actual = await _store.GetConversationMessages(_messageList[0].conversationId);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId);
         Assert.Empty(actual);
     }
     
@@ -79,14 +79,28 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
 
     [Fact]
 
-    public async Task GetConversationMessages()
+    public async Task GetConversationMessagesUtil()
     {
         foreach (var message in _messageList)
         {
             await _store.AddMessage(message);
         }
-        var actual = await _store.GetConversationMessages(_messageList[0].conversationId);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId);
         Assert.Equal(_messageList, actual);
     }
     //should we check for bad inputs?
+    
+    [Fact]
+
+    public async Task GetConversationMessages()
+    {
+        var expected = new List<ConversationMessage>();
+        foreach (var message in _messageList)
+        {
+            await _store.AddMessage(message);
+            expected.Add(new ConversationMessage(message.senderUsername, message.messageContent, message.createdUnixTime));
+        }
+        var actual = await _store.GetConversationMessages(_messageList[0].conversationId);
+        Assert.Equal(expected, actual);
+    }
 }
