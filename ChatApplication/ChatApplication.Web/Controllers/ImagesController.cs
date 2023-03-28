@@ -1,8 +1,10 @@
-﻿using ChatApplication.Exceptions;
+﻿using System.Diagnostics;
+using ChatApplication.Exceptions;
 using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApplication.Controllers;
@@ -13,33 +15,33 @@ public class ImagesController : ControllerBase
 {
     private readonly IImageService _imageService;
     private readonly ILogger<ImagesController> _logger;
+    private readonly TelemetryClient _telemetryClient;
     
-    public ImagesController(IImageService imageService, ILogger<ImagesController> logger)
+    public ImagesController(IImageService imageService, ILogger<ImagesController> logger, TelemetryClient telemetryClient)
     {
         _imageService = imageService;
         _logger = logger;
+        _telemetryClient = telemetryClient;
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult?> DownloadImage(string id)
     {
-        using (_logger.BeginScope("Downloading Image with id {Id}", id))
+        ImageUtil? image;
+        try
         {
-            ImageUtil? image;
-            try
-            {
-                image = await _imageService.GetImage(id);
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest($"Invalid image id : {id}");
-            }
-            catch (ImageNotFoundException e)
-            {
-                return NotFound($"Image with id :{id} not found");
-            }
-            _logger.LogInformation("Image found");
+            var stopWatch = Stopwatch.StartNew();
+            image = await _imageService.GetImage(id);
+            _telemetryClient.TrackMetric("ImageService.GetImage.Time", stopWatch.ElapsedMilliseconds);
             return new FileContentResult(image._imageData, image._contentType);
+        }
+        catch (ArgumentException e)
+        {
+            return BadRequest($"Invalid image id : {id}");
+        }
+        catch (ImageNotFoundException e)
+        {
+            return NotFound($"Image with id :{id} not found");
         }
     }
 
@@ -60,8 +62,10 @@ public class ImagesController : ControllerBase
             {
                 return BadRequest($"File {request.File.FileName} is empty");
             }
-
+            var stopWatch = Stopwatch.StartNew();
             var id = await _imageService.AddImage(stream, request.File.ContentType);
+            _telemetryClient.TrackMetric("ImageService.AddImage.Time", stopWatch.ElapsedMilliseconds);
+            _telemetryClient.TrackEvent("ImageAdded");
             return CreatedAtAction(nameof(DownloadImage), new { id }, new UploadImageResponse(id));
         }
     }

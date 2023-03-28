@@ -34,7 +34,6 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         _profileServiceMock.Setup(m => m.GetProfile(profile.username))
             .ReturnsAsync(profile);
-        
         var response = await _httpClient.GetAsync($"/Profile/{profile.username}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadAsStringAsync();

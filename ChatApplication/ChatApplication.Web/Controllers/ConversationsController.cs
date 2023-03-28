@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using System.Net;
 using ChatApplication.Exceptions;
 using ChatApplication.Services;
 using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApplication.Controllers;
@@ -15,37 +17,51 @@ namespace ChatApplication.Controllers;
 public class ConversationsController : ControllerBase
 {
     private readonly IConversationService _conversationService;
+    private readonly TelemetryClient _telemetryClient;
+    private readonly ILogger<ConversationsController> _logger;
 
-    public ConversationsController(IConversationService conversationService)
+    public ConversationsController(IConversationService conversationService, TelemetryClient telemetryClient, ILogger<ConversationsController> logger)
     {
         _conversationService = conversationService;
+        _telemetryClient = telemetryClient;
+        _logger = logger;
     }
-    
+
     [HttpPost("conversations/{conversationId}/messages")]
     public async Task<ActionResult<MessageResponse?>> AddMessage(MessageRequest messageRequest, string conversationId)
     {
-        DateTimeOffset time = DateTimeOffset.UtcNow;
-        var message = new Message(messageRequest.messageId, messageRequest.senderUsername,
-            messageRequest.messageContent,time.ToUnixTimeSeconds(), conversationId);
-        try
+        using (_logger.BeginScope("Adding message {Message} to conversation {ConversationId}", messageRequest,
+                   conversationId))
         {
-            await _conversationService.AddMessage(message);
+            DateTimeOffset time = DateTimeOffset.UtcNow;
+            var message = new Message(messageRequest.messageId, messageRequest.senderUsername,
+                messageRequest.messageContent, time.ToUnixTimeSeconds(), conversationId);
+            try
+            {
+                var stopWatch = new Stopwatch();
+                await _conversationService.AddMessage(message);
+                _telemetryClient.TrackMetric("ConversationService.AddMessage.Time", stopWatch.ElapsedMilliseconds);
+                _telemetryClient.TrackEvent("MessageAdded");
+                _logger.LogInformation("Message added");
+                //TODO: Change when we create get method.
+                return Created($"http://localhost/Conversations/conversations/{conversationId}/messages",
+                    new MessageResponse(message.createdUnixTime));
+            }
+            catch (ConversationNotFoundException)
+            {
+                return NotFound($"A conversation with id : {conversationId} was not found");
+            }
+            catch (MessageAlreadyExistsException)
+            {
+                return Conflict($"A message with id : {message.messageId} already exists ");
+            }
+            catch (Exception)
+            {
+                return BadRequest("Bad request");
+            }
         }
-        catch (ConversationNotFoundException)
-        {
-            return NotFound($"A conversation with id : {conversationId} was not found");
-        }
-        catch (MessageAlreadyExistsException)
-        {
-            return Conflict($"A message with id : {message.messageId} already exists ");
-        }
-        catch (Exception)
-        {
-            return BadRequest("Bad request");
-        }
-        //TODO: Change when we create get method.
-        return Created($"http://localhost/Conversations/conversations/{conversationId}/messages", new MessageResponse(message.createdUnixTime));
     }
+
     
     [HttpPost("conversations")]
     public async Task<ActionResult<StartConversationResponse>> CreateConversation(StartConversationRequest conversationRequest)
@@ -68,10 +84,16 @@ public class ConversationsController : ControllerBase
         string id="";
         try
         {
+            var stopWatch = new Stopwatch();
             id = await _conversationService.StartConversation(conversationRequest.FirstMessage.messageId,
                 conversationRequest.FirstMessage.senderUsername,
                 conversationRequest.FirstMessage.messageContent, createdTime,
                 conversationRequest.Participants);
+            _telemetryClient.TrackMetric("ConversationService.StartConversation.Time", stopWatch.ElapsedMilliseconds);
+            _telemetryClient.TrackEvent("ConversationStarted");
+            _logger.LogInformation("Conversation started with id {conversationId}", id);
+            var response = new StartConversationResponse(id, createdTime);
+            return Created($"http://localhost/Conversations/conversations/{id}", response);
         }
         catch (ProfileNotFoundException e)
         {
@@ -85,8 +107,17 @@ public class ConversationsController : ControllerBase
         {
             return Conflict(e.Message);
         }
-        var response = new StartConversationResponse(id, createdTime);
-        return Created($"http://localhost/Conversations/conversations/{id}", response);
+    }
+    
+    [HttpGet("conversations/{conversationId}/messages")]
+    public async Task<GetConversationMessagesResponse> GetConversationMessages(string conversationId, string? continuationToken
+        ,long? lastMessageTime, int? limit = 50)
+    {
+        var stopWatch = new Stopwatch();
+        var messages = await _conversationService.GetConversationMessages(conversationId);
+        _telemetryClient.TrackMetric("ConversationService.GetConversationMessages.Time", stopWatch.ElapsedMilliseconds);
+        var response = new GetConversationMessagesResponse("ok", messages);
+        return response;
     }
     
     
