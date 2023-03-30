@@ -52,7 +52,7 @@ public class CosmosMessageStore: IMessageStore
         }
     }
     public async Task<List<Message> > GetConversationMessagesUtil(string conversationId)
-    {
+    {//TODO: get continuation token and return it, also use limit
         var query = MessageContainer.GetItemQueryIterator<MessageEntity>(
             new QueryDefinition("SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey ORDER BY Messages.CreatedUnixTime DESC")
                 .WithParameter("@partitionKey", conversationId));

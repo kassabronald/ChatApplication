@@ -72,7 +72,7 @@ public class ConversationsController : ControllerBase
             return BadRequest($"A conversation must have at least 2 participants but only {numberOfParticipants} were provided");
         }
         var foundSenderUsername = false;
-        foreach (var participant in conversationRequest.Participants)
+        foreach (var participant in conversationRequest.Participants) //TODO: SRP, move to service
         {
             foundSenderUsername= foundSenderUsername || participant == conversationRequest.FirstMessage.senderUsername;
         }

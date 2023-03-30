@@ -29,9 +29,9 @@ public class ConversationService : IConversationService
 
     public async Task<string> StartConversation(string messageId, string senderUsername, string messageContent, long createdTime,
         List<string> participants)
-    {
+    {// TODO: Check both users exist, and that user is not sending to himself
         string id = "";
-        foreach (var participantUsername in participants)
+        foreach (var participantUsername in participants) //TODO: Add to each participant's userconversation
         {
             id += "_"+participantUsername;
         }
