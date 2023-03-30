@@ -71,19 +71,11 @@ public class ConversationsController : ControllerBase
         {
             return BadRequest($"A conversation must have at least 2 participants but only {numberOfParticipants} were provided");
         }
-        var foundSenderUsername = false;
-        foreach (var participant in conversationRequest.Participants) //TODO: SRP, move to service
-        {
-            foundSenderUsername= foundSenderUsername || participant == conversationRequest.FirstMessage.senderUsername;
-        }
-        if(!foundSenderUsername)
-        {
-            return BadRequest($"The sender username : {conversationRequest.FirstMessage.senderUsername} was not found in the participants list");
-        }
-        long createdTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        string id="";
+        
         try
         {
+            long createdTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            string id="";
             var stopWatch = new Stopwatch();
             id = await _conversationService.StartConversation(conversationRequest.FirstMessage.messageId,
                 conversationRequest.FirstMessage.senderUsername,
@@ -97,7 +89,7 @@ public class ConversationsController : ControllerBase
         }
         catch (ProfileNotFoundException e)
         {
-            return NotFound(e.Message);
+            return BadRequest($"The username : {e.Username} is the sender and was not found in the participants list or does not exist");
         }
         catch (ConversationAlreadyExistsException e)
         {

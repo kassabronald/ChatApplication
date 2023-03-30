@@ -63,7 +63,7 @@ public class CosmosProfileStore : IProfileStore
         {
             if (e.StatusCode == HttpStatusCode.NotFound)
             {
-                throw new ProfileNotFoundException($"Profile with username {username} does not exists");
+                throw new ProfileNotFoundException($"Profile with username {username} does not exists", username);
             }
             throw;
         }

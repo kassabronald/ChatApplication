@@ -1,3 +1,4 @@
+using ChatApplication.Exceptions;
 using ChatApplication.Storage;
 using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
@@ -29,8 +30,17 @@ public class ConversationService : IConversationService
 
     public async Task<string> StartConversation(string messageId, string senderUsername, string messageContent, long createdTime,
         List<string> participants)
-    {// TODO: Check both users exist, and that user is not sending to himself
+    {// TODO: Check that user is not sending to himself
         string id = "";
+        Boolean foundSenderUsername = false;
+        foreach (var participant in participants)
+        {
+            foundSenderUsername= foundSenderUsername || participant == senderUsername;
+        }
+        if (!foundSenderUsername)
+        {
+            throw new ProfileNotFoundException("Sender username not found in participants", senderUsername);
+        }
         foreach (var participantUsername in participants) //TODO: Add to each participant's userconversation
         {
             id += "_"+participantUsername;
