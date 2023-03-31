@@ -22,8 +22,8 @@ public class ConversationServiceTests
 
     public async Task AddMessage()
     {
-        var message = new Message("123", "jad", "bro got W rizz", 1000,"1234");
-        var senderProfile = new Profile("jad", "Jad", "Haddad", "12345");
+        var message = new Message("123", "Jad", "bro got W rizz", 1000,"_jad_rizz");
+        var senderProfile = new Profile("Jad", "Jad", "Haddad", "12345");
         var receiverProfile = new Profile("rizz", "Rizwan", "Haddad", "123456");
         var participants = new List<Profile> { senderProfile, receiverProfile };
         var senderConversation = new Conversation("_jad_rizz", participants, 100000, senderProfile.username);
@@ -47,13 +47,13 @@ public class ConversationServiceTests
         var profile = new Profile("jad", "Jad", "Haddad", "12345");
         //make a List<Profile>  A list not array
         var participants = new List<Profile> { profile };
-        var conversation = new Conversation("1234", participants, 100000);
-        _conversationStoreMock.Setup(m => m.GetConversation(message.conversationId)).ThrowsAsync(new ConversationNotFoundException());
+        var conversation = new Conversation("1234", participants, 100000, profile.username);
+        _conversationStoreMock.Setup(m => m.GetConversation(profile.username, message.conversationId)).ThrowsAsync(new ConversationNotFoundException());
         await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
         {
             await _conversationService.AddMessage(message);
         });
-        _conversationStoreMock.Verify(mock => mock.GetConversation(message.conversationId), Times.Once);
+        _conversationStoreMock.Verify(mock => mock.GetConversation(profile.username, message.conversationId), Times.Once);
         _conversationStoreMock.Verify(mock => mock.ChangeConversationLastMessageTime(conversation, message.createdUnixTime), Times.Never);
         _messageStoreMock.Verify(mock => mock.AddMessage(message), Times.Never);
     }
@@ -63,8 +63,11 @@ public class ConversationServiceTests
     public async Task AddMessage_MessageAlreadyExists()
     {
         var message = new Message("123", "jad", "bro got W rizz",1000, "1234");
-        var profile = new Profile("jad", "Jad", "Haddad", "12345");
-        var participants = new Profile[1] {profile};
+        var profile1 = new Profile("jad", "Jad", "Haddad", "12345");
+        var profile2 = new Profile("ronald", "ronald", "Haddad", "123456");
+        var participants = new List<Profile> {profile1, profile2};
+        var conversation = new Conversation("1234", participants, 100000, profile1.username);
+        _conversationStoreMock.Setup(m => m.GetConversation(profile1.username, message.conversationId)).ReturnsAsync(conversation);
         _messageStoreMock.Setup(m => m.AddMessage(message)).ThrowsAsync(new MessageAlreadyExistsException());
         await Assert.ThrowsAsync<MessageAlreadyExistsException>(async () =>
         {
@@ -107,7 +110,7 @@ public class ConversationServiceTests
             participantsProfile.Add(profile);
             _profileStoreMock.Setup(x => x.GetProfile(participant)).ReturnsAsync(profile);
         }
-        var conversation = new Conversation(expectedId, participantsProfile, createdTime);
+        //var conversation = new Conversation(expectedId, participantsProfile, createdTime, );
         _conversationStoreMock.Setup(x => x.CreateConversation(
             It.Is<Conversation>(c => c.conversationId == expectedId && c.lastMessageTime==createdTime&& c.participants.All(p => typeof(Profile) == p.GetType())
                                      && c.participants.Any(p => p.username == "Ronald")

@@ -23,9 +23,13 @@ public class ConversationService : IConversationService
         await _conversationStore.ChangeConversationLastMessageTime(conversation, message.createdUnixTime);
         foreach(var participant in conversation.participants)
         {
-            var receiverConversation = await _conversationStore.GetConversation(participant.username, message.conversationId);
-            await _conversationStore.ChangeConversationLastMessageTime(receiverConversation, message.createdUnixTime);
-
+            if (participant.username != conversation.username)
+            {
+                var receiverConversation =
+                    await _conversationStore.GetConversation(participant.username, message.conversationId);
+                await _conversationStore.ChangeConversationLastMessageTime(receiverConversation,
+                    message.createdUnixTime);
+            }
         }
         await _messageStore.AddMessage(message);
     }
