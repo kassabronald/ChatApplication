@@ -34,6 +34,7 @@ public class ConversationsController : ControllerBase
                    conversationId))
         {
             DateTimeOffset time = DateTimeOffset.UtcNow;
+            //TODO: After PR1, use custom serializer.
             var message = new Message(messageRequest.messageId, messageRequest.senderUsername,
                 messageRequest.messageContent, time.ToUnixTimeSeconds(), conversationId);
             try
@@ -44,8 +45,11 @@ public class ConversationsController : ControllerBase
                 _telemetryClient.TrackEvent("MessageAdded");
                 _logger.LogInformation("Message added");
                 //TODO: Change when we create get method.
-                return Created($"http://localhost/Conversations/conversations/{conversationId}/messages",
+                
+                return Created("http://localhost/Conversations/conversations/{conversationId}/messages", 
                     new MessageResponse(message.createdUnixTime));
+                // return CreatedAtAction(nameof(GetConversationMessages), conversationId, 
+                //     new MessageResponse(message.createdUnixTime));
             }
             catch (ConversationNotFoundException)
             {
@@ -85,6 +89,7 @@ public class ConversationsController : ControllerBase
             _telemetryClient.TrackEvent("ConversationStarted");
             _logger.LogInformation("Conversation started with id {conversationId}", id);
             var response = new StartConversationResponse(id, createdTime);
+            //TODO: Change this to the correct url.
             return Created($"http://localhost/Conversations/conversations/{id}", response);
         }
         catch (ProfileNotFoundException e)

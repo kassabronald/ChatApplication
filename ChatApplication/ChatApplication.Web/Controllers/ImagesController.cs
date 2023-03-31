@@ -35,11 +35,11 @@ public class ImagesController : ControllerBase
             _telemetryClient.TrackMetric("ImageService.GetImage.Time", stopWatch.ElapsedMilliseconds);
             return new FileContentResult(image._imageData, image._contentType);
         }
-        catch (ArgumentException e)
+        catch (ArgumentException)
         {
             return BadRequest($"Invalid image id : {id}");
         }
-        catch (ImageNotFoundException e)
+        catch (ImageNotFoundException)
         {
             return NotFound($"Image with id :{id} not found");
         }

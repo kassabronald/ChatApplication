@@ -69,6 +69,7 @@ public class CosmosConversationStore : IConversationStore
         }
         catch (CosmosException e)
         {
+            //TODO: No issues if conflict
             if (e.StatusCode == HttpStatusCode.Conflict)
             {
                 throw new ConversationAlreadyExistsException(

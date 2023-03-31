@@ -70,9 +70,6 @@ public class ProfileController : ControllerBase
             {
                 return Conflict($"A profile with username {profile.username} already exists");
             }
-            
-            
-            
         }
     }
 }

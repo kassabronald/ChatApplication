@@ -18,6 +18,7 @@ public class ConversationService : IConversationService
     }
     public async Task AddMessage(Message message)
     {
+        //TODO: Pass both conversationId (rowkey) and senderUsername (partitionkey)
         var conversation = await _conversationStore.GetConversation(message.conversationId);
         await _conversationStore.ChangeConversationLastMessageTime(conversation, message.createdUnixTime);
         await _messageStore.AddMessage(message);
@@ -33,7 +34,9 @@ public class ConversationService : IConversationService
     {// TODO: Check that user is not sending to himself
         string id = "";
         Boolean foundSenderUsername = false;
-        foreach (var participant in participants)
+        List<string> sortedParticipants = new List<string>(participants);
+        sortedParticipants.Sort();
+        foreach (var participant in sortedParticipants)
         {
             foundSenderUsername= foundSenderUsername || participant == senderUsername;
         }
@@ -46,24 +49,17 @@ public class ConversationService : IConversationService
             id += "_"+participantUsername;
         }
         List<Profile> participantsProfile = new List<Profile>();
-        foreach (var participantUsername in participants)
+        foreach (var participantUsername in sortedParticipants)
         {
             var profile = await _profileStore.GetProfile(participantUsername);
             participantsProfile.Add(profile);
         }
         var message = new Message(messageId, senderUsername, messageContent, createdTime, id);
         await _messageStore.AddMessage(message);
+        //TODO: Add to each participant's userconversation
         var conversation = new Conversation(id, participantsProfile, createdTime);
         await _conversationStore.StartConversation(conversation);
-        // try
-        // {
-        //     await _conversationStore.StartConversation(conversation);
-        // }
-        // catch (Exception)
-        // {
-        //     await _messageStore.DeleteMessage(message);
-        //     throw;
-        // }
+        //TODO: After PR1 handle possible errors
         return id;
     }
 }
