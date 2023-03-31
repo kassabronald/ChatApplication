@@ -52,13 +52,13 @@ public class CosmosMessageStore: IMessageStore
         }
     }
 
-    public async Task<List<Message>> GetConversationMessagesUtil(string conversationId, int limit,
+    public async Task<MessagesAndToken> GetConversationMessagesUtil(string conversationId, int limit,
         string continuationToken, long lastMessageTime)
     {
         //TODO: get continuation token and return it, also use limit
         var query = MessageContainer.GetItemQueryIterator<MessageEntity>(
             new QueryDefinition(
-                    "SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey AND Messages.CreatedUnixTime > @lastMessageTimeORDER BY Messages.CreatedUnixTime DESC")
+                    "SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey AND Messages.CreatedUnixTime > @lastMessageTime ORDER BY Messages.CreatedUnixTime DESC")
                 .WithParameter("@partitionKey", conversationId)
                 .WithParameter("@lastMessageTime", lastMessageTime), continuationToken, requestOptions: new QueryRequestOptions
             {
@@ -72,7 +72,7 @@ public class CosmosMessageStore: IMessageStore
         {
             messages.Add(toMessage(entity));
         }
-        return messages;
+        return new MessagesAndToken(messages, response.ContinuationToken);
     }
     private Message toMessage(MessageEntity entity)
     {
@@ -94,14 +94,14 @@ public class CosmosMessageStore: IMessageStore
             MessageContent: message.messageContent);
     }
     
-    public async Task<List<ConversationMessage> > GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
+    public async Task<ConversationMessageAndToken> GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
     {
         var messages = GetConversationMessagesUtil(conversationId, limit, continuationToken, lastMessageTime);
         var conversationMessages = new List<ConversationMessage>();
-        foreach (var message in messages.Result)
+        foreach (var message in messages.Result.messages)
         {
             conversationMessages.Add(new ConversationMessage(message.senderUsername, message.messageContent, message.createdUnixTime));
         }
-        return conversationMessages;
+        return new ConversationMessageAndToken(conversationMessages, messages.Result.continuationToken);
     }
 };

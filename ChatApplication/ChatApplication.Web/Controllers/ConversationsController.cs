@@ -111,10 +111,10 @@ public class ConversationsController : ControllerBase
         string continuationToken = "", int limit = 50)
     {
         var stopWatch = new Stopwatch();
-        var messages = await _conversationService.GetConversationMessages(conversationId, limit, continuationToken, lastMessageTime);
+        var messageAndToken = await _conversationService.GetConversationMessages(conversationId, limit, continuationToken, lastMessageTime);
         _telemetryClient.TrackMetric("ConversationService.GetConversationMessages.Time", stopWatch.ElapsedMilliseconds);
-        var response = new GetConversationMessagesResponse("ok", messages);
-        return response;
+        var response = new GetConversationMessagesResponse("ok", messageAndToken.messages);
+        return response; //TODO: Change this to the correct url.
     }
     
     

@@ -7,7 +7,7 @@ public interface IConversationService
 {
     public Task AddMessage(Message message);
 
-    public Task<List<ConversationMessage> > GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime);
+    public Task<ConversationMessageAndToken> GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime);
 
     public Task<string> StartConversation(string messageId, string senderUsername, string messageContent,
         long createdTime, List<string> participants);

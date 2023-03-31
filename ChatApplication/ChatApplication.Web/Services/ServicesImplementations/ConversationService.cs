@@ -34,7 +34,7 @@ public class ConversationService : IConversationService
         await _messageStore.AddMessage(message);
     }
     
-    public async Task<List<ConversationMessage> > GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
+    public async Task<ConversationMessageAndToken > GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
     {
         return await _messageStore.GetConversationMessages(conversationId, limit, continuationToken, lastMessageTime);
     }
