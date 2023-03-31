@@ -8,5 +8,6 @@ public record ConversationEntity
     public string id { get; init;}
     public List<Profile> Participants { get; set; }
     public long lastMessageTime { get; set; }
+    
 }
     

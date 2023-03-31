@@ -17,12 +17,12 @@ public class CosmosConversationStore : IConversationStore
         _cosmosClient = cosmosClient;
     }
     
-    public async Task<Conversation> GetConversation(string conversationId)
+    public async Task<Conversation> GetConversation(string username, string conversationId)
     {
         try
         {
             var conversation = await ConversationContainer.ReadItemAsync<ConversationEntity>(conversationId,
-                new PartitionKey(conversationId) ,
+                new PartitionKey(username) ,
                 new ItemRequestOptions
                 {
                     ConsistencyLevel = ConsistencyLevel.Session 
@@ -60,7 +60,7 @@ public class CosmosConversationStore : IConversationStore
         }
     }
 
-    public async Task StartConversation(Conversation conversation)
+    public async Task CreateConversation(Conversation conversation)
     {
         var entity = toEntity(conversation);
         try
@@ -86,7 +86,7 @@ public class CosmosConversationStore : IConversationStore
         {
             await ConversationContainer.DeleteItemAsync<Conversation>(
                 id: conversation.conversationId,
-                partitionKey: new PartitionKey(conversation.conversationId)
+                partitionKey: new PartitionKey(conversation.username)
             );
         }
         catch (CosmosException e)
@@ -103,10 +103,10 @@ public class CosmosConversationStore : IConversationStore
     {
         return new ConversationEntity
         {
-            partitionKey = conversation.conversationId,
+            partitionKey = conversation.username,
             id = conversation.conversationId,
             Participants = conversation.participants,
-            lastMessageTime = conversation.lastMessageTime
+            lastMessageTime = conversation.lastMessageTime,
         };
     }
 
@@ -115,7 +115,8 @@ public class CosmosConversationStore : IConversationStore
         return new Conversation(
             conversationEntity.id,
             conversationEntity.Participants,
-            conversationEntity.lastMessageTime
+            conversationEntity.lastMessageTime,
+            conversationEntity.partitionKey
         );
     }
 }

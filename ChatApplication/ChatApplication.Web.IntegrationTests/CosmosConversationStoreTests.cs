@@ -29,7 +29,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     public CosmosConversationStoreTests(WebApplicationFactory<Program> factory)
     {
         List<Profile> participants = new() { _profile1, _profile2 };
-        _conversation = new Conversation(_conversationId, participants, 1000);
+        _conversation = new Conversation(_conversationId, participants, 1000, _profile1.username);
         _store = factory.Services.GetRequiredService<IConversationStore>();
     }
 
@@ -38,28 +38,50 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
 
     public async Task GetConversation()
     {
-        await _store.StartConversation(_conversation);
-        var conversation = await _store.GetConversation(_conversationId);
+        await _store.CreateConversation(_conversation);
+        var conversation = await _store.GetConversation(_conversation.username, _conversationId);
         Assert.Equivalent(_conversation, conversation);
     }
     
     [Fact]
     
-    public async Task GetConversation_NotFound()
+    public async Task GetConversation_NotFoundUsername()
     {
         await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
         {
-            await _store.GetConversation("haha thats an id that doesnt exist LOL");
+            var randomId = Guid.NewGuid().ToString();
+            await _store.GetConversation(randomId, _conversation.conversationId);
+        });
+    }
+    
+    [Fact]
+    
+    public async Task GetConversation_NotFoundConversationId()
+    {
+        await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
+        {
+            var randomId = Guid.NewGuid().ToString();
+            await _store.GetConversation(_conversation.username, randomId);
         });
     }
 
     [Fact]
 
-    public async Task GetConversation_EmptyId()
+    public async Task GetConversation_EmptyUsername()
     {
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
-            await _store.GetConversation("");
+            await _store.GetConversation("", _conversation.conversationId);
+        });
+    }
+    
+    [Fact]
+    
+    public async Task GetConversation_EmptyConversationId()
+    {
+        await Assert.ThrowsAsync<CosmosException>(async () =>
+        {
+            await _store.GetConversation(_conversation.username, "");
         });
     }
     
@@ -67,9 +89,9 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     
     public async Task ChangeConversationLastMessageTime()
     {
-        await _store.StartConversation(_conversation);
+        await _store.CreateConversation(_conversation);
         await _store.ChangeConversationLastMessageTime(_conversation, 1001);
-        var conversation = await _store.GetConversation(_conversationId);
+        var conversation = await _store.GetConversation(_conversation.username,_conversation.conversationId);
         Assert.Equal(1001, conversation.lastMessageTime);
     }
     
@@ -87,7 +109,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     
     public async Task ChangeConversationLastMessageTime_EmptyConversation()
     {
-        var conversation = new Conversation("", new List<Profile>(), 1000);
+        var conversation = new Conversation("", new List<Profile>(), 1000, "hey");
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
             await _store.ChangeConversationLastMessageTime(conversation, 1001);
@@ -96,32 +118,44 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
 
     [Fact]
 
-    public async Task StartConversation()
+    public async Task CreateConversation()
     {
-        await _store.StartConversation(_conversation);
-        var conversation = await _store.GetConversation(_conversationId);
+        await _store.CreateConversation(_conversation);
+        var conversation = await _store.GetConversation(_conversation.username, _conversation.conversationId);
         Assert.Equivalent(_conversation, conversation);
     }
     
     [Fact]
+    //TODO: Change this to not throw exception
     
-    public async Task StartConversation_Conflict()
+    public async Task CreateConversation_Conflict()
     {
-        await _store.StartConversation(_conversation);
+        await _store.CreateConversation(_conversation);
         await Assert.ThrowsAsync<ConversationAlreadyExistsException>(async () =>
         {
-            await _store.StartConversation(_conversation);
+            await _store.CreateConversation(_conversation);
         });
     }
 
     [Fact]
 
-    public async Task StartConversation_EmptyId()
+    public async Task CreateConversation_EmptyId()
     {
-        var conversation = new Conversation("", new List<Profile>(), 1000);
+        var conversation = new Conversation("", new List<Profile>(), 1000, _conversation.conversationId);
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
-            await _store.StartConversation(conversation);
+            await _store.CreateConversation(conversation);
+        });
+    }
+    
+    [Fact]
+    
+    public async Task CreateConversation_EmptyUsername()
+    {
+        var conversation = new Conversation(_conversation.conversationId, new List<Profile>(), 1000, "");
+        await Assert.ThrowsAsync<CosmosException>(async () =>
+        {
+            await _store.CreateConversation(conversation);
         });
     }
 
@@ -129,11 +163,11 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
 
     public async Task DeleteConversation()
     {
-        await _store.StartConversation(_conversation);
+        await _store.CreateConversation(_conversation);
         await _store.DeleteConversation(_conversation);
         await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
         {
-            await _store.GetConversation(_conversationId);
+            await _store.GetConversation(_conversation.username, _conversation.conversationId);
         });
     }
 
@@ -141,7 +175,18 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
 
     public async Task DeleteConversation_EmptyId()
     {
-        var conversation = new Conversation("", new List<Profile>(), 1000);
+        var conversation = new Conversation("", new List<Profile>(), 1000, _conversation.conversationId);
+        await Assert.ThrowsAsync<CosmosException>(async () =>
+        {
+            await _store.DeleteConversation(conversation);
+        });
+    }
+    
+    [Fact]
+    
+    public async Task DeleteConversation_EmptyUsername()
+    {
+        var conversation = new Conversation(_conversation.conversationId, new List<Profile>(), 1000, "");
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
             await _store.DeleteConversation(conversation);
