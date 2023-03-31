@@ -34,9 +34,9 @@ public class ConversationService : IConversationService
         await _messageStore.AddMessage(message);
     }
     
-    public async Task<List<ConversationMessage> > GetConversationMessages(string conversationId)
+    public async Task<List<ConversationMessage> > GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
     {
-        return await _messageStore.GetConversationMessages(conversationId);
+        return await _messageStore.GetConversationMessages(conversationId, limit, continuationToken, lastMessageTime);
     }
 
     public async Task<string> StartConversation(string messageId, string senderUsername, string messageContent, long createdTime,
@@ -54,7 +54,7 @@ public class ConversationService : IConversationService
         {
             throw new ProfileNotFoundException("Sender username not found in participants", senderUsername);
         }
-        foreach (var participantUsername in participants) //TODO: Add to each participant's userconversation
+        foreach (var participantUsername in sortedParticipants) //TODO: Add to each participant's userconversation
         {
             id += "_"+participantUsername;
         }

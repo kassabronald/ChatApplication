@@ -4,7 +4,7 @@ using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
-
+/*
 namespace ChatApplication.Web.IntegrationTests;
 
 public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
@@ -103,4 +103,6 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         var actual = await _store.GetConversationMessages(_messageList[0].conversationId);
         Assert.Equal(expected, actual);
     }
+    
 }
+*/

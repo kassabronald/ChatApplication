@@ -51,19 +51,26 @@ public class CosmosMessageStore: IMessageStore
             throw;
         }
     }
-    public async Task<List<Message> > GetConversationMessagesUtil(string conversationId)
-    {//TODO: get continuation token and return it, also use limit
+
+    public async Task<List<Message>> GetConversationMessagesUtil(string conversationId, int limit,
+        string continuationToken, long lastMessageTime)
+    {
+        //TODO: get continuation token and return it, also use limit
         var query = MessageContainer.GetItemQueryIterator<MessageEntity>(
-            new QueryDefinition("SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey ORDER BY Messages.CreatedUnixTime DESC")
-                .WithParameter("@partitionKey", conversationId));
-        var messages = new List<Message>();
-        while (query.HasMoreResults)
-        {
-            var response = await query.ReadNextAsync();
-            foreach (var entity in response)
+            new QueryDefinition(
+                    "SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey AND Messages.CreatedUnixTime > @lastMessageTimeORDER BY Messages.CreatedUnixTime DESC")
+                .WithParameter("@partitionKey", conversationId)
+                .WithParameter("@lastMessageTime", lastMessageTime), continuationToken, requestOptions: new QueryRequestOptions
             {
-                messages.Add(toMessage(entity));
-            }
+                MaxItemCount = Int32.Max(Int32.Min(limit, 100), 1) //limit is between 1 and 100
+            });
+
+        var messages = new List<Message>();
+        
+        var response = await query.ReadNextAsync();
+        foreach (var entity in response)
+        {
+            messages.Add(toMessage(entity));
         }
         return messages;
     }
@@ -87,9 +94,9 @@ public class CosmosMessageStore: IMessageStore
             MessageContent: message.messageContent);
     }
     
-    public async Task<List<ConversationMessage> > GetConversationMessages(string conversationId)
+    public async Task<List<ConversationMessage> > GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
     {
-        var messages = GetConversationMessagesUtil(conversationId);
+        var messages = GetConversationMessagesUtil(conversationId, limit, continuationToken, lastMessageTime);
         var conversationMessages = new List<ConversationMessage>();
         foreach (var message in messages.Result)
         {

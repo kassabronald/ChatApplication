@@ -25,12 +25,12 @@ public class InMemoryMessageStore : IMessageStore
         _messages[message.messageId] = new(message, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
     }
 
-    public Task<List<Message>> GetConversationMessagesUtil(string conversationId)
+    public Task<List<Message>> GetConversationMessagesUtil(string conversationId, int limit, string continuationToken, long lastMessageTime)
     {
         throw new NotImplementedException();
     }
 
-    Task<List<ConversationMessage>> IMessageStore.GetConversationMessages(string conversationId)
+    Task<List<ConversationMessage>> IMessageStore.GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
     {
         throw new NotImplementedException();
     }

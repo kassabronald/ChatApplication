@@ -107,11 +107,11 @@ public class ConversationsController : ControllerBase
     }
     
     [HttpGet("conversations/{conversationId}/messages")]
-    public async Task<GetConversationMessagesResponse> GetConversationMessages(string conversationId, string? continuationToken
-        ,long? lastMessageTime, int? limit = 50)
+    public async Task<GetConversationMessagesResponse> GetConversationMessages(string conversationId, long lastMessageTime=0, 
+        string continuationToken = "", int limit = 50)
     {
         var stopWatch = new Stopwatch();
-        var messages = await _conversationService.GetConversationMessages(conversationId);
+        var messages = await _conversationService.GetConversationMessages(conversationId, limit, continuationToken, lastMessageTime);
         _telemetryClient.TrackMetric("ConversationService.GetConversationMessages.Time", stopWatch.ElapsedMilliseconds);
         var response = new GetConversationMessagesResponse("ok", messages);
         return response;
