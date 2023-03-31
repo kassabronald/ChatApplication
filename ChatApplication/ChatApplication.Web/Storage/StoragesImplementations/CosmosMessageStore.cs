@@ -4,6 +4,7 @@ using ChatApplication.Storage.Entities;
 using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 
 namespace ChatApplication.Storage;
 
@@ -56,14 +57,29 @@ public class CosmosMessageStore: IMessageStore
         string continuationToken, long lastMessageTime)
     {
         //TODO: get continuation token and return it, also use limit
-        var query = MessageContainer.GetItemQueryIterator<MessageEntity>(
-            new QueryDefinition(
-                    "SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey AND Messages.CreatedUnixTime > @lastMessageTime ORDER BY Messages.CreatedUnixTime DESC")
-                .WithParameter("@partitionKey", conversationId)
-                .WithParameter("@lastMessageTime", lastMessageTime), continuationToken, requestOptions: new QueryRequestOptions
-            {
-                MaxItemCount = Int32.Max(Int32.Min(limit, 100), 1) //limit is between 1 and 100
-            });
+        FeedIterator<MessageEntity>? query;
+        if (continuationToken==null || continuationToken == "")
+        {
+            query = MessageContainer.GetItemQueryIterator<MessageEntity>(
+                new QueryDefinition(
+                        "SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey AND Messages.CreatedUnixTime > @lastMessageTime ORDER BY Messages.CreatedUnixTime DESC")
+                    .WithParameter("@partitionKey", conversationId)
+                    .WithParameter("@lastMessageTime", lastMessageTime), requestOptions: new QueryRequestOptions
+                {
+                    MaxItemCount = Int32.Max(Int32.Min(limit, 100), 1) //limit is between 1 and 100
+                });
+        }
+        else
+        {
+            query= MessageContainer.GetItemQueryIterator<MessageEntity>(
+                new QueryDefinition(
+                        "SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey AND Messages.CreatedUnixTime > @lastMessageTime ORDER BY Messages.CreatedUnixTime DESC")
+                    .WithParameter("@partitionKey", conversationId)
+                    .WithParameter("@lastMessageTime", lastMessageTime), requestOptions: new QueryRequestOptions
+                {
+                    MaxItemCount = Int32.Max(Int32.Min(limit, 100), 1), //limit is between 1 and 100
+                });
+        }
 
         var messages = new List<Message>();
         
