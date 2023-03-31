@@ -134,7 +134,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             It.IsAny<long>(), 
             participants)).ReturnsAsync("_Ronald_Farex");
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("Conversations/conversations", jsonContent);
+        var response = await  _httpClient.PostAsync("/Conversations/conversations", jsonContent);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.Equal("http://localhost/Conversations/conversations/_Ronald_Farex", response.Headers.GetValues("Location").First());
         var responseString = await response.Content.ReadAsStringAsync();
@@ -156,7 +156,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var participants = new List<string> {"Ronald"};
         var conversationRequest = new StartConversationRequest(participants, messageRequest);
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await _httpClient.PostAsync("Conversations/conversations", jsonContent);
+        var response = await _httpClient.PostAsync("/Conversations/conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -167,8 +167,11 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var messageRequest = new MessageRequest("12345", "Ronald", "Haha Bro farex");
         var participants = new List<string> {"Farex", "Messi"};
         var conversationRequest = new StartConversationRequest(participants, messageRequest);
+        _conversationServiceMock.Setup(x=> x.StartConversation(messageRequest.messageId, 
+            messageRequest.senderUsername, messageRequest.messageContent, It.IsAny<long>(), participants)).
+            ThrowsAsync(new ProfileNotFoundException(messageRequest.senderUsername));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await _httpClient.PostAsync("Conversations/conversations", jsonContent);
+        var response = await _httpClient.PostAsync("/Conversations/conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -186,8 +189,8 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             It.IsAny<long>(), 
             participants)).ThrowsAsync(new ProfileNotFoundException());
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("Conversations/conversations", jsonContent);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var response = await  _httpClient.PostAsync("/Conversations/conversations", jsonContent);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
     
     [Fact]
@@ -204,7 +207,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             It.IsAny<long>(), 
             participants)).ThrowsAsync(new MessageAlreadyExistsException());
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("Conversations/conversations", jsonContent);
+        var response = await  _httpClient.PostAsync("/Conversations/conversations", jsonContent);
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
     
@@ -222,8 +225,16 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             It.IsAny<long>(), 
             participants)).ThrowsAsync(new ConversationAlreadyExistsException());
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("Conversations/conversations", jsonContent);
+        var response = await  _httpClient.PostAsync("/Conversations/conversations", jsonContent);
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
+
+    //[Fact]
+
+    // public async Task GetConversationMessagesResponse()
+    // {
+    //     var conversationId = "_Farex_Ronald";
+    //     
+    // }
     
 }

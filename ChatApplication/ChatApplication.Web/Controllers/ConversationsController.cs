@@ -46,7 +46,7 @@ public class ConversationsController : ControllerBase
                 _logger.LogInformation("Message added");
                 //TODO: Change when we create get method.
                 
-                return Created("http://localhost/Conversations/conversations/{conversationId}/messages", 
+                return Created($"http://localhost/Conversations/conversations/{conversationId}/messages", 
                     new MessageResponse(message.createdUnixTime));
                 // return CreatedAtAction(nameof(GetConversationMessages), conversationId, 
                 //     new MessageResponse(message.createdUnixTime));
@@ -107,13 +107,27 @@ public class ConversationsController : ControllerBase
     }
     
     [HttpGet("conversations/{conversationId}/messages")]
-    public async Task<GetConversationMessagesResponse> GetConversationMessages(string conversationId, long lastMessageTime=0, 
+    public async Task<GetConversationMessagesResponse> GetConversationMessages(string conversationId, long lastSeenMessageTime=0, 
         string continuationToken = "", int limit = 50)
     {
         var stopWatch = new Stopwatch();
-        var messageAndToken = await _conversationService.GetConversationMessages(conversationId, limit, continuationToken, lastMessageTime);
+        var messageAndToken = await _conversationService.GetConversationMessages(conversationId, limit, continuationToken, lastSeenMessageTime);
         _telemetryClient.TrackMetric("ConversationService.GetConversationMessages.Time", stopWatch.ElapsedMilliseconds);
-        var response = new GetConversationMessagesResponse("ok", messageAndToken.messages);
+        var nextUri =
+            $"/api/conversations/{conversationId}/messages?&limit={limit}&lastSeenMessageTime={lastSeenMessageTime}&continuationToken={continuationToken}";
+        var response = new GetConversationMessagesResponse(messageAndToken.messages, nextUri);
+        return response; //TODO: Change this to the correct url.
+    }
+    
+    [HttpGet("conversations/{username}")]
+    
+    public async Task<ActionResult<GetConversationsResponse>> GetAllConversations(string username, int limit = 50, string continuationToken = "")
+    {
+        var stopWatch = new Stopwatch();
+        var conversationsAndToken = await _conversationService.GetAllConversations(username, limit, continuationToken);
+        _telemetryClient.TrackMetric("ConversationService.GetConversations.Time", stopWatch.ElapsedMilliseconds);
+        var nextUri = $"/api/conversations/{username}?&limit={limit}&continuationToken={continuationToken}";
+        var response = new GetConversationsResponse(nextUri, conversationsAndToken.conversations);
         return response; //TODO: Change this to the correct url.
     }
     

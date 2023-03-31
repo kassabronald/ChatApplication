@@ -98,6 +98,12 @@ public class CosmosConversationStore : IConversationStore
             throw;
         }
     }
+    
+    //TODO: implement
+    public async Task<ConversationsMetaDataAndToken> GetAllConversations(string username, int limit, string continuationToken)
+    {
+        throw new NotImplementedException();
+    }
 
     private ConversationEntity toEntity(Conversation conversation)
     {

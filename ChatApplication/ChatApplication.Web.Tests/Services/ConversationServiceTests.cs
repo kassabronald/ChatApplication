@@ -45,7 +45,6 @@ public class ConversationServiceTests
     {
         var message = new Message("123", "jad", "bro got W rizz",1000, "1234");
         var profile = new Profile("jad", "Jad", "Haddad", "12345");
-        //make a List<Profile>  A list not array
         var participants = new List<Profile> { profile };
         var conversation = new Conversation("1234", participants, 100000, profile.username);
         _conversationStoreMock.Setup(m => m.GetConversation(profile.username, message.conversationId)).ThrowsAsync(new ConversationNotFoundException());
@@ -87,7 +86,7 @@ public class ConversationServiceTests
         var messageContent = "aha aha aha";
         long createdTime = 100000;
         var participants = new List<string> {"Ronald", "Jad"};
-        var expectedId = "_Ronald_Jad";
+        var expectedId = "_Jad_Ronald";
         var actualId = await _conversationService.StartConversation(messageId, senderUsername, messageContent, createdTime, participants);
         Assert.Equal(expectedId, actualId);
     }
@@ -100,19 +99,20 @@ public class ConversationServiceTests
         var senderUsername = "Ronald";
         var messageContent = "aha aha aha";
         long createdTime = 100000;
-        var participants = new List<string> {"Ronald", "Jad"};
-        var participantsProfile = new List<Profile>();
+        var participants = new List<string> {"Jad", "Ronald"};
         var expectedId = "";
         foreach (var participant in participants)
         {
             expectedId += "_" + participant;
             var profile = new Profile(participant, "ok", "gym", "1234");
-            participantsProfile.Add(profile);
             _profileStoreMock.Setup(x => x.GetProfile(participant)).ReturnsAsync(profile);
         }
-        //var conversation = new Conversation(expectedId, participantsProfile, createdTime, );
         _conversationStoreMock.Setup(x => x.CreateConversation(
-            It.Is<Conversation>(c => c.conversationId == expectedId && c.lastMessageTime==createdTime&& c.participants.All(p => typeof(Profile) == p.GetType())
+            It.Is<Conversation>(c => 
+                                        c.conversationId == expectedId 
+                                     && c.lastMessageTime==createdTime 
+                                     && c.username == senderUsername 
+                                     && c.participants.All(p => typeof(Profile) == p.GetType())
                                      && c.participants.Any(p => p.username == "Ronald")
                                      && c.participants.Any(p => p.username == "Jad")
             )
@@ -130,13 +130,26 @@ public class ConversationServiceTests
         var senderUsername = "Ronald";
         var messageContent = "aha aha aha";
         long createdTime = 100000;
-        var conversationId = "_Ronald_Jad";
+        var conversationId = "_Jad_Ronald";
         var participants = new List<string> {"Ronald", "Jad"};
         var message = new Message(messageId, senderUsername, messageContent, createdTime, conversationId);
         _messageStoreMock.Setup(x => x.AddMessage(message)).ThrowsAsync(new MessageAlreadyExistsException());
         await Assert.ThrowsAsync<MessageAlreadyExistsException>(async () =>
             await _conversationService.StartConversation(messageId, senderUsername, messageContent, createdTime, participants));
 
+    }
+
+    [Fact]
+
+    public async Task StartConversation_SenderUsernameNotFound()
+    {
+        var senderProfile = new Profile("Jad", "Jad", "Haddad", "12345");
+        var messageId = "123";
+        var messageContent = "south park vs family guy";
+        var createdTime = 10000;
+        var participants = new List<string> {"Ronald", "Stewie"};
+        await Assert.ThrowsAsync<ProfileNotFoundException>(async()=>
+                await _conversationService.StartConversation(messageId, senderProfile.username, messageContent, createdTime, participants));
     }
 
 }

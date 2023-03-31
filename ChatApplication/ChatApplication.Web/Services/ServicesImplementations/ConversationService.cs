@@ -23,7 +23,7 @@ public class ConversationService : IConversationService
         await _conversationStore.ChangeConversationLastMessageTime(conversation, message.createdUnixTime);
         foreach(var participant in conversation.participants)
         {
-            if (participant.username != conversation.username)
+            if (participant.username != message.senderUsername)
             {
                 var receiverConversation =
                     await _conversationStore.GetConversation(participant.username, message.conversationId);
@@ -33,12 +33,6 @@ public class ConversationService : IConversationService
         }
         await _messageStore.AddMessage(message);
     }
-    
-    public async Task<ConversationMessageAndToken > GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
-    {
-        return await _messageStore.GetConversationMessages(conversationId, limit, continuationToken, lastMessageTime);
-    }
-
     public async Task<string> StartConversation(string messageId, string senderUsername, string messageContent, long createdTime,
         List<string> participants)
     {// TODO: Check that user is not sending to himself
@@ -75,4 +69,15 @@ public class ConversationService : IConversationService
         //TODO: After PR1 handle possible errors
         return id;
     }
+    
+    public async Task<ConversationMessageAndToken > GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
+    {
+        return await _messageStore.GetConversationMessages(conversationId, limit, continuationToken, lastMessageTime);
+    }
+    
+    public async Task<ConversationsMetaDataAndToken> GetAllConversations(string username, int limit, string continuationToken)
+    {
+        return await _conversationStore.GetAllConversations(username, limit, continuationToken);
+    }
+
 }

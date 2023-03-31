@@ -4,7 +4,7 @@ using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
-/*
+
 namespace ChatApplication.Web.IntegrationTests;
 
 public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
@@ -40,8 +40,8 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     public async Task AddMessage()
     {
         await _store.AddMessage(_messageList[0]);
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId);
-        Assert.Equal(_messageList[0], actual[0]);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 100, "", 0);
+        Assert.Equal(_messageList[0], actual.messages[0]);
     }
 
     [Fact]
@@ -60,10 +60,9 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     public async Task DeleteMessage()
     {
         await _store.AddMessage(_messageList[0]);
-        var ok = await _store.GetConversationMessagesUtil(_messageList[0].conversationId);
         await _store.DeleteMessage(_messageList[0]);
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId);
-        Assert.Empty(actual);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 100, "", 0);
+        Assert.Empty(actual.messages);
     }
     
     [Fact]
@@ -85,8 +84,8 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         {
             await _store.AddMessage(message);
         }
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId);
-        Assert.Equal(_messageList, actual);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 100, "", 0);
+        Assert.Equal(_messageList, actual.messages);
     }
     //should we check for bad inputs?
     
@@ -100,9 +99,7 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
             await _store.AddMessage(message);
             expected.Add(new ConversationMessage(message.senderUsername, message.messageContent, message.createdUnixTime));
         }
-        var actual = await _store.GetConversationMessages(_messageList[0].conversationId);
-        Assert.Equal(expected, actual);
+        var actual = await _store.GetConversationMessages(_messageList[0].conversationId, 100, "", 0);
+        Assert.Equal(expected, actual.messages);
     }
-    
 }
-*/

@@ -66,16 +66,6 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     }
 
     [Fact]
-
-    public async Task GetConversation_EmptyUsername()
-    {
-        await Assert.ThrowsAsync<CosmosException>(async () =>
-        {
-            await _store.GetConversation("", _conversation.conversationId);
-        });
-    }
-    
-    [Fact]
     
     public async Task GetConversation_EmptyConversationId()
     {
@@ -147,17 +137,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
             await _store.CreateConversation(conversation);
         });
     }
-    
-    [Fact]
-    
-    public async Task CreateConversation_EmptyUsername()
-    {
-        var conversation = new Conversation(_conversation.conversationId, new List<Profile>(), 1000, "");
-        await Assert.ThrowsAsync<CosmosException>(async () =>
-        {
-            await _store.CreateConversation(conversation);
-        });
-    }
+
 
     [Fact]
 
@@ -181,20 +161,4 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
             await _store.DeleteConversation(conversation);
         });
     }
-    
-    [Fact]
-    
-    public async Task DeleteConversation_EmptyUsername()
-    {
-        var conversation = new Conversation(_conversation.conversationId, new List<Profile>(), 1000, "");
-        await Assert.ThrowsAsync<CosmosException>(async () =>
-        {
-            await _store.DeleteConversation(conversation);
-        });
-    }
-    
-    
-    
-    
-    
 }

@@ -75,7 +75,7 @@ public class CosmosMessageStore: IMessageStore
                 new QueryDefinition(
                         "SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey AND Messages.CreatedUnixTime > @lastMessageTime ORDER BY Messages.CreatedUnixTime DESC")
                     .WithParameter("@partitionKey", conversationId)
-                    .WithParameter("@lastMessageTime", lastMessageTime), requestOptions: new QueryRequestOptions
+                    .WithParameter("@lastMessageTime", lastMessageTime), continuationToken, requestOptions: new QueryRequestOptions
                 {
                     MaxItemCount = Int32.Max(Int32.Min(limit, 100), 1), //limit is between 1 and 100
                 });
