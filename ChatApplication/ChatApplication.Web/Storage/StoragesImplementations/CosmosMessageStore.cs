@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using ChatApplication.Exceptions;
 using ChatApplication.Storage.Entities;
 using ChatApplication.Utils;
@@ -57,38 +58,29 @@ public class CosmosMessageStore: IMessageStore
         string continuationToken, long lastMessageTime)
     {
         //TODO: get continuation token and return it, also use limit
-        FeedIterator<MessageEntity>? query;
-        if (continuationToken==null || continuationToken == "")
-        {
-            query = MessageContainer.GetItemQueryIterator<MessageEntity>(
-                new QueryDefinition(
-                        "SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey AND Messages.CreatedUnixTime > @lastMessageTime ORDER BY Messages.CreatedUnixTime DESC")
-                    .WithParameter("@partitionKey", conversationId)
-                    .WithParameter("@lastMessageTime", lastMessageTime), requestOptions: new QueryRequestOptions
-                {
-                    MaxItemCount = Int32.Max(Int32.Min(limit, 100), 1) //limit is between 1 and 100
-                });
-        }
-        else
-        {
-            query= MessageContainer.GetItemQueryIterator<MessageEntity>(
-                new QueryDefinition(
-                        "SELECT * FROM Messages WHERE Messages.partitionKey = @partitionKey AND Messages.CreatedUnixTime > @lastMessageTime ORDER BY Messages.CreatedUnixTime DESC")
-                    .WithParameter("@partitionKey", conversationId)
-                    .WithParameter("@lastMessageTime", lastMessageTime), continuationToken, requestOptions: new QueryRequestOptions
-                {
-                    MaxItemCount = Int32.Max(Int32.Min(limit, 100), 1), //limit is between 1 and 100
-                });
-        }
 
-        var messages = new List<Message>();
-        
-        var response = await query.ReadNextAsync();
-        foreach (var entity in response)
+        QueryRequestOptions options = new QueryRequestOptions();
+        options.MaxItemCount = limit;
+        var query = MessageContainer.GetItemLinqQueryable<MessageEntity>(true, string.IsNullOrEmpty(continuationToken) ? null : continuationToken, options)
+            .Where(m => m.partitionKey == conversationId && m.CreatedUnixTime > lastMessageTime)
+            .OrderByDescending(m => m.CreatedUnixTime);
+
+        using (FeedIterator<MessageEntity> iterator = query.ToFeedIterator())
         {
-            messages.Add(toMessage(entity));
+            FeedResponse<MessageEntity> response = await iterator.ReadNextAsync();
+            var receivedMessages = response.Select(toMessage).ToList();
+            string newContinuationToken = response.ContinuationToken;
+            return new MessagesAndToken(receivedMessages, newContinuationToken);
         }
-        return new MessagesAndToken(messages, response.ContinuationToken);
+        
+        //var response = await query.ToFeedIterator().ReadNextAsync();
+        //var messages = response.Select(toMessage).ToList();
+        //string newContinuationToken = response.ContinuationToken;
+        //Console.WriteLine("helo");
+        //Console.WriteLine(newContinuationToken);
+        //return new MessagesAndToken(messages, newContinuationToken);
+    
+        //return new MessagesAndToken(messages, JsonSerializer.Deserialize<JsonElement>(response.ContinuationToken)[0].GetProperty("token").GetString());
     }
     private Message toMessage(MessageEntity entity)
     {

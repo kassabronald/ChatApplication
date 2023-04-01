@@ -11,5 +11,5 @@ public interface IConversationStore
     public Task CreateConversation(Conversation conversation);
 
     public Task DeleteConversation(Conversation conversation);
-    public Task<ConversationsMetaDataAndToken> GetAllConversations(string username, int limit, string continuationToken);
+    public Task<ConversationsAndToken> GetAllConversations(string username, int limit, string continuationToken);
 }

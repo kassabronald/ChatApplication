@@ -12,7 +12,7 @@ namespace ChatApplication.Controllers;
 
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 
 public class ConversationsController : ControllerBase
 {
@@ -114,7 +114,7 @@ public class ConversationsController : ControllerBase
         var messageAndToken = await _conversationService.GetConversationMessages(conversationId, limit, continuationToken, lastSeenMessageTime);
         _telemetryClient.TrackMetric("ConversationService.GetConversationMessages.Time", stopWatch.ElapsedMilliseconds);
         var nextUri =
-            $"/api/conversations/{conversationId}/messages?&limit={limit}&lastSeenMessageTime={lastSeenMessageTime}&continuationToken={continuationToken}";
+            $"/api/conversations/{conversationId}/messages?&limit={limit}&lastSeenMessageTime={lastSeenMessageTime}&continuationToken={messageAndToken.continuationToken}";
         var response = new GetConversationMessagesResponse(messageAndToken.messages, nextUri);
         return response; //TODO: Change this to the correct url.
     }
@@ -126,8 +126,8 @@ public class ConversationsController : ControllerBase
         var stopWatch = new Stopwatch();
         var conversationsAndToken = await _conversationService.GetAllConversations(username, limit, continuationToken);
         _telemetryClient.TrackMetric("ConversationService.GetConversations.Time", stopWatch.ElapsedMilliseconds);
-        var nextUri = $"/api/conversations/{username}?&limit={limit}&continuationToken={continuationToken}";
-        var response = new GetConversationsResponse(nextUri, conversationsAndToken.conversations);
+        string nextUri = $"/api/conversations/{username}?&limit={limit}&continuationToken={continuationToken}";
+        var response = new GetConversationsResponse(conversationsAndToken.ToMetadata(), nextUri);
         return response; //TODO: Change this to the correct url.
     }
     

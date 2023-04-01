@@ -75,7 +75,7 @@ public class ConversationService : IConversationService
         return await _messageStore.GetConversationMessages(conversationId, limit, continuationToken, lastMessageTime);
     }
     
-    public async Task<ConversationsMetaDataAndToken> GetAllConversations(string username, int limit, string continuationToken)
+    public async Task<ConversationsAndToken> GetAllConversations(string username, int limit, string continuationToken)
     {
         return await _conversationStore.GetAllConversations(username, limit, continuationToken);
     }

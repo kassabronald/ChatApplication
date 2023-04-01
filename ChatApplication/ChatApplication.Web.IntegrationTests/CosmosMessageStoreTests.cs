@@ -102,4 +102,19 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         var actual = await _store.GetConversationMessages(_messageList[0].conversationId, 100, "", 0);
         Assert.Equal(expected, actual.messages);
     }
+    
+    
+    [Fact]
+    public async Task GetConversationMessages_WithContinuationToken()
+    {
+        foreach (var message in _messageList)
+        {
+            await _store.AddMessage(message);
+        }
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 2, "", 0);
+        Assert.Equal(_messageList[0], actual.messages[0]);
+        Assert.Equal(_messageList[1], actual.messages[1]);
+        var actual2 = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 2, actual.continuationToken, 0);
+        Assert.Equal(_messageList[2], actual2.messages[0]);
+    }
 }

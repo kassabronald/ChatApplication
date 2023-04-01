@@ -100,7 +100,7 @@ public class CosmosConversationStore : IConversationStore
     }
     
     //TODO: implement
-    public async Task<ConversationsMetaDataAndToken> GetAllConversations(string username, int limit, string continuationToken)
+    public async Task<ConversationsAndToken> GetAllConversations(string username, int limit, string continuationToken)
     {
         throw new NotImplementedException();
     }
