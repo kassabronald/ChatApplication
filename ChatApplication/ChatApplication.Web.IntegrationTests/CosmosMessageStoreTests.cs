@@ -117,4 +117,45 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         var actual2 = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 2, actual.continuationToken, 0);
         Assert.Equal(_messageList[2], actual2.messages[0]);
     }
+
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(-1, 1)]
+    [InlineData(150, 3)]
+    [InlineData(2, 2)]
+    [InlineData(null, 1)]
+    public async Task GetConversationMessages_WithBadLimit(int limit, int actualCount)
+    {
+        foreach (var message in _messageList)
+        {
+            await _store.AddMessage(message);
+        }
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, limit, "", 0);
+        Assert.Equal(actualCount, actual.messages.Count);
+    }
+    
+    [Fact]
+    public async Task GetConversationMessages_WithBadContinuationToken()
+    {
+        foreach (var message in _messageList)
+        {
+            await _store.AddMessage(message);
+        }
+        Assert.ThrowsAsync<CosmosException>( async () =>
+        {
+            var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 100, "bad token", 0);
+        });
+    }
+    
+    [Fact]
+    public async Task GetConversationMessages_WithUnixTime()
+    {
+        foreach (var message in _messageList)
+        {
+            await _store.AddMessage(message);
+        }
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 100, "", 1000);
+        Assert.Equal(_messageList[0], actual.messages[0]);
+        Assert.Equal(_messageList[1], actual.messages[1]);
+    }
 }

@@ -60,7 +60,7 @@ public class CosmosMessageStore: IMessageStore
         //TODO: get continuation token and return it, also use limit
 
         QueryRequestOptions options = new QueryRequestOptions();
-        options.MaxItemCount = limit;
+        options.MaxItemCount = Int32.Min(Int32.Max(limit,1), 100);
         var query = MessageContainer.GetItemLinqQueryable<MessageEntity>(true, string.IsNullOrEmpty(continuationToken) ? null : continuationToken, options)
             .Where(m => m.partitionKey == conversationId && m.CreatedUnixTime > lastMessageTime)
             .OrderByDescending(m => m.CreatedUnixTime);
