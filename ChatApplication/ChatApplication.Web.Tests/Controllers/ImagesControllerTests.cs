@@ -51,7 +51,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         ImageUtil ExpectedImageUtil = new(image, "image/jpeg");
         _imageServiceMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(ExpectedImageUtil);
         
-        var response = await _httpClient.GetAsync($"/Images/{imageId}");
+        var response = await _httpClient.GetAsync($"/api/Images/{imageId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         
         var contentActual = await response.Content.ReadAsByteArrayAsync();
@@ -66,7 +66,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     public async Task GetImageNotFound()
     {
         _imageServiceMock.Setup(m => m.GetImage("123")).ThrowsAsync(new ImageNotFoundException());
-        var response = await _httpClient.GetAsync($"/Images/123");
+        var response = await _httpClient.GetAsync($"/api/Images/123");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -92,7 +92,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
 
         formData.Add(requestContent, "File", uploadRequest.File.FileName);
         
-        var response = await _httpClient.PostAsync("/Images", formData);
+        var response = await _httpClient.PostAsync("/api/Images", formData);
         
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), "image/jpeg"), Times.Once);
@@ -117,7 +117,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         using var formData = new MultipartFormDataContent();
         formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
         
-        var response = await _httpClient.PostAsync("/Images", formData);
+        var response = await _httpClient.PostAsync("/api/Images", formData);
         
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -144,7 +144,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         using var formData = new MultipartFormDataContent();
         formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
         
-        var response = await _httpClient.PostAsync("/Images", formData);
+        var response = await _httpClient.PostAsync("/api/Images", formData);
         
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -175,7 +175,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
             
         using var formData = new MultipartFormDataContent(); 
         formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
-        var response = await _httpClient.PostAsync("/Images", formData);
+        var response = await _httpClient.PostAsync("/api/Images", formData);
         
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -187,7 +187,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     public async Task GetImageInvalidId()
     {
         _imageServiceMock.Setup(m => m.GetImage("123")).ThrowsAsync(new ArgumentException());
-        var response = await _httpClient.GetAsync($"/Images/123");
+        var response = await _httpClient.GetAsync($"/api/Images/123");
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         
     }

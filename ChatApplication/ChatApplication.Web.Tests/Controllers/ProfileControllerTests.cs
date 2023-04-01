@@ -34,7 +34,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         _profileServiceMock.Setup(m => m.GetProfile(profile.username))
             .ReturnsAsync(profile);
-        var response = await _httpClient.GetAsync($"/Profile/{profile.username}");
+        var response = await _httpClient.GetAsync($"/api/Profile/{profile.username}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadAsStringAsync();
         Assert.Equal(profile, JsonConvert.DeserializeObject<Profile>(json));
@@ -45,7 +45,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     {
         _profileServiceMock.Setup(m => m.GetProfile("foobar"))
             .ThrowsAsync(new ProfileNotFoundException());
-        var response = await _httpClient.GetAsync($"/Profile/foobar");
+        var response = await _httpClient.GetAsync($"/api/Profile/foobar");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -53,10 +53,10 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     public async Task AddProfile()
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
-        var response = await _httpClient.PostAsync("/Profile",
+        var response = await _httpClient.PostAsync("/api/Profile",
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal("http://localhost/Profile/foobar", response.Headers.GetValues("Location").First());
+        Assert.Equal("http://localhost/api/Profile/foobar", response.Headers.GetValues("Location").First());
         _profileServiceMock.Verify(mock => mock.AddProfile(profile), Times.Once);
     }
     
@@ -67,7 +67,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
         _profileServiceMock.Setup(m => m.AddProfile(profile))
             .ThrowsAsync(new ProfileAlreadyExistsException());
 
-        var response = await _httpClient.PostAsync("/Profile",
+        var response = await _httpClient.PostAsync("/api/Profile",
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
@@ -88,7 +88,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     public async Task AddProfile_InvalidArgs(string username, string firstName, string lastName, string ProfilePictureId )
     {
         var profile = new Profile(username, firstName, lastName, ProfilePictureId);
-        var response = await _httpClient.PostAsync("/Profile",
+        var response = await _httpClient.PostAsync("/api/Profile",
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -102,7 +102,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         _profileServiceMock.Setup(m=> m.AddProfile(profile))
             .ThrowsAsync(new ImageNotFoundException());
-        var response = await _httpClient.PostAsync("/Profile",
+        var response = await _httpClient.PostAsync("/api/Profile",
                 new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }

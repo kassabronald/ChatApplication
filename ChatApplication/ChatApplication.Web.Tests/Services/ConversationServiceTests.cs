@@ -152,4 +152,150 @@ public class ConversationServiceTests
                 await _conversationService.StartConversation(messageId, senderProfile.username, messageContent, createdTime, participants));
     }
 
+    [Fact]
+
+    public async Task GetConversationMessages()
+    {
+        var conversationId = "_karim_Ronald";
+        var continuationToken = "someWeirdString";
+        var conversationMessages = new List<ConversationMessage>();
+        for (int i = 0; i < 2; i++)
+        {
+            var conversationMessage = new ConversationMessage("Ronald", "skot", 1);
+            conversationMessages.Add(conversationMessage);
+        }
+        var nextContinuationToken = "anotherWeirdToken";
+        var jsonContinuationTokenData =
+            $@"[{{""token"":""{continuationToken}"",""range"":{{""min"":"""",""max"":""FF""}}}}]";
+        var expectedReturnedJsonContinuationTokenData =  
+            $@"[{{""token"":""{nextContinuationToken}"",""range"":{{""min"":"""",""max"":""FF""}}}}]";
+        _messageStoreMock.Setup(x => x.GetConversationMessages(conversationId, 2, jsonContinuationTokenData, 0))
+            .ReturnsAsync(
+                new ConversationMessageAndToken(conversationMessages, expectedReturnedJsonContinuationTokenData));
+        var expectedResult = new ConversationMessageAndToken(conversationMessages, nextContinuationToken);
+        var actualResult = await _conversationService.GetConversationMessages(conversationId, 2, continuationToken, 0);
+        Assert.Equal(expectedResult, actualResult);
+    }
+    
+    [Fact]
+
+    public async Task GetConversationMessages_NoContinuationToken()
+    {
+        var conversationId = "_karim_Ronald";
+        var continuationToken = "";
+        var conversationMessages = new List<ConversationMessage>();
+        for (int i = 0; i < 2; i++)
+        {
+            var conversationMessage = new ConversationMessage("Ronald", "skot", 1);
+            conversationMessages.Add(conversationMessage);
+        }
+        var nextContinuationToken = "anotherWeirdToken";
+        var expectedReturnedJsonContinuationTokenData =  
+            $@"[{{""token"":""{nextContinuationToken}"",""range"":{{""min"":"""",""max"":""FF""}}}}]";
+        _messageStoreMock.Setup(x => x.GetConversationMessages(conversationId, 2, continuationToken, 0))
+            .ReturnsAsync(
+                new ConversationMessageAndToken(conversationMessages, expectedReturnedJsonContinuationTokenData));
+        var expectedResult = new ConversationMessageAndToken(conversationMessages, nextContinuationToken);
+        var actualResult = await _conversationService.GetConversationMessages(conversationId, 2, continuationToken, 0);
+        Assert.Equal(expectedResult, actualResult);
+    }
+    
+        
+    [Fact]
+
+    public async Task GetConversationMessages_NoContinuationTokenReturned()
+    {
+        var conversationId = "_karim_Ronald";
+        var continuationToken = "";
+        var conversationMessages = new List<ConversationMessage>();
+        for (int i = 0; i < 2; i++)
+        {
+            var conversationMessage = new ConversationMessage("Ronald", "skot", 1);
+            conversationMessages.Add(conversationMessage);
+        }
+        _messageStoreMock.Setup(x => x.GetConversationMessages(conversationId, 2, continuationToken, 0))
+            .ReturnsAsync(
+                new ConversationMessageAndToken(conversationMessages, null));
+        var expectedResult = new ConversationMessageAndToken(conversationMessages, null);
+        var actualResult = await _conversationService.GetConversationMessages(conversationId, 2, continuationToken, 0);
+        Assert.Equal(expectedResult, actualResult);
+    }
+
+    [Fact]
+
+    public async Task GetAllConversations()
+    {
+        var username = "jad";
+        var continuationToken = "someWeirdString";
+        
+        var participants1 = new List<Profile>();
+        var participants2 = new List<Profile>();
+        participants1.Add(new Profile("jad", "mike", "o hearn", "1234"));
+        participants1.Add(new Profile("karim", "karim", "haddad", "1234"));
+        participants2.Add(new Profile("jad", "mike", "o hearn", "1234"));
+        participants2.Add(new Profile("ronald", "ronald", "haddad", "1234"));
+        var conversation1 = new Conversation("_jad_ronald", participants1, 1000, "jad");
+        var conversation2 = new Conversation("_jad_karim", participants2, 1001, "jad");
+        var conversations = new List<Conversation> { conversation1, conversation2 };
+        var nextContinuationToken = "anotherWeirdToken";
+        var jsonContinuationTokenData =
+            $@"[{{""token"":""{continuationToken}"",""range"":{{""min"":"""",""max"":""FF""}}}}]";
+        var expectedReturnedJsonContinuationTokenData =  
+            $@"[{{""token"":""{nextContinuationToken}"",""range"":{{""min"":"""",""max"":""FF""}}}}]";
+        _conversationStoreMock.Setup(x => x.GetAllConversations(username, 2, jsonContinuationTokenData, 0))
+            .ReturnsAsync(
+                new ConversationAndToken(conversations, expectedReturnedJsonContinuationTokenData));
+        var expectedResult = new ConversationAndToken(conversations, nextContinuationToken);
+        var actualResult = await _conversationService.GetAllConversations(username, 2, continuationToken, 0);
+        Assert.Equivalent(expectedResult, actualResult);
+    }
+    
+    [Fact]
+
+    public async Task GetAllConversations_NoContinuationToken()
+    {
+        var username = "jad";
+        var continuationToken = "";
+        var participants1 = new List<Profile>();
+        var participants2 = new List<Profile>();
+        participants1.Add(new Profile("jad", "mike", "o hearn", "1234"));
+        participants1.Add(new Profile("karim", "karim", "haddad", "1234"));
+        participants2.Add(new Profile("jad", "mike", "o hearn", "1234"));
+        participants2.Add(new Profile("ronald", "ronald", "haddad", "1234"));
+        var conversation1 = new Conversation("_jad_ronald", participants1, 1000, "jad");
+        var conversation2 = new Conversation("_jad_karim", participants2, 1001, "jad");
+        var conversations = new List<Conversation> { conversation1, conversation2 };
+        var nextContinuationToken = "anotherWeirdToken";
+        var expectedReturnedJsonContinuationTokenData =  
+            $@"[{{""token"":""{nextContinuationToken}"",""range"":{{""min"":"""",""max"":""FF""}}}}]";
+        _conversationStoreMock.Setup(x => x.GetAllConversations(username, 2, continuationToken, 0))
+            .ReturnsAsync(
+                new ConversationAndToken(conversations, expectedReturnedJsonContinuationTokenData));
+        var expectedResult = new ConversationAndToken(conversations, nextContinuationToken);
+        var actualResult = await _conversationService.GetAllConversations(username, 2, continuationToken, 0);
+        Assert.Equivalent(expectedResult, actualResult);
+    }
+
+    [Fact]
+
+    public async Task GetAllConversations_NoContinuationTokenReturned()
+    {
+        var username = "jad";
+        var continuationToken = "";
+        var participants1 = new List<Profile>();
+        var participants2 = new List<Profile>();
+        participants1.Add(new Profile("jad", "mike", "o hearn", "1234"));
+        participants1.Add(new Profile("karim", "karim", "haddad", "1234"));
+        participants2.Add(new Profile("jad", "mike", "o hearn", "1234"));
+        participants2.Add(new Profile("ronald", "ronald", "haddad", "1234"));
+        var conversation1 = new Conversation("_jad_ronald", participants1, 1000, "jad");
+        var conversation2 = new Conversation("_jad_karim", participants2, 1001, "jad");
+        var conversations = new List<Conversation> { conversation1, conversation2 };
+        _conversationStoreMock.Setup(x => x.GetAllConversations(username, 2, continuationToken, 0))
+            .ReturnsAsync(
+                new ConversationAndToken(conversations, null));
+        var expectedResult = new ConversationAndToken(conversations, null);
+        var actualResult = await _conversationService.GetAllConversations(username, 2, continuationToken, 0);
+        Assert.Equivalent(expectedResult, actualResult);
+    }
 }

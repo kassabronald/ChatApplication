@@ -89,7 +89,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
     {
         await _store.AddProfile(_profile);
         await _store.DeleteProfile(_profile.username);
-        Assert.Null(await _store.GetProfile(_profile.username));
+        await Assert.ThrowsAsync<ProfileNotFoundException>(async()=> await _store.GetProfile(_profile.username));
     }
 
     [Fact]

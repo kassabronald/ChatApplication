@@ -1,6 +1,6 @@
 namespace ChatApplication.Web.Dtos;
 
-public record GetConversationsResponse(
+public record GetAllConversationsResponse(
     List<ConversationMetaData> Conversations,
     string NextUri
     );
