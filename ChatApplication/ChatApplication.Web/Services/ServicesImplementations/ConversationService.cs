@@ -63,7 +63,9 @@ public class ConversationService : IConversationService
         await _messageStore.AddMessage(message);
         foreach(var participantUsername in sortedParticipants)
         {
-            var conversation = new Conversation(id, participantsProfile, createdTime, participantUsername);
+            List<Profile> recipients = new List<Profile>(participantsProfile);
+            recipients.Remove(participantsProfile.Find(x => x.Username == participantUsername));
+            var conversation = new Conversation(id, recipients, createdTime, participantUsername);
             await _conversationStore.CreateConversation(conversation);
         }
         //TODO: After PR1 handle possible errors

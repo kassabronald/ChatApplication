@@ -86,6 +86,8 @@ public class ConversationServiceTests
         long createdTime = 100000;
         var participants = new List<string> {"Ronald", "Jad"};
         var expectedId = "_Jad_Ronald";
+        _profileStoreMock.Setup(x => x.GetProfile("Jad")).ReturnsAsync(new Profile("Jad", "ok", "gym", "1234"));
+        _profileStoreMock.Setup(x => x.GetProfile("Ronald")).ReturnsAsync(new Profile("Ronald", "ok", "gym", "1234"));
         var actualId = await _conversationService.StartConversation(messageId, senderUsername, messageContent, createdTime, participants);
         Assert.Equal(expectedId, actualId);
     }
@@ -112,8 +114,7 @@ public class ConversationServiceTests
                                      && c.LastMessageTime==createdTime 
                                      && c.Username == senderUsername 
                                      && c.Participants.All(p => typeof(Profile) == p.GetType())
-                                     && c.Participants.Any(p => p.Username == "Ronald")
-                                     && c.Participants.Any(p => p.Username == "Jad")
+                                        && c.Participants.Any(p => p.Username == "Jad")
             )
         )).ThrowsAsync(new ConversationAlreadyExistsException());
         
