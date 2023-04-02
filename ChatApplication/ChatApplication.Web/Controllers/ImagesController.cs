@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using ChatApplication.Exceptions;
 using ChatApplication.Services;
-using ChatApplication.Storage;
 using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 using Microsoft.ApplicationInsights;
@@ -33,7 +32,7 @@ public class ImagesController : ControllerBase
             var stopWatch = Stopwatch.StartNew();
             image = await _imageService.GetImage(id);
             _telemetryClient.TrackMetric("ImageService.GetImage.Time", stopWatch.ElapsedMilliseconds);
-            return new FileContentResult(image._imageData, image._contentType);
+            return new FileContentResult(image!.ImageData, image.ContentType);
         }
         catch (ArgumentException)
         {

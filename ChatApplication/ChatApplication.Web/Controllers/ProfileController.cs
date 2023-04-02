@@ -1,11 +1,9 @@
 ﻿using System.Diagnostics;
 using ChatApplication.Exceptions;
 using ChatApplication.Services;
-using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Cosmos;
 
 namespace ChatApplication.Controllers;
 
@@ -58,17 +56,17 @@ public class ProfileController : ControllerBase
                 _telemetryClient.TrackMetric("ProfileService.AddProfile.Time", stopWatch.ElapsedMilliseconds);
                 _telemetryClient.TrackEvent("ProfileAdded");
                 _logger.LogInformation("Profile created");
-                return CreatedAtAction(nameof(GetProfile), new { username = profile.username },
+                return CreatedAtAction(nameof(GetProfile), new { username = profile.Username },
                     profile);
             }
-            catch (ImageNotFoundException e)
+            catch (ImageNotFoundException)
             {
                 return BadRequest(
-                    $"There are no corresponding images for the profile with username: {profile.username}");
+                    $"There are no corresponding images for the profile with username: {profile.Username}");
             }
-            catch (ProfileAlreadyExistsException e)
+            catch (ProfileAlreadyExistsException)
             {
-                return Conflict($"A profile with username {profile.username} already exists");
+                return Conflict($"A profile with username {profile.Username} already exists");
             }
         }
     }

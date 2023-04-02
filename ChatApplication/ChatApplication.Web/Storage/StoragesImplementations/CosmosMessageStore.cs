@@ -1,13 +1,9 @@
 using System.Net;
-using System.Text.Json;
 using ChatApplication.Exceptions;
 using ChatApplication.Storage.Entities;
-using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
-using Newtonsoft.Json;
-
 namespace ChatApplication.Storage;
 
 public class CosmosMessageStore: IMessageStore
@@ -31,7 +27,7 @@ public class CosmosMessageStore: IMessageStore
         {
             if (e is CosmosException cosmosException && cosmosException.StatusCode == HttpStatusCode.Conflict)
             {
-                throw new MessageAlreadyExistsException($"Message with id {message.messageId} already exists");
+                throw new MessageAlreadyExistsException($"Message with id {message.MessageId} already exists");
             }
             throw;
         }
@@ -41,8 +37,8 @@ public class CosmosMessageStore: IMessageStore
         try
         {
             await MessageContainer.DeleteItemAsync<Message>(
-                id: message.messageId,
-                partitionKey: new PartitionKey(message.conversationId)
+                id: message.MessageId,
+                partitionKey: new PartitionKey(message.ConversationId)
             );
         }
         catch (CosmosException e)
@@ -77,31 +73,31 @@ public class CosmosMessageStore: IMessageStore
     private Message toMessage(MessageEntity entity)
     {
         return new Message(
-            messageId: entity.id,
-            senderUsername: entity.SenderUsername,
-            messageContent: entity.MessageContent,
-            createdUnixTime: entity.CreatedUnixTime,
-            conversationId: entity.partitionKey);
+            MessageId: entity.id,
+            SenderUsername: entity.SenderUsername,
+            MessageContent: entity.MessageContent,
+            CreatedUnixTime: entity.CreatedUnixTime,
+            ConversationId: entity.partitionKey);
     }
     
     private MessageEntity toEntity(Message message)
     {
         return new MessageEntity(
-            partitionKey: message.conversationId,
-            id: message.messageId,
-            SenderUsername: message.senderUsername,
-            CreatedUnixTime:message.createdUnixTime,
-            MessageContent: message.messageContent);
+            partitionKey: message.ConversationId,
+            id: message.MessageId,
+            SenderUsername: message.SenderUsername,
+            CreatedUnixTime:message.CreatedUnixTime,
+            MessageContent: message.MessageContent);
     }
     
     public async Task<ConversationMessageAndToken> GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
     {
         var messages = await GetConversationMessagesUtil(conversationId, limit, continuationToken, lastMessageTime);
         var conversationMessages = new List<ConversationMessage>();
-        foreach (var message in messages.messages)
+        foreach (var message in messages.Messages)
         {
-            conversationMessages.Add(new ConversationMessage(message.senderUsername, message.messageContent, message.createdUnixTime));
+            conversationMessages.Add(new ConversationMessage(message.SenderUsername, message.MessageContent, message.CreatedUnixTime));
         }
-        return new ConversationMessageAndToken(conversationMessages, messages.continuationToken);
+        return new ConversationMessageAndToken(conversationMessages, messages.ContinuationToken);
     }
 };

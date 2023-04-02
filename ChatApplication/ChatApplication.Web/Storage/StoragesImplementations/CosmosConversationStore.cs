@@ -1,7 +1,6 @@
 using System.Net;
 using ChatApplication.Exceptions;
 using ChatApplication.Storage.Entities;
-using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
@@ -45,7 +44,7 @@ public class CosmosConversationStore : IConversationStore
     {
         try
         {
-            conversation.lastMessageTime = lastMessageTime;
+            conversation.LastMessageTime = lastMessageTime;
             var entity = toEntity(conversation);
             await ConversationContainer.ReplaceItemAsync<ConversationEntity>(entity,entity.id,
                 new PartitionKey(entity.partitionKey));
@@ -74,7 +73,7 @@ public class CosmosConversationStore : IConversationStore
             if (e.StatusCode == HttpStatusCode.Conflict)
             {
                 throw new ConversationAlreadyExistsException(
-                    $"Conversation with id :{conversation.conversationId} already exists");
+                    $"Conversation with id :{conversation.ConversationId} already exists");
             }
             throw;
         }        
@@ -86,8 +85,8 @@ public class CosmosConversationStore : IConversationStore
         try
         {
             await ConversationContainer.DeleteItemAsync<Conversation>(
-                id: conversation.conversationId,
-                partitionKey: new PartitionKey(conversation.username)
+                id: conversation.ConversationId,
+                partitionKey: new PartitionKey(conversation.Username)
             );
         }
         catch (CosmosException e)
@@ -128,10 +127,10 @@ public class CosmosConversationStore : IConversationStore
     {
         return new ConversationEntity
         {
-            partitionKey = conversation.username,
-            id = conversation.conversationId,
-            Participants = conversation.participants,
-            lastMessageTime = conversation.lastMessageTime,
+            partitionKey = conversation.Username,
+            id = conversation.ConversationId,
+            Participants = conversation.Participants,
+            lastMessageTime = conversation.LastMessageTime,
         };
     }
 

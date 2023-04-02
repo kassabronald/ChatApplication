@@ -2,9 +2,7 @@
 using System.Text;
 using ChatApplication.Exceptions;
 using ChatApplication.Services;
-using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,9 +30,9 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     public async Task GetProfile()
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
-        _profileServiceMock.Setup(m => m.GetProfile(profile.username))
+        _profileServiceMock.Setup(m => m.GetProfile(profile.Username))
             .ReturnsAsync(profile);
-        var response = await _httpClient.GetAsync($"/api/Profile/{profile.username}");
+        var response = await _httpClient.GetAsync($"/api/Profile/{profile.Username}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadAsStringAsync();
         Assert.Equal(profile, JsonConvert.DeserializeObject<Profile>(json));
@@ -85,9 +83,9 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     [InlineData("foobar", "Foo", "Bar", "")]
     [InlineData("foobar", "Foo", "Bar", " ")]
     [InlineData("foobar", "Foo", "Bar", null)]
-    public async Task AddProfile_InvalidArgs(string username, string firstName, string lastName, string ProfilePictureId )
+    public async Task AddProfile_InvalidArgs(string username, string firstName, string lastName, string profilePictureId )
     {
-        var profile = new Profile(username, firstName, lastName, ProfilePictureId);
+        var profile = new Profile(username, firstName, lastName, profilePictureId);
         var response = await _httpClient.PostAsync("/api/Profile",
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
 

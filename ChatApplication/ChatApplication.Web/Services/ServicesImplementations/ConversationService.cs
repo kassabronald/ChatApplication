@@ -19,24 +19,24 @@ public class ConversationService : IConversationService
     }
     public async Task AddMessage(Message message)
     {
-        //TODO: Pass both conversationId (rowkey) and senderUsername (partitionkey)
-        var conversation = await _conversationStore.GetConversation(message.senderUsername, message.conversationId);
-        await _conversationStore.ChangeConversationLastMessageTime(conversation, message.createdUnixTime);
-        foreach(var participant in conversation.participants)
+        var conversation = await _conversationStore.GetConversation(message.SenderUsername, message.ConversationId);
+        await _conversationStore.ChangeConversationLastMessageTime(conversation, message.CreatedUnixTime);
+        foreach(var participant in conversation.Participants)
         {
-            if (participant.username != message.senderUsername)
+            if (participant.Username != message.SenderUsername)
             {
                 var receiverConversation =
-                    await _conversationStore.GetConversation(participant.username, message.conversationId);
+                    await _conversationStore.GetConversation(participant.Username, message.ConversationId);
                 await _conversationStore.ChangeConversationLastMessageTime(receiverConversation,
-                    message.createdUnixTime);
+                    message.CreatedUnixTime);
             }
         }
         await _messageStore.AddMessage(message);
     }
     public async Task<string> StartConversation(string messageId, string senderUsername, string messageContent, long createdTime,
-        List<string> participants)
-    {// TODO: Check that user is not sending to himself
+        List<string> participants) 
+    {
+        //TODO: Check that user is not sending to himself
         string id = "";
         Boolean foundSenderUsername = false;
         List<string> sortedParticipants = new List<string>(participants);
@@ -49,7 +49,7 @@ public class ConversationService : IConversationService
         {
             throw new ProfileNotFoundException("Sender username not found in participants", senderUsername);
         }
-        foreach (var participantUsername in sortedParticipants) //TODO: Add to each participant's userconversation
+        foreach (var participantUsername in sortedParticipants)
         {
             id += "_"+participantUsername;
         }
@@ -61,7 +61,6 @@ public class ConversationService : IConversationService
         }
         var message = new Message(messageId, senderUsername, messageContent, createdTime, id);
         await _messageStore.AddMessage(message);
-        //TODO: Add to each participant's userconversation
         foreach(var participantUsername in sortedParticipants)
         {
             var conversation = new Conversation(id, participantsProfile, createdTime, participantUsername);
@@ -81,12 +80,12 @@ public class ConversationService : IConversationService
                 { continuationTokenData });
         }
         var jsonResult =  await _messageStore.GetConversationMessages(conversationId, limit, jsonContinuationTokenData, lastMessageTime);
-        if(jsonResult.continuationToken == null)
+        if(jsonResult.ContinuationToken == null)
         {
             return jsonResult;
         }
-        var deserializedToken = JsonConvert.DeserializeObject<List<ContinuationTokenDataUtil>>(jsonResult.continuationToken)[0];
-        var result = jsonResult with { continuationToken = deserializedToken.token };
+        var deserializedToken = JsonConvert.DeserializeObject<List<ContinuationTokenDataUtil>>(jsonResult.ContinuationToken)[0];
+        var result = jsonResult with { ContinuationToken = deserializedToken.token };
         return result;
     }
     
@@ -100,12 +99,12 @@ public class ConversationService : IConversationService
                 { continuationTokenData });
         }
         var jsonResult =  await _conversationStore.GetAllConversations(username, limit, jsonContinuationTokenData, lastConversationTime);
-        if(jsonResult.continuationToken == null)
+        if(jsonResult.ContinuationToken == null)
         {
             return jsonResult;
         }
-        var deserializedToken = JsonConvert.DeserializeObject<List<ContinuationTokenDataUtil>>(jsonResult.continuationToken)[0];
-        var result = jsonResult with { continuationToken = deserializedToken.token };
+        var deserializedToken = JsonConvert.DeserializeObject<List<ContinuationTokenDataUtil>>(jsonResult.ContinuationToken)[0];
+        var result = jsonResult with { ContinuationToken = deserializedToken.token };
         return result;
     }
 

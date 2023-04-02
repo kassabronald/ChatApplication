@@ -1,7 +1,4 @@
 ﻿using ChatApplication.Utils;
-using ChatApplication.Web.Dtos;
-using Microsoft.AspNetCore.Mvc;
-
 namespace ChatApplication.Storage;
 
 public interface IImageStore

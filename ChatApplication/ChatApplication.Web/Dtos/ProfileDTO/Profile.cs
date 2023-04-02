@@ -3,7 +3,7 @@
 namespace ChatApplication.Web.Dtos;
 
 public record Profile(
-    [Required] string username, 
-    [Required] string firstName, 
-    [Required] string lastName,
+    [Required] string Username, 
+    [Required] string FirstName, 
+    [Required] string LastName,
     [Required] string ProfilePictureId);

@@ -4,7 +4,7 @@ namespace ChatApplication.Exceptions;
 
 public class ProfileNotFoundException : Exception
 {
-    public string Username;
+    public readonly string Username;
     public ProfileNotFoundException(string message) : base(message) { }
     
     public ProfileNotFoundException() { }
