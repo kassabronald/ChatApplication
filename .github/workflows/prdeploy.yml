@@ -25,16 +25,16 @@ jobs:
         dotnet-version: '7.0.x'
         
     - name: Restore dependencies
-      run: dotnet restore ./ChatService.sln
+      run: dotnet restore ./ChatApplication.sln
       
     - name: Build
-      run: dotnet build ./ChatService.sln --configuration Release --no-restore
+      run: dotnet build ./ChatApplication.sln --configuration Release --no-restore
       
     - name: Run unit tests
-      run: dotnet test ChatService.Web.Tests/bin/Release/net7.0/ChatService.Web.Tests.dll
+      run: dotnet test ChatApplication.Web.Tests/bin/Release/net7.0/ChatApplication.Web.Tests.dll
       
     - name: Run integration tests
-      run: dotnet test ChatService.Web.IntegrationTests/bin/Release/net7.0/ChatService.Web.IntegrationTests.dll
+      run: dotnet test ChatApplication.Web.IntegrationTests/bin/Release/net7.0/ChatApplication.Web.IntegrationTests.dll
       env:
         Cosmos:ConnectionString: ${{ secrets.COSMOS_CONNECTIONSTRING}}
         BlobStorage:ConnectionString: ${{ secrets.BLOBSTORAGE_CONNECTIONSTRING}}
