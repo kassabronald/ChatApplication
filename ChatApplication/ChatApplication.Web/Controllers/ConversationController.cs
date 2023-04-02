@@ -128,7 +128,7 @@ public class ConversationsController : ControllerBase
         var conversationsAndToken = await _conversationService.GetAllConversations(username, limit, continuationToken, lastSeenConversationTime);
         _telemetryClient.TrackMetric("ConversationService.GetConversations.Time", stopWatch.ElapsedMilliseconds);
         string nextUri =
-            $"/api/conversations/{username}?&limit={limit}&continuationToken={conversationsAndToken.continuationToken}&lastSeenConversationTime={lastSeenConversationTime}";
+            $"/api/Conversations/{username}?&limit={limit}&continuationToken={conversationsAndToken.continuationToken}&lastSeenConversationTime={lastSeenConversationTime}";
         var response = new GetAllConversationsResponse(conversationsAndToken.ToMetadata(), nextUri);
         return response; //TODO: Change this to the correct url.
     }

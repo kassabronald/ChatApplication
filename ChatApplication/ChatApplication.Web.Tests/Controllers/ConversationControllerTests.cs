@@ -241,7 +241,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
                 new("12346", "Ronald", 1)
             };
          _conversationServiceMock
-             .Setup(x => x.GetConversationMessages(conversationId, 0, "", 50))
+             .Setup(x => x.GetConversationMessages(conversationId, 50, "", 0))
              .ReturnsAsync(new ConversationMessageAndToken(messages, nextContinuationToken));
          var expectedNextUri = $"/api/Conversations/{conversationId}/messages?&limit=50&continuationToken={nextContinuationToken}&lastSeenMessageTime=0";
          var uri = $"/api/conversations/{conversationId}/messages/";
@@ -268,16 +268,22 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
          var conversation1 = new Conversation("_jad_ronald", participants1, 1000, "jad");
          var conversation2 = new Conversation("_jad_karim", participants2, 1001, "jad");
          var conversations = new List<Conversation> { conversation1, conversation2 };
+         var conversationsMetadata = new List<ConversationMetaData>();
+            foreach (var conversation in conversations)
+            {
+                var conversationMetaData = new ConversationMetaData(conversation.conversationId, conversation.lastMessageTime, conversation.participants);
+                conversationsMetadata.Add(conversationMetaData);
+            }
          _conversationServiceMock
-             .Setup(x => x.GetAllConversations(username, 0, "", 50))
+             .Setup(x => x.GetAllConversations(username, 50, "", 0))
              .ReturnsAsync(new ConversationAndToken(conversations, nextContinuationToken));
-         var expectedNextUri = $"/api/Conversations/{username}/messages?&limit=50&continuationToken={nextContinuationToken}&lastSeenMessageTime=0";
+         var expectedNextUri = $"/api/Conversations/{username}?&limit=50&continuationToken={nextContinuationToken}&lastSeenConversationTime=0";
          var uri = $"/api/conversations/{username}";
          var response = await _httpClient.GetAsync(uri);
          var responseString = await response.Content.ReadAsStringAsync();
          var getAllConversationsResponseReceived = JsonConvert.DeserializeObject<GetAllConversationsResponse>(responseString);
          Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-         Assert.Equivalent(conversations, getAllConversationsResponseReceived.Conversations);
+         Assert.Equivalent(conversationsMetadata, getAllConversationsResponseReceived.Conversations);
          Assert.Equal(expectedNextUri, getAllConversationsResponseReceived.NextUri);
      }
     
