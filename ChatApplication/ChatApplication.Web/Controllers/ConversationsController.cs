@@ -131,7 +131,4 @@ public class ConversationsController : ControllerBase
         var response = new GetConversationsResponse(conversationsAndToken.ToMetadata(), nextUri);
         return response; //TODO: Change this to the correct url.
     }
-    
-    
-    
 }
