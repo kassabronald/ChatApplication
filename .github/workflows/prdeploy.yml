@@ -40,7 +40,7 @@ jobs:
         BlobStorage:ConnectionString: ${{ secrets.BLOBSTORAGE_CONNECTIONSTRING}}
         
     - name: Publish
-      run: dotnet publish --configuration Release --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}' --no-restore ./ChatApplication/ChatService.Web
+      run: dotnet publish --configuration Release --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}' --no-restore ./ChatApplication/ChatApplication.Web
       
     - name: Deploy
       uses: azure/webapps-deploy@v2
