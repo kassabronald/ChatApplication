@@ -4,6 +4,7 @@ using ChatApplication.Storage.Entities;
 using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 
 namespace ChatApplication.Storage;
 
@@ -98,11 +99,29 @@ public class CosmosConversationStore : IConversationStore
             throw;
         }
     }
-    
-    //TODO: implement
-    public async Task<ConversationsAndToken> GetAllConversations(string username, int limit, string continuationToken)
+
+    public async Task<ConversationAndToken> GetAllConversations(string username, int limit, string continuationToken, long lastConversationTime)
     {
-        throw new NotImplementedException();
+        return await GetAllConversationsUtil(username, limit, continuationToken, lastConversationTime);
+    }
+
+    public async Task<ConversationAndToken> GetAllConversationsUtil(string username, int limit, string continuationToken, long lastConversationTime)
+    {
+        //TODO: get continuation token and return it, also use limit
+
+        QueryRequestOptions options = new QueryRequestOptions();
+        options.MaxItemCount = Int32.Min(Int32.Max(limit,1), 100);
+        var query = ConversationContainer.GetItemLinqQueryable<ConversationEntity>(true, string.IsNullOrEmpty(continuationToken) ? null : continuationToken, options)
+            .Where(m => m.partitionKey == username && m.lastMessageTime > lastConversationTime)
+            .OrderByDescending(m => m.lastMessageTime);
+
+        using (FeedIterator<ConversationEntity> iterator = query.ToFeedIterator())
+        {
+            FeedResponse<ConversationEntity> response = await iterator.ReadNextAsync();
+            var receivedConversations = response.Select(ToConversation).ToList();
+            string newContinuationToken = response.ContinuationToken;
+            return new ConversationAndToken(receivedConversations, newContinuationToken);
+        }
     }
 
     private ConversationEntity toEntity(Conversation conversation)

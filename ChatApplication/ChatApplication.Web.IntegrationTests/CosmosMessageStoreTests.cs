@@ -117,6 +117,7 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         var actual2 = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 2, actual.continuationToken, 0);
         Assert.Equal(_messageList[2], actual2.messages[0]);
     }
+    
 
     [Theory]
     [InlineData(0, 1)]

@@ -12,6 +12,6 @@ public interface IConversationService
     public Task<string> StartConversation(string messageId, string senderUsername, string messageContent,
         long createdTime, List<string> participants);
     
-    public Task<ConversationsAndToken> GetAllConversations(string username, int limit, string continuationToken);
+    public Task<ConversationAndToken> GetAllConversations(string username, int limit, string continuationToken, long lastConversationTime);
 
 }

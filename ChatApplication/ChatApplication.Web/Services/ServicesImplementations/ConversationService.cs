@@ -2,6 +2,7 @@ using ChatApplication.Exceptions;
 using ChatApplication.Storage;
 using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
+using Newtonsoft.Json;
 
 namespace ChatApplication.Services;
 
@@ -72,12 +73,40 @@ public class ConversationService : IConversationService
     
     public async Task<ConversationMessageAndToken > GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
     {
-        return await _messageStore.GetConversationMessages(conversationId, limit, continuationToken, lastMessageTime);
+        var jsonContinuationTokenData = continuationToken;
+        if (!String.IsNullOrWhiteSpace(continuationToken))
+        {
+            var continuationTokenData = new ContinuationTokenDataUtil(continuationToken, new RangeUtil("", "FF"));
+            jsonContinuationTokenData = JsonConvert.SerializeObject(new List<ContinuationTokenDataUtil>
+                { continuationTokenData });
+        }
+        var jsonResult =  await _messageStore.GetConversationMessages(conversationId, limit, jsonContinuationTokenData, lastMessageTime);
+        if(jsonResult.continuationToken == null)
+        {
+            return jsonResult;
+        }
+        var deserializedToken = JsonConvert.DeserializeObject<List<ContinuationTokenDataUtil>>(jsonResult.continuationToken)[0];
+        var result = jsonResult with { continuationToken = deserializedToken.token };
+        return result;
     }
     
-    public async Task<ConversationsAndToken> GetAllConversations(string username, int limit, string continuationToken)
+    public async Task<ConversationAndToken> GetAllConversations(string username, int limit, string continuationToken, long lastConversationTime)
     {
-        return await _conversationStore.GetAllConversations(username, limit, continuationToken);
+        var jsonContinuationTokenData = continuationToken;
+        if (!String.IsNullOrWhiteSpace(continuationToken))
+        {
+            var continuationTokenData = new ContinuationTokenDataUtil(continuationToken, new RangeUtil("", "FF"));
+            jsonContinuationTokenData = JsonConvert.SerializeObject(new List<ContinuationTokenDataUtil>
+                { continuationTokenData });
+        }
+        var jsonResult =  await _conversationStore.GetAllConversations(username, limit, jsonContinuationTokenData, lastConversationTime);
+        if(jsonResult.continuationToken == null)
+        {
+            return jsonResult;
+        }
+        var deserializedToken = JsonConvert.DeserializeObject<List<ContinuationTokenDataUtil>>(jsonResult.continuationToken)[0];
+        var result = jsonResult with { continuationToken = deserializedToken.token };
+        return result;
     }
 
 }

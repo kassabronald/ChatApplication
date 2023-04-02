@@ -35,7 +35,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var messageRequest = new MessageRequest("1234", "ronald", "hey bro wanna hit the gym");
         string conversationId = "456";
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
-        var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
+        var response = await _httpClient.PostAsync($"/api/Conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.Equal($"http://localhost/Conversations/conversations/{conversationId}/messages", response.Headers.GetValues("Location").First());
     }
@@ -59,14 +59,14 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var messageRequest = new MessageRequest(messageId, senderUsername, messageContent);
         var message = new Message(messageId, senderUsername, messageContent,1000, conversationId);
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
-        var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
+        var response = await _httpClient.PostAsync($"/api/Conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         _conversationServiceMock.Verify(mock => mock.AddMessage(message), Times.Never);
     }
 
     [Fact]
 
-    public async Task AddProfile_ConversationNotFound()
+    public async Task AddMessage_ConversationNotFound()
     {
         var messageRequest = new MessageRequest("1234", "ronald", "hey bro wanna hit the gym");
         string conversationId = "456";
@@ -78,7 +78,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
                 m.conversationId == conversationId
             ))).ThrowsAsync(new ConversationNotFoundException(conversationId));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
-        var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
+        var response = await _httpClient.PostAsync($"/api/Conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -98,7 +98,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
                 m.conversationId == conversationId
             ))).ThrowsAsync(new MessageAlreadyExistsException(message.messageId));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
-        var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
+        var response = await _httpClient.PostAsync($"/api/Conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
@@ -116,13 +116,13 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
                 m.conversationId == conversationId
             ))).ThrowsAsync(new CosmosException("error", HttpStatusCode.BadRequest, 0, "error", 0));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
-        var response = await _httpClient.PostAsync($"/Conversations/conversations/{conversationId}/messages", jsonContent);
+        var response = await _httpClient.PostAsync($"/api/Conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
 
-    public async Task StartConversation()
+    public async Task CreateConversation()
     {
         var messageRequest = new MessageRequest("12345", "Ronald", "Haha Bro farex");
         var participants = new List<string> {"Ronald", "Farex"};
@@ -134,7 +134,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             It.IsAny<long>(), 
             participants)).ReturnsAsync("_Ronald_Farex");
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("/Conversations/conversations", jsonContent);
+        var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.Equal("http://localhost/Conversations/conversations/_Ronald_Farex", response.Headers.GetValues("Location").First());
         var responseString = await response.Content.ReadAsStringAsync();
@@ -156,7 +156,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var participants = new List<string> {"Ronald"};
         var conversationRequest = new StartConversationRequest(participants, messageRequest);
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await _httpClient.PostAsync("/Conversations/conversations", jsonContent);
+        var response = await _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -171,7 +171,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             messageRequest.senderUsername, messageRequest.messageContent, It.IsAny<long>(), participants)).
             ThrowsAsync(new ProfileNotFoundException(messageRequest.senderUsername));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await _httpClient.PostAsync("/Conversations/conversations", jsonContent);
+        var response = await _httpClient.PostAsync("api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -189,7 +189,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             It.IsAny<long>(), 
             participants)).ThrowsAsync(new ProfileNotFoundException());
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("/Conversations/conversations", jsonContent);
+        var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
     
@@ -207,7 +207,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             It.IsAny<long>(), 
             participants)).ThrowsAsync(new MessageAlreadyExistsException());
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("/Conversations/conversations", jsonContent);
+        var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
     
@@ -225,16 +225,60 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             It.IsAny<long>(), 
             participants)).ThrowsAsync(new ConversationAlreadyExistsException());
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("/Conversations/conversations", jsonContent);
+        var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
-    //[Fact]
+    [Fact]
 
-    // public async Task GetConversationMessagesResponse()
-    // {
-    //     var conversationId = "_Farex_Ronald";
-    //     
-    // }
+     public async Task GetConversationMessages()
+     {
+         var conversationId = "_Farex_Ronald";
+         var nextContinuationToken = "frfr";
+         var messages = new List<ConversationMessage>
+            {
+                new("12345", "Farex", 0),
+                new("12346", "Ronald", 1)
+            };
+         _conversationServiceMock
+             .Setup(x => x.GetConversationMessages(conversationId, 0, "", 50))
+             .ReturnsAsync(new ConversationMessageAndToken(messages, nextContinuationToken));
+         var expectedNextUri = $"/api/Conversations/{conversationId}/messages?&limit=50&continuationToken={nextContinuationToken}&lastSeenMessageTime=0";
+         var uri = $"/api/conversations/{conversationId}/messages/";
+         var response = await _httpClient.GetAsync(uri);
+         var responseString = await response.Content.ReadAsStringAsync();
+         var getConversationMessagesResponseReceived = JsonConvert.DeserializeObject<GetConversationMessagesResponse>(responseString);
+         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+         Assert.Equal(messages, getConversationMessagesResponseReceived.Messages);
+         Assert.Equal(expectedNextUri, getConversationMessagesResponseReceived.NextUri);
+     }
+     
+     [Fact]
+
+     public async Task GetAllConversations()
+     {
+         var username = "jad";
+         var nextContinuationToken = "frfr";
+         var participants1 = new List<Profile>();
+         var participants2 = new List<Profile>();
+         participants1.Add(new Profile("jad", "mike", "o hearn", "1234"));
+         participants1.Add(new Profile("karim", "karim", "haddad", "1234"));
+         participants2.Add(new Profile("jad", "mike", "o hearn", "1234"));
+         participants2.Add(new Profile("ronald", "ronald", "haddad", "1234"));
+         var conversation1 = new Conversation("_jad_ronald", participants1, 1000, "jad");
+         var conversation2 = new Conversation("_jad_karim", participants2, 1001, "jad");
+         var conversations = new List<Conversation> { conversation1, conversation2 };
+         _conversationServiceMock
+             .Setup(x => x.GetAllConversations(username, 0, "", 50))
+             .ReturnsAsync(new ConversationAndToken(conversations, nextContinuationToken));
+         var expectedNextUri = $"/api/Conversations/{username}/messages?&limit=50&continuationToken={nextContinuationToken}&lastSeenMessageTime=0";
+         var uri = $"/api/conversations/{username}";
+         var response = await _httpClient.GetAsync(uri);
+         var responseString = await response.Content.ReadAsStringAsync();
+         var getAllConversationsResponseReceived = JsonConvert.DeserializeObject<GetAllConversationsResponse>(responseString);
+         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+         Assert.Equivalent(conversations, getAllConversationsResponseReceived.Conversations);
+         Assert.Equal(expectedNextUri, getAllConversationsResponseReceived.NextUri);
+     }
     
 }

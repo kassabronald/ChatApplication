@@ -6,6 +6,7 @@ using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
+using Newtonsoft.Json;
 
 namespace ChatApplication.Storage;
 
@@ -72,15 +73,6 @@ public class CosmosMessageStore: IMessageStore
             string newContinuationToken = response.ContinuationToken;
             return new MessagesAndToken(receivedMessages, newContinuationToken);
         }
-        
-        //var response = await query.ToFeedIterator().ReadNextAsync();
-        //var messages = response.Select(toMessage).ToList();
-        //string newContinuationToken = response.ContinuationToken;
-        //Console.WriteLine("helo");
-        //Console.WriteLine(newContinuationToken);
-        //return new MessagesAndToken(messages, newContinuationToken);
-    
-        //return new MessagesAndToken(messages, JsonSerializer.Deserialize<JsonElement>(response.ContinuationToken)[0].GetProperty("token").GetString());
     }
     private Message toMessage(MessageEntity entity)
     {
@@ -104,12 +96,12 @@ public class CosmosMessageStore: IMessageStore
     
     public async Task<ConversationMessageAndToken> GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
     {
-        var messages = GetConversationMessagesUtil(conversationId, limit, continuationToken, lastMessageTime);
+        var messages = await GetConversationMessagesUtil(conversationId, limit, continuationToken, lastMessageTime);
         var conversationMessages = new List<ConversationMessage>();
-        foreach (var message in messages.Result.messages)
+        foreach (var message in messages.messages)
         {
             conversationMessages.Add(new ConversationMessage(message.senderUsername, message.messageContent, message.createdUnixTime));
         }
-        return new ConversationMessageAndToken(conversationMessages, messages.Result.continuationToken);
+        return new ConversationMessageAndToken(conversationMessages, messages.continuationToken);
     }
 };
