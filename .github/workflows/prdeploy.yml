@@ -25,10 +25,10 @@ jobs:
         dotnet-version: '7.0.x'
         
     - name: Restore dependencies
-      run: dotnet restore ./ChatApplication.sln
+      run: dotnet restore ./ChatApplication/ChatApplication.sln
       
     - name: Build
-      run: dotnet build ./ChatApplication.sln --configuration Release --no-restore
+      run: dotnet build ./ChatApplication/ChatApplication.sln --configuration Release --no-restore
       
     - name: Run unit tests
       run: dotnet test ChatApplication.Web.Tests/bin/Release/net7.0/ChatApplication.Web.Tests.dll
