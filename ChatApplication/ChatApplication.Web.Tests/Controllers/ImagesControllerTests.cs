@@ -1,23 +1,13 @@
 ﻿using System.Net;
-using System.Text;
 using ChatApplication.Exceptions;
 using ChatApplication.Services;
-using ChatApplication.Storage;
 using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
-
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Net.Http.Headers;
 using Moq;
-using Newtonsoft.Json;
-using static System.Net.Mime.MediaTypeNames;
-using static Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace ChatApplication.Web.Tests.Controllers;
@@ -48,8 +38,8 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         var image = new byte[] {1, 2, 3, 4, 5};
         var imageId = "123";
         
-        ImageUtil ExpectedImageUtil = new(image, "image/jpeg");
-        _imageServiceMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(ExpectedImageUtil);
+        ImageUtil expectedImageUtil = new(image, "image/jpeg");
+        _imageServiceMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(expectedImageUtil);
         
         var response = await _httpClient.GetAsync($"/api/Images/{imageId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -57,8 +47,8 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         var contentActual = await response.Content.ReadAsByteArrayAsync();
         var contentTypeActual = response.Content.Headers.ContentType?.ToString();
         
-        Assert.Equal(ExpectedImageUtil._imageData, contentActual);
-        Assert.Equal(ExpectedImageUtil._contentType, contentTypeActual);
+        Assert.Equal(expectedImageUtil.ImageData, contentActual);
+        Assert.Equal(expectedImageUtil.ContentType, contentTypeActual);
         
     }
 
@@ -103,7 +93,6 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     public async Task UploadImageBadRequestContentType()
     {
         var image = new byte[] { 1, 2, 3, 4, 5 };
-        var imageId = "123";
         var fileName = "test.pdf";
         var streamFile = new MemoryStream(image);
         IFormFile file = new FormFile(streamFile, 0, streamFile.Length, "id_from_form", fileName)
@@ -130,7 +119,6 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     public async Task UploadImageBadRequestEmptyFile()
     {
         var image = new byte[] {};
-        var imageId = "123";
         var fileName = "test.jpg";
         var streamFile = new MemoryStream(image);
         IFormFile file = new FormFile(streamFile, 0, streamFile.Length, "id_from_form", fileName)
@@ -162,7 +150,6 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     public async Task UploadImageBadRequestId(string id)
     {
         var image = new byte[] { 1, 2, 3, 4, 5 };
-        var imageId = id;
         var fileName = "test.png";
         var streamFile = new MemoryStream(image);
         IFormFile file = new FormFile(streamFile, 0, streamFile.Length, "id_from_form", fileName)

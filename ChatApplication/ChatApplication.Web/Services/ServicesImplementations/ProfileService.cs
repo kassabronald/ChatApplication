@@ -1,7 +1,5 @@
 ﻿using ChatApplication.Storage;
-using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
-using Microsoft.Azure.Cosmos;
 
 namespace ChatApplication.Services;
 
@@ -19,9 +17,8 @@ public class ProfileService : IProfileService
     
     public async Task AddProfile(Profile profile)
     {
-        var imageContent = await _imageStore.GetImage(profile.ProfilePictureId);
+        await _imageStore.GetImage(profile.ProfilePictureId);
         await _profileStore.AddProfile(profile);
-
     }
 
     public async Task<Profile> GetProfile(string username)

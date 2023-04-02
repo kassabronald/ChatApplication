@@ -1,6 +1,4 @@
 ﻿using ChatApplication.Utils;
-using Microsoft.AspNetCore.Mvc;
-
 namespace ChatApplication.Services;
 
 public interface IImageService

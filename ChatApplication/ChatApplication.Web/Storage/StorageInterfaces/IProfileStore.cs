@@ -1,5 +1,4 @@
 ﻿using ChatApplication.Web.Dtos;
-
 namespace ChatApplication.Storage;
 
 public interface IProfileStore

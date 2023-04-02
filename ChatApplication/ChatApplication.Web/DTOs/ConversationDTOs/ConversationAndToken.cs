@@ -2,7 +2,7 @@ namespace ChatApplication.Web.Dtos;
 
 public record ConversationAndToken(
     List<Conversation> Conversations,
-    string? continuationToken
+    string? ContinuationToken
 )
 {
     public List<ConversationMetaData> ToMetadata()
@@ -11,9 +11,9 @@ public record ConversationAndToken(
         foreach (var conversation in Conversations)
         {
             ConversationMetaData conversationMetaData = new(
-                conversation.conversationId,
-                conversation.lastMessageTime,
-                conversation.participants
+                conversation.ConversationId,
+                conversation.LastMessageTime,
+                conversation.Participants
             );
             metadata.Add(conversationMetaData);
         }

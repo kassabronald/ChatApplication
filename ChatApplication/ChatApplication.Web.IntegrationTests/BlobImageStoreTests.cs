@@ -35,9 +35,9 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
     {
         await _store.AddImage(blobName, _data, _contentType);
         var actual = await _store.GetImage(blobName);
-        var actualData = new MemoryStream(actual!._imageData);
+        var actualData = new MemoryStream(actual!.ImageData);
         Assert.Equal(_data.ToArray(), actualData.ToArray());
-        Assert.Equal(_contentType, actual._contentType);
+        Assert.Equal(_contentType, actual.ContentType);
     }
     
     [Theory]

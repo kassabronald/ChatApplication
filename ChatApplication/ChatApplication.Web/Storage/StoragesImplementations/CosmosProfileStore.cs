@@ -3,8 +3,6 @@ using ChatApplication.Exceptions;
 using ChatApplication.Storage.Entities;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
-
-
 namespace ChatApplication.Storage;
 
 public class CosmosProfileStore : IProfileStore
@@ -21,9 +19,9 @@ public class CosmosProfileStore : IProfileStore
     public async Task AddProfile(Profile profile)
     {
         if (profile == null ||
-            string.IsNullOrWhiteSpace(profile.username) ||
-            string.IsNullOrWhiteSpace(profile.firstName) ||
-            string.IsNullOrWhiteSpace(profile.lastName) ||
+            string.IsNullOrWhiteSpace(profile.Username) ||
+            string.IsNullOrWhiteSpace(profile.FirstName) ||
+            string.IsNullOrWhiteSpace(profile.LastName) ||
             string.IsNullOrWhiteSpace(profile.ProfilePictureId)
            )
         {
@@ -38,7 +36,7 @@ public class CosmosProfileStore : IProfileStore
         {
             if (e is CosmosException cosmosException && cosmosException.StatusCode == HttpStatusCode.Conflict)
             {
-                throw new ProfileAlreadyExistsException($"Profile with username {profile.username} already exists");
+                throw new ProfileAlreadyExistsException($"Profile with username {profile.Username} already exists");
             }
             throw;
         }
@@ -91,10 +89,10 @@ public class CosmosProfileStore : IProfileStore
     private ProfileEntity ToEntity(Profile profile)
     {
         return new ProfileEntity(
-            partitionKey: profile.username,
-            id: profile.username,
-            profile.firstName,
-            profile.lastName,
+            partitionKey: profile.Username,
+            id: profile.Username,
+            profile.FirstName,
+            profile.LastName,
             profile.ProfilePictureId
         );
     }

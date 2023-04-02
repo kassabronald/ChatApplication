@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using ChatApplication.Exceptions;
 using ChatApplication.Utils;
-
 namespace ChatApplication.Storage;
 
 public class BlobImageStore: IImageStore

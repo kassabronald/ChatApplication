@@ -1,8 +1,6 @@
-﻿using Castle.Core.Logging;
-using ChatApplication.Services;
+﻿using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Utils;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -26,7 +24,7 @@ public class ImageServiceTests
         _imageStoreMock.Setup(m => m.GetImage("12345"))
             .ReturnsAsync(new ImageUtil(image, "image/png"));
         var actualImage = await _imageService.GetImage("12345");
-        Assert.Equal(image, actualImage?._imageData);
+        Assert.Equal(image, actualImage?.ImageData);
     }
     
     [Fact]
@@ -47,16 +45,4 @@ public class ImageServiceTests
         await _imageService.AddImage(stream, "image/png");
         _imageStoreMock.Verify(mock => mock.AddImage(It.IsAny<string>(), stream, "image/png"), Times.Once);
     }
-    
-    //[Fact]
-    
-    // public async Task AddImage_InvalidImage()
-    // {
-    //     var image = new byte[]{0,1,2};
-    //     var stream = new MemoryStream(image);
-    //     _imageStoreMock.Setup(m => m.AddImage(It.IsAny<string>(), stream, "image/png"))
-    //         .ThrowsAsync(new InvalidImageException());
-    //     await Assert.ThrowsAsync<InvalidImageException>(() => _imageService.AddImage(stream, "image/png"));
-    // }
-    
 }

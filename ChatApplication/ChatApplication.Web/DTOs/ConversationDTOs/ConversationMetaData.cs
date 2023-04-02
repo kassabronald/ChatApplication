@@ -1,7 +1,7 @@
 namespace ChatApplication.Web.Dtos;
 
 public record ConversationMetaData(
-    string id,
-    long lastModifiedUnixTime,
+    string Id,
+    long LastModifiedUnixTime,
     List<Profile> Recipients
     );

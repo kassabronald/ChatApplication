@@ -40,8 +40,8 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     public async Task AddMessage()
     {
         await _store.AddMessage(_messageList[0]);
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 100, "", 0);
-        Assert.Equal(_messageList[0], actual.messages[0]);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 100, "", 0);
+        Assert.Equal(_messageList[0], actual.Messages[0]);
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     {
         await _store.AddMessage(_messageList[0]);
         await _store.DeleteMessage(_messageList[0]);
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 100, "", 0);
-        Assert.Empty(actual.messages);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 100, "", 0);
+        Assert.Empty(actual.Messages);
     }
     
     [Fact]
@@ -84,8 +84,8 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         {
             await _store.AddMessage(message);
         }
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 100, "", 0);
-        Assert.Equal(_messageList, actual.messages);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 100, "", 0);
+        Assert.Equal(_messageList, actual.Messages);
     }
     //should we check for bad inputs?
     
@@ -97,10 +97,10 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         foreach (var message in _messageList)
         {
             await _store.AddMessage(message);
-            expected.Add(new ConversationMessage(message.senderUsername, message.messageContent, message.createdUnixTime));
+            expected.Add(new ConversationMessage(message.SenderUsername, message.MessageContent, message.CreatedUnixTime));
         }
-        var actual = await _store.GetConversationMessages(_messageList[0].conversationId, 100, "", 0);
-        Assert.Equal(expected, actual.messages);
+        var actual = await _store.GetConversationMessages(_messageList[0].ConversationId, 100, "", 0);
+        Assert.Equal(expected, actual.Messages);
     }
     
     
@@ -111,11 +111,11 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         {
             await _store.AddMessage(message);
         }
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 2, "", 0);
-        Assert.Equal(_messageList[0], actual.messages[0]);
-        Assert.Equal(_messageList[1], actual.messages[1]);
-        var actual2 = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 2, actual.continuationToken, 0);
-        Assert.Equal(_messageList[2], actual2.messages[0]);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 2, "", 0);
+        Assert.Equal(_messageList[0], actual.Messages[0]);
+        Assert.Equal(_messageList[1], actual.Messages[1]);
+        var actual2 = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 2, actual.ContinuationToken, 0);
+        Assert.Equal(_messageList[2], actual2.Messages[0]);
     }
     
 
@@ -131,8 +131,8 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         {
             await _store.AddMessage(message);
         }
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, limit, "", 0);
-        Assert.Equal(actualCount, actual.messages.Count);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, limit, "", 0);
+        Assert.Equal(actualCount, actual.Messages.Count);
     }
     
     [Fact]
@@ -144,7 +144,7 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         }
         Assert.ThrowsAsync<CosmosException>( async () =>
         {
-            var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 100, "bad token", 0);
+            var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 100, "bad token", 0);
         });
     }
     
@@ -155,8 +155,8 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         {
             await _store.AddMessage(message);
         }
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].conversationId, 100, "", 1000);
-        Assert.Equal(_messageList[0], actual.messages[0]);
-        Assert.Equal(_messageList[1], actual.messages[1]);
+        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 100, "", 1000);
+        Assert.Equal(_messageList[0], actual.Messages[0]);
+        Assert.Equal(_messageList[1], actual.Messages[1]);
     }
 }

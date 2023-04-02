@@ -1,4 +1,3 @@
-using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 
 namespace ChatApplication.Services;
