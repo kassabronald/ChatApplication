@@ -31,10 +31,10 @@ jobs:
       run: dotnet build ./ChatApplication/ChatApplication.sln --configuration Release --no-restore
       
     - name: Run unit tests
-      run: dotnet test ChatApplication.Web.Tests/bin/Release/net7.0/ChatApplication.Web.Tests.dll
+      run: dotnet test ./ChatApplication/ChatApplication.Web.Tests/bin/Release/net7.0/ChatApplication.Web.Tests.dll
       
     - name: Run integration tests
-      run: dotnet test ChatApplication.Web.IntegrationTests/bin/Release/net7.0/ChatApplication.Web.IntegrationTests.dll
+      run: dotnet test ./ChatApplication/ChatApplication.Web.IntegrationTests/bin/Release/net7.0/ChatApplication.Web.IntegrationTests.dll
       env:
         Cosmos:ConnectionString: ${{ secrets.COSMOS_CONNECTIONSTRING}}
         BlobStorage:ConnectionString: ${{ secrets.BLOBSTORAGE_CONNECTIONSTRING}}
