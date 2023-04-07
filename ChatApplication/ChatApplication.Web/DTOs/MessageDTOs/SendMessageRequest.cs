@@ -2,8 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ChatApplication.Web.Dtos;
 
-public record ConversationMessage(
+public record SendMessageRequest(
+    [Required] string Id,
     [Required] string SenderUsername,
-    [Required] string MessageContent,
-    [Required] long UnixTime
+    [Required] string Text
 );

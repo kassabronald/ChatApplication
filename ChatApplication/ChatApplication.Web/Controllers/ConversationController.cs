@@ -1,21 +1,23 @@
 using System.Diagnostics;
+using System.Net;
 using ChatApplication.Exceptions;
 using ChatApplication.Services;
 using ChatApplication.Web.Dtos;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
+
 namespace ChatApplication.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
 public class ConversationsController : ControllerBase
 {
     private readonly IConversationService _conversationService;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<ConversationsController> _logger;
 
-    public ConversationsController(IConversationService conversationService, TelemetryClient telemetryClient, ILogger<ConversationsController> logger)
+    public ConversationsController(IConversationService conversationService, TelemetryClient telemetryClient,
+        ILogger<ConversationsController> logger)
     {
         _conversationService = conversationService;
         _telemetryClient = telemetryClient;
@@ -23,15 +25,17 @@ public class ConversationsController : ControllerBase
     }
 
     [HttpPost("{conversationId}/messages")]
-    public async Task<ActionResult<MessageResponse?>> AddMessage(MessageRequest messageRequest, string conversationId)
+    public async Task<ActionResult<SendMessageResponse?>> AddMessage(SendMessageRequest sendMessageRequest,
+        string conversationId)
     {
-        using (_logger.BeginScope("Adding message {Message} to conversation {ConversationId}", messageRequest,
+        using (_logger.BeginScope("Adding message {Message} to conversation {ConversationId}", sendMessageRequest,
                    conversationId))
         {
-            DateTimeOffset time = DateTimeOffset.UtcNow;
+            var time = DateTimeOffset.UtcNow;
             //TODO: After PR1, use custom serializer.
-            var message = new Message(messageRequest.MessageId, messageRequest.SenderUsername,
-                messageRequest.MessageContent, time.ToUnixTimeSeconds(), conversationId);
+            var message = new Message(sendMessageRequest.Id, sendMessageRequest.SenderUsername,
+                sendMessageRequest.Text, time.ToUnixTimeSeconds(), conversationId);
+
             try
             {
                 var stopWatch = new Stopwatch();
@@ -39,8 +43,9 @@ public class ConversationsController : ControllerBase
                 _telemetryClient.TrackMetric("ConversationService.AddMessage.Time", stopWatch.ElapsedMilliseconds);
                 _telemetryClient.TrackEvent("MessageAdded");
                 _logger.LogInformation("Message added");
-                return CreatedAtAction(nameof(GetConversationMessages), new {conversationId}, 
-                    new MessageResponse(message.CreatedUnixTime));
+
+                return CreatedAtAction(nameof(GetMessages), new { conversationId },
+                    new SendMessageResponse(message.CreatedUnixTime));
             }
             catch (ConversationNotFoundException)
             {
@@ -57,35 +62,38 @@ public class ConversationsController : ControllerBase
         }
     }
 
-    
     [HttpPost]
-    public async Task<ActionResult<StartConversationResponse>> CreateConversation(StartConversationRequest conversationRequest)
+    public async Task<ActionResult<StartConversationResponse>> CreateConversation(
+        StartConversationRequest conversationRequest)
     {
         var numberOfParticipants = conversationRequest.Participants.Count;
+
         if (numberOfParticipants < 2)
-        {
             return BadRequest(
                 $"A conversation must have at least 2 participants but only {numberOfParticipants} were provided");
-        }
 
         try
         {
-            long createdTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var createdTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var stopWatch = new Stopwatch();
-            var id = await _conversationService.StartConversation(conversationRequest.FirstMessage.MessageId,
-                conversationRequest.FirstMessage.SenderUsername,
-                conversationRequest.FirstMessage.MessageContent, createdTime,
-                conversationRequest.Participants);
+            StartConversationParameters startConversationParameters = new StartConversationParameters(
+                conversationRequest.FirstSendMessage.Id, conversationRequest.FirstSendMessage.SenderUsername,
+                conversationRequest.FirstSendMessage.Text, createdTime, conversationRequest.Participants);
+            
+            var id = await _conversationService.StartConversation(startConversationParameters);
+
             _telemetryClient.TrackMetric("ConversationService.StartConversation.Time", stopWatch.ElapsedMilliseconds);
             _telemetryClient.TrackEvent("ConversationStarted");
             _logger.LogInformation("Conversation started with id {conversationId}", id);
             var response = new StartConversationResponse(id, createdTime);
-            return CreatedAtAction(nameof(GetAllConversations),
-                new { username = conversationRequest.FirstMessage.SenderUsername }, response);
+
+            return CreatedAtAction(nameof(GetConversations),
+                new { username = conversationRequest.FirstSendMessage.SenderUsername }, response);
         }
         catch (ProfileNotFoundException e)
         {
-            return BadRequest($"The username : {e.Username} is the sender and was not found in the participants list or does not exist");
+            return BadRequest(
+                $"The username : {e.Username} is the sender and was not found in the participants list or does not exist");
         }
         catch (ConversationAlreadyExistsException e)
         {
@@ -96,30 +104,42 @@ public class ConversationsController : ControllerBase
             return Conflict(e.Message);
         }
     }
-    
+
     [HttpGet("{conversationId}/messages")]
-    public async Task<GetConversationMessagesResponse> GetConversationMessages(string conversationId, int limit = 50, 
-        string continuationToken = "", long lastSeenMessageTime=0)
+    public async Task<GetMessagesResponse> GetMessages(string conversationId, int limit = 50,
+        string continuationToken = "", long lastSeenMessageTime = 0)
     {
         var stopWatch = new Stopwatch();
-        var messageAndToken = await _conversationService.GetConversationMessages(conversationId, limit, continuationToken, lastSeenMessageTime);
+        var decodedContinuationToken = WebUtility.UrlDecode(continuationToken);
+        var getMesaagesParameters =
+            new GetMessagesParameters(conversationId, limit, decodedContinuationToken, lastSeenMessageTime);
+
+        var getMessagesResult = await _conversationService.GetMessages(getMesaagesParameters);
         _telemetryClient.TrackMetric("ConversationService.GetConversationMessages.Time", stopWatch.ElapsedMilliseconds);
         var nextUri =
-            $"/api/Conversations/{conversationId}/messages?&limit={limit}&continuationToken={messageAndToken.ContinuationToken}&lastSeenMessageTime={lastSeenMessageTime}";
-        var response = new GetConversationMessagesResponse(messageAndToken.Messages, nextUri);
+            $"/api/Conversations/{conversationId}/messages?&limit={limit}&continuationToken={WebUtility.UrlEncode(getMessagesResult.ContinuationToken)}&lastSeenMessageTime={lastSeenMessageTime}";
+
+        var response = new GetMessagesResponse(getMessagesResult.Messages, nextUri);
+
         return response;
     }
-    
+
     [HttpGet("{username}")]
-    
-    public async Task<ActionResult<GetAllConversationsResponse>> GetAllConversations(string username, int limit = 50, string continuationToken = "", long lastSeenConversationTime=0)
+    public async Task<ActionResult<GetConversationsResponse>> GetConversations(string username, int limit = 50,
+        string continuationToken = "", long lastSeenConversationTime = 0)
     {
         var stopWatch = new Stopwatch();
-        var conversationsAndToken = await _conversationService.GetAllConversations(username, limit, continuationToken, lastSeenConversationTime);
+        var decodedContinuationToken = WebUtility.UrlDecode(continuationToken);
+        var getConversationsParameters =
+            new GetConversationsParameters(username, limit, decodedContinuationToken, lastSeenConversationTime);
+
+        var getConversationsResult = await _conversationService.GetConversations(getConversationsParameters);
         _telemetryClient.TrackMetric("ConversationService.GetConversations.Time", stopWatch.ElapsedMilliseconds);
-        string nextUri =
-            $"/api/Conversations/{username}?&limit={limit}&continuationToken={conversationsAndToken.ContinuationToken}&lastSeenConversationTime={lastSeenConversationTime}";
-        var response = new GetAllConversationsResponse(conversationsAndToken.ToMetadata(), nextUri);
+        var nextUri =
+            $"/api/Conversations/{username}?&limit={limit}&continuationToken={WebUtility.UrlEncode(getConversationsResult.ContinuationToken)}&lastSeenConversationTime={lastSeenConversationTime}";
+
+        var response = new GetConversationsResponse(getConversationsResult.ToMetadata(), nextUri);
+
         return response;
     }
 }

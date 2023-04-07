@@ -9,12 +9,15 @@ namespace ChatApplication.Web.IntegrationTests;
 
 public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
-    
     private readonly IMessageStore _store;
-    private static string conversationId = Guid.NewGuid().ToString();
-    Message _message1 = new Message(Guid.NewGuid().ToString(), "ronald", "hey bro wanna hit the gym", 1002, conversationId);
-    Message _message2 = new Message(Guid.NewGuid().ToString(), "ronald", "hey bro wanna hit the gym", 1001, conversationId);
-    Message _message3 = new Message(Guid.NewGuid().ToString(), "ronald", "hey bro wanna hit the gym", 1000, conversationId);
+    private static readonly string ConversationId = Guid.NewGuid().ToString();
+    readonly Message _message1 = new Message(Guid.NewGuid().ToString(), "ronald", "hello", 1002, ConversationId);
+    readonly Message _message2 = new Message(Guid.NewGuid().ToString(), "ronald", "hello", 1001, ConversationId);
+    readonly Message _message3 = new Message(Guid.NewGuid().ToString(), "ronald", "hello", 1000, ConversationId);
+    readonly ConversationMessage _conversationMessage1 = new ConversationMessage("ronald", "hello", 1002);
+    readonly ConversationMessage _conversationMessage2 = new ConversationMessage("ronald", "hello", 1001);
+    readonly ConversationMessage _conversationMessage3 = new ConversationMessage("ronald", "hello", 1000);
+    private readonly List<ConversationMessage> _conversationMessageList;
     private readonly List<Message> _messageList;
 
     public Task InitializeAsync()
@@ -29,23 +32,26 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
             await _store.DeleteMessage(message);
         }
     }
-    
+
     public CosmosMessageStoreTests(WebApplicationFactory<Program> factory)
     {
-        _messageList = new List<Message>(){_message1, _message2, _message3};
+        _messageList = new List<Message>() { _message1, _message2, _message3 };
+        _conversationMessageList = new List<ConversationMessage>()
+            { _conversationMessage1, _conversationMessage2, _conversationMessage3 };
         _store = factory.Services.GetRequiredService<IMessageStore>();
     }
-    
+
     [Fact]
-    public async Task AddMessage()
+    public async Task AddMessage_Success()
     {
         await _store.AddMessage(_messageList[0]);
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 100, "", 0);
-        Assert.Equal(_messageList[0], actual.Messages[0]);
+        var parameters = new GetMessagesParameters(_messageList[0].ConversationId, 100, "", 0);
+        var actual = await _store.GetMessages(parameters);
+
+        Assert.Equal(_conversationMessageList[0], actual.Messages[0]);
     }
 
     [Fact]
-
     public async Task AddMessage_MessageAlreadyExists()
     {
         await _store.AddMessage(_messageList[0]);
@@ -54,56 +60,40 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
             await _store.AddMessage(_messageList[0]);
         });
     }
-    
+
     [Fact]
-    
-    public async Task DeleteMessage()
+    public async Task DeleteMessage_Success()
     {
         await _store.AddMessage(_messageList[0]);
         await _store.DeleteMessage(_messageList[0]);
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 100, "", 0);
+        var parameters = new GetMessagesParameters(_messageList[0].ConversationId, 100, "", 0);
+        var actual = await _store.GetMessages(parameters);
         Assert.Empty(actual.Messages);
     }
-    
-    [Fact]
 
-    public async Task DeleteEmptyMessage()
+    [Fact]
+    public async Task DeleteMessage_EmptyMessage()
     {
-        var message = new Message("", "", "",1, "");
-        await Assert.ThrowsAsync<CosmosException>(async () =>
-        {
-            await _store.DeleteMessage(message);
-        });
+        var message = new Message("", "", "", 1, "");
+        await Assert.ThrowsAsync<CosmosException>(async () => { await _store.DeleteMessage(message); });
     }
 
     [Fact]
-
-    public async Task GetConversationMessagesUtil()
-    {
-        foreach (var message in _messageList)
-        {
-            await _store.AddMessage(message);
-        }
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 100, "", 0);
-        Assert.Equal(_messageList, actual.Messages);
-    }
-    //should we check for bad inputs?
-    
-    [Fact]
-
-    public async Task GetConversationMessages()
+    public async Task GetConversationMessages_Success()
     {
         var expected = new List<ConversationMessage>();
         foreach (var message in _messageList)
         {
             await _store.AddMessage(message);
-            expected.Add(new ConversationMessage(message.SenderUsername, message.MessageContent, message.CreatedUnixTime));
+            expected.Add(new ConversationMessage(message.SenderUsername, message.Text,
+                message.CreatedUnixTime));
         }
-        var actual = await _store.GetConversationMessages(_messageList[0].ConversationId, 100, "", 0);
+        var parameters = new GetMessagesParameters(_messageList[0].ConversationId, 100, "", 0);
+        var actual = await _store.GetMessages(parameters);
         Assert.Equal(expected, actual.Messages);
     }
-    
-    
+
+
     [Fact]
     public async Task GetConversationMessages_WithContinuationToken()
     {
@@ -111,13 +101,17 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         {
             await _store.AddMessage(message);
         }
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 2, "", 0);
-        Assert.Equal(_messageList[0], actual.Messages[0]);
-        Assert.Equal(_messageList[1], actual.Messages[1]);
-        var actual2 = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 2, actual.ContinuationToken, 0);
-        Assert.Equal(_messageList[2], actual2.Messages[0]);
+        var parametersFirstCall = new GetMessagesParameters(_messageList[0].ConversationId, 2, "", 0);
+        var actual = await _store.GetMessages(parametersFirstCall);
+        Assert.Equal(_conversationMessageList[0], actual.Messages[0]);
+        Assert.Equal(_conversationMessageList[1], actual.Messages[1]);
+        var parametersSecondCall = new GetMessagesParameters(_messageList[0].ConversationId, 2,
+            actual.ContinuationToken, 0);
+        var actual2 =
+            await _store.GetMessages(parametersSecondCall);
+        Assert.Equal(_conversationMessageList[2], actual2.Messages[0]);
     }
-    
+
 
     [Theory]
     [InlineData(0, 1)]
@@ -131,10 +125,11 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         {
             await _store.AddMessage(message);
         }
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, limit, "", 0);
+        var parameters = new GetMessagesParameters(_messageList[0].ConversationId, limit, "", 0);
+        var actual = await _store.GetMessages(parameters);
         Assert.Equal(actualCount, actual.Messages.Count);
     }
-    
+
     [Fact]
     public async Task GetConversationMessages_WithBadContinuationToken()
     {
@@ -142,12 +137,14 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         {
             await _store.AddMessage(message);
         }
-        Assert.ThrowsAsync<CosmosException>( async () =>
+
+        await Assert.ThrowsAsync<CosmosException>(async () =>
         {
-            var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 100, "bad token", 0);
+            var parameters = new GetMessagesParameters(_messageList[0].ConversationId, 100, "bad token", 0);
+            var actual = await _store.GetMessages(parameters);
         });
     }
-    
+
     [Fact]
     public async Task GetConversationMessages_WithUnixTime()
     {
@@ -155,8 +152,10 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
         {
             await _store.AddMessage(message);
         }
-        var actual = await _store.GetConversationMessagesUtil(_messageList[0].ConversationId, 100, "", 1000);
-        Assert.Equal(_messageList[0], actual.Messages[0]);
-        Assert.Equal(_messageList[1], actual.Messages[1]);
+        
+        var parameters = new GetMessagesParameters(_messageList[0].ConversationId, 100, "", 1000);
+        var actual = await _store.GetMessages(parameters);
+        Assert.Equal(_conversationMessageList[0], actual.Messages[0]);
+        Assert.Equal(_conversationMessageList[1], actual.Messages[1]);
     }
 }

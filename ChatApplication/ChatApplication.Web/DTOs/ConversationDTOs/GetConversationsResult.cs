@@ -1,7 +1,7 @@
 namespace ChatApplication.Web.Dtos;
 
-public record ConversationAndToken(
-    List<Conversation> Conversations,
+public record GetConversationsResult(
+    List<UserConversation> Conversations,
     string? ContinuationToken
 )
 {

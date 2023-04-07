@@ -2,12 +2,8 @@
 
 public class ProfileAlreadyExistsException : Exception
 {
-
-    public ProfileAlreadyExistsException(string message) : base(message) { }
-
-    
-    
-    public ProfileAlreadyExistsException() { }
-    
+    public ProfileAlreadyExistsException(string message) : base(message)
+    {
+    }
     
 }

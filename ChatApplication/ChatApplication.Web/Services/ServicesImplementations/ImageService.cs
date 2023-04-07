@@ -20,7 +20,7 @@ public class ImageService : IImageService
         return id;
     }
 
-    public async Task<ImageUtil?> GetImage(string id)
+    public async Task<Image?> GetImage(string id)
     {
         return await _imageStore.GetImage(id);
     }

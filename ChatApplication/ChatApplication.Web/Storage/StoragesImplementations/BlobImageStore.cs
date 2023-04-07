@@ -2,20 +2,21 @@
 using Azure.Storage.Blobs.Models;
 using ChatApplication.Exceptions;
 using ChatApplication.Utils;
+
 namespace ChatApplication.Storage;
 
-public class BlobImageStore: IImageStore
+public class BlobImageStore : IImageStore
 {
-    
     private readonly BlobContainerClient _blobContainerClient;
-    
+
     public BlobImageStore(BlobContainerClient blobContainerClientClient)
     {
         _blobContainerClient = blobContainerClientClient;
     }
+
     public async Task AddImage(string blobName, MemoryStream data, string contentType)
     {
-        if(data==null || data.Length==0)
+        if (data == null || data.Length == 0)
             throw new ArgumentException("Data is empty", nameof(data));
 
         BlobClient blobClient = _blobContainerClient.GetBlobClient(blobName);
@@ -25,38 +26,36 @@ public class BlobImageStore: IImageStore
         };
         data.Position = 0;
         await blobClient.UploadAsync(data, headers);
-
     }
 
-    public async Task<ImageUtil?> GetImage(string id)
+    public async Task<Image?> GetImage(string id)
     {
-        
         if (String.IsNullOrWhiteSpace(id))
         {
             throw new ArgumentException("Invalid id", nameof(id));
         }
-        var blobClient =  _blobContainerClient.GetBlobClient(id);
-        if(!await blobClient.ExistsAsync())
-             throw new ImageNotFoundException("No image found for this id");
+
+        var blobClient = _blobContainerClient.GetBlobClient(id);
+        if (!await blobClient.ExistsAsync())
+            throw new ImageNotFoundException("No image found for this id");
         BlobProperties properties = await blobClient.GetPropertiesAsync();
         var response = await blobClient.DownloadAsync();
-        
+
         await using var memoryStream = new MemoryStream();
         await response.Value.Content.CopyToAsync(memoryStream);
         var bytes = memoryStream.ToArray();
 
-        return new ImageUtil(bytes, properties.ContentType);
+        return new Image(bytes, properties.ContentType);
     }
-    
+
     public async Task DeleteImage(string id)
     {
         if (String.IsNullOrWhiteSpace(id))
         {
             throw new ArgumentException("Invalid id", nameof(id));
         }
-        var blobClient =  _blobContainerClient.GetBlobClient(id);
-        if(!await blobClient.ExistsAsync())
-            return;
+
+        var blobClient = _blobContainerClient.GetBlobClient(id);
         await blobClient.DeleteAsync();
     }
 }

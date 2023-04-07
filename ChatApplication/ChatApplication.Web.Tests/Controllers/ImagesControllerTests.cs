@@ -38,8 +38,8 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         var image = new byte[] {1, 2, 3, 4, 5};
         var imageId = "123";
         
-        ImageUtil expectedImageUtil = new(image, "image/jpeg");
-        _imageServiceMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(expectedImageUtil);
+        Image expectedImage = new(image, "image/jpeg");
+        _imageServiceMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(expectedImage);
         
         var response = await _httpClient.GetAsync($"/api/Images/{imageId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -47,15 +47,15 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         var contentActual = await response.Content.ReadAsByteArrayAsync();
         var contentTypeActual = response.Content.Headers.ContentType?.ToString();
         
-        Assert.Equal(expectedImageUtil.ImageData, contentActual);
-        Assert.Equal(expectedImageUtil.ContentType, contentTypeActual);
+        Assert.Equal(expectedImage.ImageData, contentActual);
+        Assert.Equal(expectedImage.ContentType, contentTypeActual);
         
     }
 
     [Fact]
     public async Task GetImageNotFound()
     {
-        _imageServiceMock.Setup(m => m.GetImage("123")).ThrowsAsync(new ImageNotFoundException());
+        _imageServiceMock.Setup(m => m.GetImage("123")).ThrowsAsync(new ImageNotFoundException("Image not Found"));
         var response = await _httpClient.GetAsync($"/api/Images/123");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
