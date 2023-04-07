@@ -125,10 +125,10 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var participants = new List<string> {"Ronald", "Farex"};
         var conversationRequest = new StartConversationRequest(participants, messageRequest);
         var startConversationParameters = new StartConversationParameters(messageRequest.Id, messageRequest.SenderUsername,
-            messageRequest.Text, 2, participants);
+            messageRequest.Text, It.IsAny<long>(), participants);
         _conversationServiceMock.Setup(x=> x.StartConversation(
-            It.Is<StartConversationParameters>(r => r.createdTime == It.IsAny<long>() && 
-                                                    r.participants == It.IsAny<List<string>>() && r.messageContent == messageRequest.Text &&
+            It.Is<StartConversationParameters>(r =>  
+                                                    r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
                                                     r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
             ))).ReturnsAsync("_Ronald_Farex");
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
@@ -139,7 +139,10 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var answer = JsonConvert.DeserializeObject<StartConversationResponse>(responseString);
         Assert.Equal("_Ronald_Farex", answer.ConversationId);
         _conversationServiceMock.Verify(mock => mock.StartConversation(
-            It.Is<StartConversationParameters>(r => r.createdTime == It.IsAny<long>())), Times.Once);
+            It.Is<StartConversationParameters>(r =>  
+                r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
+                r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
+            )), Times.Once);
     }
 
     [Fact]
@@ -163,8 +166,11 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var conversationRequest = new StartConversationRequest(participants, messageRequest);
         var startConversationParameters = new StartConversationParameters(messageRequest.Id, messageRequest.SenderUsername,
             messageRequest.Text, It.IsAny<long>(), participants);
-        _conversationServiceMock.Setup(x=> x.StartConversation(startConversationParameters))
-            .ThrowsAsync(new ProfileNotFoundException(messageRequest.SenderUsername));
+        _conversationServiceMock.Setup(x=> x.StartConversation(
+            It.Is<StartConversationParameters>(r =>  
+                r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
+                r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
+            ))).ThrowsAsync(new ProfileNotFoundException(messageRequest.SenderUsername));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
         var response = await _httpClient.PostAsync("api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -180,7 +186,10 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var startConversationParameters = new StartConversationParameters(messageRequest.Id, messageRequest.SenderUsername,
             messageRequest.Text, It.IsAny<long>(), participants);
         _conversationServiceMock.Setup(x=> x.StartConversation(
-        startConversationParameters)).ThrowsAsync(new ProfileNotFoundException("Profile already exists"));
+            It.Is<StartConversationParameters>(r =>  
+                r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
+                r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
+            ))).ThrowsAsync(new ProfileNotFoundException("Profile already exists"));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
         var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -196,7 +205,10 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var startConversationParameters = new StartConversationParameters(messageRequest.Id, messageRequest.SenderUsername,
             messageRequest.Text, It.IsAny<long>(), participants);
         _conversationServiceMock.Setup(x=> x.StartConversation(
-           startConversationParameters))
+                It.Is<StartConversationParameters>(r =>  
+                    r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
+                    r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
+                )))
             .ThrowsAsync(new MessageAlreadyExistsException("Message already exists"));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
         var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
@@ -213,7 +225,10 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var startConversationParameters = new StartConversationParameters(messageRequest.Id, messageRequest.SenderUsername,
             messageRequest.Text, It.IsAny<long>(), participants);
         _conversationServiceMock.Setup(x=> x.StartConversation(
-        startConversationParameters))
+                It.Is<StartConversationParameters>(r =>  
+                    r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
+                    r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
+                )))
             .ThrowsAsync(new ConversationAlreadyExistsException("Conversation already exists"));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
         var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
