@@ -6,7 +6,7 @@ namespace ChatApplication.Web.Dtos;
 public record Message(
     [Required]string MessageId,
     [Required]string SenderUsername,
-    [Required]string MessageContent,
+    [Required]string Text,
     [Required]long CreatedUnixTime,
     [Required]string ConversationId
 );

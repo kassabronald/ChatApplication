@@ -21,6 +21,6 @@ public interface IImageStore
     /// <throws><b>ArgumentException</b> if id is null or empty<br></br><br></br>
     /// </throws>
     /// <throws><b>ImageNotFoundException</b> if no image is found for the given id</throws>
-    Task<ImageUtil?> GetImage(string id);
+    Task<Image?> GetImage(string id);
     Task DeleteImage(string id);
 }

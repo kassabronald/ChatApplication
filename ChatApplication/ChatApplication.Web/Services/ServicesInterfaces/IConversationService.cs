@@ -6,11 +6,11 @@ public interface IConversationService
 {
     public Task AddMessage(Message message);
 
-    public Task<ConversationMessageAndToken> GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime);
+    public Task<GetMessagesResult> GetMessages(GetMessagesParameters parameters);
 
     public Task<string> StartConversation(string messageId, string senderUsername, string messageContent,
         long createdTime, List<string> participants);
     
-    public Task<ConversationAndToken> GetAllConversations(string username, int limit, string continuationToken, long lastConversationTime);
+    public Task<GetConversationsResult> GetConversations(GetConversationsParameters parameters);
 
 }

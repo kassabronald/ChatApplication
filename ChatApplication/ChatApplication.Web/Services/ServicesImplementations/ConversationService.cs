@@ -20,16 +20,12 @@ public class ConversationService : IConversationService
     public async Task AddMessage(Message message)
     {
         var conversation = await _conversationStore.GetConversation(message.SenderUsername, message.ConversationId);
-        await _conversationStore.ChangeConversationLastMessageTime(conversation, message.CreatedUnixTime);
-        foreach(var participant in conversation.Participants)
+        foreach (var participant in conversation.Participants)
         {
-            if (participant.Username != message.SenderUsername)
-            {
-                var receiverConversation =
-                    await _conversationStore.GetConversation(participant.Username, message.ConversationId);
-                await _conversationStore.ChangeConversationLastMessageTime(receiverConversation,
-                    message.CreatedUnixTime);
-            }
+            var participantConversation =
+                await _conversationStore.GetConversation(participant.Username, message.ConversationId);
+            await _conversationStore.UpdateConversationLastMessageTime(participantConversation,
+                message.CreatedUnixTime);
         }
         await _messageStore.AddMessage(message);
     }
@@ -37,25 +33,18 @@ public class ConversationService : IConversationService
         List<string> participants) 
     {
         //TODO: Check that user is not sending to himself
-        string id = "";
-        Boolean foundSenderUsername = false;
-        List<string> sortedParticipants = new List<string>(participants);
+        var id = "";
+        var sortedParticipants = new List<string>(participants);
         sortedParticipants.Sort();
-        foreach (var participant in sortedParticipants)
-        {
-            foundSenderUsername= foundSenderUsername || participant == senderUsername;
-        }
+        var foundSenderUsername = sortedParticipants.Aggregate(false, (current, participant) => current || participant == senderUsername);
         if (!foundSenderUsername)
         {
             throw new ProfileNotFoundException("Sender username not found in participants", senderUsername);
         }
-        foreach (var participantUsername in sortedParticipants)
-        {
-            id += "_"+participantUsername;
-        }
         List<Profile> participantsProfile = new List<Profile>();
         foreach (var participantUsername in sortedParticipants)
         {
+            id += "_"+participantUsername;
             var profile = await _profileStore.GetProfile(participantUsername);
             participantsProfile.Add(profile);
         }
@@ -65,49 +54,21 @@ public class ConversationService : IConversationService
         {
             List<Profile> recipients = new List<Profile>(participantsProfile);
             recipients.Remove(participantsProfile.Find(x => x.Username == participantUsername));
-            var conversation = new Conversation(id, recipients, createdTime, participantUsername);
+            var conversation = new UserConversation(id, recipients, createdTime, participantUsername);
             await _conversationStore.CreateConversation(conversation);
         }
         //TODO: After PR1 handle possible errors
         return id;
     }
     
-    public async Task<ConversationMessageAndToken > GetConversationMessages(string conversationId, int limit, string continuationToken, long lastMessageTime)
+    public async Task<GetMessagesResult > GetMessages(GetMessagesParameters parameters)
     {
-        var jsonContinuationTokenData = continuationToken;
-        if (!String.IsNullOrWhiteSpace(continuationToken))
-        {
-            var continuationTokenData = new ContinuationTokenDataUtil(continuationToken, new RangeUtil("", "FF"));
-            jsonContinuationTokenData = JsonConvert.SerializeObject(new List<ContinuationTokenDataUtil>
-                { continuationTokenData });
-        }
-        var jsonResult =  await _messageStore.GetConversationMessages(conversationId, limit, jsonContinuationTokenData, lastMessageTime);
-        if(jsonResult.ContinuationToken == null)
-        {
-            return jsonResult;
-        }
-        var deserializedToken = JsonConvert.DeserializeObject<List<ContinuationTokenDataUtil>>(jsonResult.ContinuationToken)[0];
-        var result = jsonResult with { ContinuationToken = deserializedToken.token };
-        return result;
+        return await _messageStore.GetMessages(parameters);
     }
     
-    public async Task<ConversationAndToken> GetAllConversations(string username, int limit, string continuationToken, long lastConversationTime)
+    public async Task<GetConversationsResult> GetConversations(GetConversationsParameters parameters)
     {
-        var jsonContinuationTokenData = continuationToken;
-        if (!String.IsNullOrWhiteSpace(continuationToken))
-        {
-            var continuationTokenData = new ContinuationTokenDataUtil(continuationToken, new RangeUtil("", "FF"));
-            jsonContinuationTokenData = JsonConvert.SerializeObject(new List<ContinuationTokenDataUtil>
-                { continuationTokenData });
-        }
-        var jsonResult =  await _conversationStore.GetAllConversations(username, limit, jsonContinuationTokenData, lastConversationTime);
-        if(jsonResult.ContinuationToken == null)
-        {
-            return jsonResult;
-        }
-        var deserializedToken = JsonConvert.DeserializeObject<List<ContinuationTokenDataUtil>>(jsonResult.ContinuationToken)[0];
-        var result = jsonResult with { ContinuationToken = deserializedToken.token };
-        return result;
+        return await _conversationStore.GetConversations(parameters);
     }
 
 }

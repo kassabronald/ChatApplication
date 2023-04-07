@@ -1,6 +1,6 @@
 namespace ChatApplication.Web.Dtos;
 
-public record Conversation
+public record UserConversation
 {
     public string ConversationId { get; init; }
     public List<Profile> Participants { get; init; }
@@ -8,7 +8,7 @@ public record Conversation
     
     public string Username { get; init; }
 
-    public Conversation(string conversationId, List<Profile> participants, long lastMessageTime, string username)
+    public UserConversation(string conversationId, List<Profile> participants, long lastMessageTime, string username)
     {
         this.ConversationId = conversationId;
         this.Participants = participants;

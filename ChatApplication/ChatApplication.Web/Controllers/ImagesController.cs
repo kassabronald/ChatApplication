@@ -26,7 +26,7 @@ public class ImagesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult?> DownloadImage(string id)
     {
-        ImageUtil? image;
+        Image? image;
         try
         {
             var stopWatch = Stopwatch.StartNew();

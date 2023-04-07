@@ -5,11 +5,11 @@ namespace ChatApplication.Web.Dtos;
 public record StartConversationRequest
 {
     [Required] public List<string> Participants { get; init; }
-    [Required] public MessageRequest FirstMessage { get; init; }
+    [Required] public SendMessageRequest FirstSendMessage { get; init; }
     
-    public StartConversationRequest(List<string> participants, MessageRequest firstMessage)
+    public StartConversationRequest(List<string> participants, SendMessageRequest firstSendMessage)
     {
         Participants = participants;
-        FirstMessage = firstMessage;
+        FirstSendMessage = firstSendMessage;
     }
 }
