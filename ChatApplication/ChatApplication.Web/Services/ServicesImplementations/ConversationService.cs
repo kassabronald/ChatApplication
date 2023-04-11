@@ -23,12 +23,10 @@ public class ConversationService : IConversationService
     {
         var conversation = await _conversationStore.GetUserConversation(message.SenderUsername, message.ConversationId);
         await _conversationStore.UpdateConversationLastMessageTime(conversation, message.CreatedUnixTime);
-        try
-        {
-            await _messageStore.AddMessage(message);
-        }
-        catch (MessageAlreadyExistsException)
-        { }
+        
+        await _messageStore.AddMessage(message);
+        
+        
     }
     
     public async Task<string> StartConversation(StartConversationParameters parameters)
@@ -41,13 +39,7 @@ public class ConversationService : IConversationService
         
         var message = new Message(parameters.messageId, parameters.senderUsername, parameters.messageContent, parameters.createdTime, id);
         
-        try
-        {
-            await _messageStore.AddMessage(message);
-        }
-        catch (MessageAlreadyExistsException)
-        {
-        }
+        await _messageStore.AddMessage(message);
 
         var participantsProfile =
             await Task.WhenAll(sortedParticipants.Select(participant => _profileStore.GetProfile(participant)));

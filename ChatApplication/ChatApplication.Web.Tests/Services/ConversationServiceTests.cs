@@ -66,11 +66,11 @@ public class ConversationServiceTests
         var conversation = new UserConversation("1234", participants, 100000, profile1.Username);
         _conversationStoreMock.Setup(m => m.GetUserConversation(profile1.Username, message.ConversationId)).ReturnsAsync(conversation);
         _messageStoreMock.Setup(m => m.AddMessage(message)).ThrowsAsync(new MessageAlreadyExistsException("Message already exists"));
-        var exception = await Record.ExceptionAsync(async () =>
+        await Assert.ThrowsAsync<MessageAlreadyExistsException>(async () =>
         {
             await _conversationService.AddMessage(message);
         });
-        Assert.Null(exception);
+        
         _messageStoreMock.Verify(mock => mock.AddMessage(message), Times.Once);
     }
 
