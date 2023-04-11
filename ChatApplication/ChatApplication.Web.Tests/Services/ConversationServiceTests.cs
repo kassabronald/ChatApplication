@@ -134,6 +134,11 @@ public class ConversationServiceTests
         long createdTime = 100000;
         var conversationId = "_Jad_Ronald";
         var participants = new List<string> {"Ronald", "Jad"};
+        foreach(var participant in participants)
+        {
+            var profile = new Profile(participant, "ok", "gym", "1234");
+            _profileStoreMock.Setup(x => x.GetProfile(participant)).ReturnsAsync(profile);
+        }
         var message = new Message(messageId, senderUsername, messageContent, createdTime, conversationId);
         _messageStoreMock.Setup(x => x.AddMessage(message)).ThrowsAsync(new MessageAlreadyExistsException("Message already exists"));
         var startConversationParameters = new StartConversationParameters(messageId, senderUsername, messageContent, createdTime, participants);
