@@ -54,7 +54,7 @@ public class ConversationService : IConversationService
         var userConversations = sortedParticipants.Select(participantUsername =>
         {
             var recipients = new List<Profile>(participantsProfile);
-            recipients.Remove(Array.Find(participantsProfile, x => x.Username == participantUsername)!);
+            recipients.Remove(Array.Find(participantsProfile, x => x.Username == participantUsername));
             return new UserConversation(id, recipients, parameters.createdTime, participantUsername);
         }).ToList();
 
