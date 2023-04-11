@@ -23,7 +23,12 @@ public class ConversationService : IConversationService
     {
         var conversation = await _conversationStore.GetUserConversation(message.SenderUsername, message.ConversationId);
         await _conversationStore.UpdateConversationLastMessageTime(conversation, message.CreatedUnixTime);
-        await _messageStore.AddMessage(message);
+        try
+        {
+            await _messageStore.AddMessage(message);
+        }
+        catch (MessageAlreadyExistsException)
+        { }
     }
     
     public async Task<string> StartConversation(StartConversationParameters parameters)
@@ -35,8 +40,15 @@ public class ConversationService : IConversationService
         var id = sortedParticipants.Aggregate("", (current, participantUsername) => current + ("_" + participantUsername));
         
         var message = new Message(parameters.messageId, parameters.senderUsername, parameters.messageContent, parameters.createdTime, id);
-        await _messageStore.AddMessage(message);
         
+        try
+        {
+            await _messageStore.AddMessage(message);
+        }
+        catch (MessageAlreadyExistsException)
+        {
+        }
+
         var participantsProfile =
             await Task.WhenAll(sortedParticipants.Select(participant => _profileStore.GetProfile(participant)));
         var userConversations = sortedParticipants.Select(participantUsername =>
@@ -45,8 +57,16 @@ public class ConversationService : IConversationService
             recipients.Remove(Array.Find(participantsProfile, x => x.Username == participantUsername)!);
             return new UserConversation(id, recipients, parameters.createdTime, participantUsername);
         }).ToList();
-        
-        await Task.WhenAll(userConversations.Select(conversation => _conversationStore.CreateUserConversation(conversation)));
+
+        try
+        {
+            await Task.WhenAll(userConversations.Select(conversation =>
+                _conversationStore.CreateUserConversation(conversation)));
+        }
+        catch (ConversationAlreadyExistsException)
+        {
+        }
+
         //TODO: After PR1 handle possible errors
         return id;
     }
