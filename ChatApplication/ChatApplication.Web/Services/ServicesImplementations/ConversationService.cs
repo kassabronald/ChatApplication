@@ -65,6 +65,7 @@ public class ConversationService : IConversationService
         }
         catch (ConversationAlreadyExistsException)
         {
+            return id;
         }
 
         //TODO: After PR1 handle possible errors
