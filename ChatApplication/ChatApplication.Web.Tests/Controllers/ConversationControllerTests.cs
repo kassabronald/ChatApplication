@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using ChatApplication.Exceptions;
+using ChatApplication.Exceptions.ConversationParticipantsExceptions;
 using ChatApplication.Services;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -170,7 +171,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             It.Is<StartConversationParameters>(r =>  
                 r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
                 r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
-            ))).ThrowsAsync(new ProfileNotFoundException(messageRequest.SenderUsername));
+            ))).ThrowsAsync(new SenderNotFoundException(messageRequest.SenderUsername));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
         var response = await _httpClient.PostAsync("api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -189,7 +190,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
             It.Is<StartConversationParameters>(r =>  
                 r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
                 r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
-            ))).ThrowsAsync(new ProfileNotFoundException("Profile already exists"));
+            ))).ThrowsAsync(new ProfileNotFoundException("Profile does not exists"));
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
         var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -233,6 +234,26 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
         var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+
+    public async Task StartConversation_DuplicateParticipant()
+    {
+        var messageRequest = new SendMessageRequest("12345", "Ronald", "Haha Bro farex");
+        var participants = new List<string> {"Ronald", "Farex", "Ronald"};
+        var conversationRequest = new StartConversationRequest(participants, messageRequest);
+        var startConversationParameters = new StartConversationParameters(messageRequest.Id, messageRequest.SenderUsername,
+            messageRequest.Text, It.IsAny<long>(), participants);
+        _conversationServiceMock.Setup(x=> x.StartConversation(
+                It.Is<StartConversationParameters>(r =>  
+                    r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
+                    r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
+                )))
+            .ThrowsAsync(new DuplicateParticipantException("Participant is duplicated"));
+        var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
+        var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]

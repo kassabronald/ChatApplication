@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using ChatApplication.Exceptions;
+using ChatApplication.Exceptions.ConversationParticipantsExceptions;
 using ChatApplication.Services;
 using ChatApplication.Web.Dtos;
 using Microsoft.ApplicationInsights;
@@ -79,7 +80,7 @@ public class ConversationsController : ControllerBase
             StartConversationParameters startConversationParameters = new StartConversationParameters(
                 conversationRequest.FirstSendMessage.Id, conversationRequest.FirstSendMessage.SenderUsername,
                 conversationRequest.FirstSendMessage.Text, createdTime, conversationRequest.Participants);
-            
+
             var id = await _conversationService.StartConversation(startConversationParameters);
 
             _telemetryClient.TrackMetric("ConversationService.StartConversation.Time", stopWatch.ElapsedMilliseconds);
@@ -90,10 +91,17 @@ public class ConversationsController : ControllerBase
             return CreatedAtAction(nameof(GetConversations),
                 new { username = conversationRequest.FirstSendMessage.SenderUsername }, response);
         }
+        catch (SenderNotFoundException e)
+        {
+            return BadRequest(e.Message);
+        }
+        catch (DuplicateParticipantException e)
+        {
+            return BadRequest(e.Message);
+        }
         catch (ProfileNotFoundException e)
         {
-            return BadRequest(
-                $"The username : {e.Username} is the sender and was not found in the participants list or does not exist");
+            return BadRequest(e.Message);
         }
         catch (ConversationAlreadyExistsException e)
         {
@@ -111,10 +119,10 @@ public class ConversationsController : ControllerBase
     {
         var stopWatch = new Stopwatch();
         var decodedContinuationToken = WebUtility.UrlDecode(continuationToken);
-        var getMesaagesParameters =
+        var getMessagesParameters =
             new GetMessagesParameters(conversationId, limit, decodedContinuationToken, lastSeenMessageTime);
 
-        var getMessagesResult = await _conversationService.GetMessages(getMesaagesParameters);
+        var getMessagesResult = await _conversationService.GetMessages(getMessagesParameters);
         _telemetryClient.TrackMetric("ConversationService.GetConversationMessages.Time", stopWatch.ElapsedMilliseconds);
         var nextUri =
             $"/api/Conversations/{conversationId}/messages?&limit={limit}&continuationToken={WebUtility.UrlEncode(getMessagesResult.ContinuationToken)}&lastSeenMessageTime={lastSeenMessageTime}";

@@ -1,4 +1,5 @@
 using ChatApplication.Exceptions;
+using ChatApplication.Exceptions.ConversationParticipantsExceptions;
 using ChatApplication.Storage;
 using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
@@ -20,43 +21,32 @@ public class ConversationService : IConversationService
     }
     public async Task AddMessage(Message message)
     {
-        var conversation = await _conversationStore.GetConversation(message.SenderUsername, message.ConversationId);
-        foreach (var participant in conversation.Participants)
-        {
-            var participantConversation =
-                await _conversationStore.GetConversation(participant.Username, message.ConversationId);
-            await _conversationStore.UpdateConversationLastMessageTime(participantConversation,
-                message.CreatedUnixTime);
-        }
+        var conversation = await _conversationStore.GetUserConversation(message.SenderUsername, message.ConversationId);
+        await _conversationStore.UpdateConversationLastMessageTime(conversation, message.CreatedUnixTime);
         await _messageStore.AddMessage(message);
     }
+    
     public async Task<string> StartConversation(StartConversationParameters parameters)
     {
-        //TODO: Check that user is not sending to himself
-        var id = "";
+        
+        checkIfValidParticipants(parameters.participants, parameters.senderUsername);
         var sortedParticipants = new List<string>(parameters.participants);
         sortedParticipants.Sort();
-        var foundSenderUsername = sortedParticipants.Aggregate(false, (current, participant) => current || participant == parameters.senderUsername);
-        if (!foundSenderUsername)
-        {
-            throw new ProfileNotFoundException("Sender username not found in participants", parameters.senderUsername);
-        }
-        List<Profile> participantsProfile = new List<Profile>();
-        foreach (var participantUsername in sortedParticipants)
-        {
-            id += "_"+participantUsername;
-            var profile = await _profileStore.GetProfile(participantUsername);
-            participantsProfile.Add(profile);
-        }
+        var id = sortedParticipants.Aggregate("", (current, participantUsername) => current + ("_" + participantUsername));
+        
         var message = new Message(parameters.messageId, parameters.senderUsername, parameters.messageContent, parameters.createdTime, id);
         await _messageStore.AddMessage(message);
-        foreach(var participantUsername in sortedParticipants)
+        
+        var participantsProfile =
+            await Task.WhenAll(sortedParticipants.Select(participant => _profileStore.GetProfile(participant)));
+        var userConversations = sortedParticipants.Select(participantUsername =>
         {
-            List<Profile> recipients = new List<Profile>(participantsProfile);
-            recipients.Remove(participantsProfile.Find(x => x.Username == participantUsername));
-            var conversation = new UserConversation(id, recipients, parameters.createdTime, participantUsername);
-            await _conversationStore.CreateConversation(conversation);
-        }
+            var recipients = new List<Profile>(participantsProfile);
+            recipients.Remove(Array.Find(participantsProfile, x => x.Username == participantUsername)!);
+            return new UserConversation(id, recipients, parameters.createdTime, participantUsername);
+        }).ToList();
+        
+        await Task.WhenAll(userConversations.Select(conversation => _conversationStore.CreateUserConversation(conversation)));
         //TODO: After PR1 handle possible errors
         return id;
     }
@@ -69,6 +59,20 @@ public class ConversationService : IConversationService
     public async Task<GetConversationsResult> GetConversations(GetConversationsParameters parameters)
     {
         return await _conversationStore.GetConversations(parameters);
+    }
+    
+    private void checkIfValidParticipants(IReadOnlyCollection<string> participants, string senderUsername)
+    {
+        var foundSenderUsername = participants.Aggregate(false, (current, participant) => current || participant == senderUsername);
+        if (!foundSenderUsername)
+        {
+            throw new SenderNotFoundException($"Sender username {senderUsername} not found in participants");
+        }
+        var duplicates = participants.GroupBy(p => p).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+        if (duplicates.Any())
+        {
+            throw new DuplicateParticipantException($"Participant(s) {string.Join(", ", duplicates)} is/are duplicated");
+        }
     }
 
 }

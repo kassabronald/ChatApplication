@@ -17,7 +17,7 @@ public class CosmosConversationStore : IConversationStore
         _cosmosClient = cosmosClient;
     }
     
-    public async Task<UserConversation> GetConversation(string username, string conversationId)
+    public async Task<UserConversation> GetUserConversation(string username, string conversationId)
     {
         try
         {
@@ -39,8 +39,8 @@ public class CosmosConversationStore : IConversationStore
             throw;
         }
     }
-
-    public async Task UpdateConversationLastMessageTime(UserConversation userConversation, long lastMessageTime)
+    
+    private async Task UpdateConversationUserLastMessageTime(UserConversation userConversation, long lastMessageTime)
     {
         try
         {
@@ -53,14 +53,25 @@ public class CosmosConversationStore : IConversationStore
         {
             if (e.StatusCode == HttpStatusCode.NotFound)
             {
-                throw new ConversationNotFoundException("Could not resolve conversation with id : {conversationId}");
+                throw new ConversationNotFoundException($"Could not resolve conversation with id : {userConversation.ConversationId}");
             }
 
             throw;
         }
     }
+    
+    public async Task UpdateConversationLastMessageTime(UserConversation conversation, long lastMessageTime)
+    {
+        foreach (var participant in conversation.Participants)
+        {
+            var participantConversation =
+                await GetUserConversation(participant.Username, conversation.ConversationId);
+            await UpdateConversationUserLastMessageTime(participantConversation,
+                lastMessageTime);
+        }
+    }
 
-    public async Task CreateConversation(UserConversation userConversation)
+    public async Task CreateUserConversation(UserConversation userConversation)
     {
         var entity = toEntity(userConversation);
         try
@@ -80,7 +91,7 @@ public class CosmosConversationStore : IConversationStore
 
     }
 
-    public async Task DeleteConversation(UserConversation userConversation)
+    public async Task DeleteUserConversation(UserConversation userConversation)
     {
         try
         {

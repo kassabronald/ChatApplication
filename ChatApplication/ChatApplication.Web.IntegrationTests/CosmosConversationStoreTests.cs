@@ -29,7 +29,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     {
         foreach (var conversation in _conversationList)
         {
-            await _store.DeleteConversation(conversation);
+            await _store.DeleteUserConversation(conversation);
         }
     }
     
@@ -48,140 +48,134 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
 
     [Fact]
 
-    public async Task GetConversation()
+    public async Task GetUserConversation()
     {
-        await _store.CreateConversation(_conversationList[0]);
-        var conversation = await _store.GetConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
+        await _store.CreateUserConversation(_conversationList[0]);
+        var conversation = await _store.GetUserConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
         Assert.Equivalent(_conversationList[0], conversation);
     }
     
     [Fact]
     
-    public async Task GetConversation_NotFoundUsername()
+    public async Task GetUserConversation_NotFoundUsername()
     {
         await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
         {
             var randomId = Guid.NewGuid().ToString();
-            await _store.GetConversation(randomId, _conversationList[0].ConversationId);
+            await _store.GetUserConversation(randomId, _conversationList[0].ConversationId);
         });
     }
     
     [Fact]
     
-    public async Task GetConversation_NotFoundConversationId()
+    public async Task GetUserConversation_NotFoundConversationId()
     {
         await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
         {
             var randomId = Guid.NewGuid().ToString();
-            await _store.GetConversation(_conversationList[0].Username, randomId);
+            await _store.GetUserConversation(_conversationList[0].Username, randomId);
         });
     }
 
     [Fact]
     
-    public async Task GetConversation_EmptyConversationId()
+    public async Task GetUserConversation_EmptyConversationId()
     {
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
-            await _store.GetConversation(_conversationList[0].Username, "");
+            await _store.GetUserConversation(_conversationList[0].Username, "");
         });
     }
     
     [Fact]
     
-    public async Task ChangeConversationLastMessageTime()
+    public async Task UpdateConversationLastMessageTime()
     {
-        await _store.CreateConversation(_conversationList[0]);
-        await _store.UpdateConversationLastMessageTime(_conversationList[0], 1001);
-        var conversation = await _store.GetConversation(_conversationList[0].Username,_conversationList[0].ConversationId);
-        Assert.Equal(1001, conversation.LastMessageTime);
+        var receiverConversation = new UserConversation(_conversationList[0].ConversationId, _conversationList[0].Participants, _conversationList[0].LastMessageTime, _conversationList[0].Participants[1].Username);
+        var senderConversation = _conversationList[0];
+        await _store.CreateUserConversation(senderConversation);
+        await _store.CreateUserConversation(receiverConversation);
+        await _store.UpdateConversationLastMessageTime(_conversationList[0], 1005);
+        var senderConversationAfterUpdate = await _store.GetUserConversation(senderConversation.Username,senderConversation.ConversationId);
+        var receiverConversationAfterUpdate = await _store.GetUserConversation(receiverConversation.Username, receiverConversation.ConversationId);
+        Assert.Equal(1005, senderConversationAfterUpdate.LastMessageTime);
+        Assert.Equal(1005, receiverConversationAfterUpdate.LastMessageTime);
     }
     
     [Fact]
     
-    public async Task ChangeConversationLastMessageTime_NotFound()
+    public async Task UpdateConversationLastMessageTime_NotFound()
     {
         await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
         {
             await _store.UpdateConversationLastMessageTime(_conversationList[0], 1001);
         });
     }
-    
-    [Fact]
-    
-    public async Task ChangeConversationLastMessageTime_EmptyConversation()
-    {
-        var conversation = new UserConversation("", new List<Profile>(), 1000, "hey");
-        await Assert.ThrowsAsync<CosmosException>(async () =>
-        {
-            await _store.UpdateConversationLastMessageTime(conversation, 1001);
-        });
-    }
 
     [Fact]
 
-    public async Task CreateConversation()
+    public async Task CreateUserConversation()
     {
-        await _store.CreateConversation(_conversationList[0]);
-        var conversation = await _store.GetConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
+        await _store.CreateUserConversation(_conversationList[0]);
+        var conversation = await _store.GetUserConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
         Assert.Equivalent(_conversationList[0], conversation);
     }
     
     [Fact]
     //TODO: Change this to not throw exception
     
-    public async Task CreateConversation_Conflict()
+    public async Task CreateUserConversation_Conflict()
     {
-        await _store.CreateConversation(_conversationList[0]);
+        await _store.CreateUserConversation(_conversationList[0]);
         await Assert.ThrowsAsync<ConversationAlreadyExistsException>(async () =>
         {
-            await _store.CreateConversation(_conversationList[0]);
+            await _store.CreateUserConversation(_conversationList[0]);
         });
     }
 
     [Fact]
 
-    public async Task CreateConversation_EmptyId()
+    public async Task CreateUserConversation_EmptyId()
     {
         var conversation = new UserConversation("", new List<Profile>(), 1000, _conversationList[0].ConversationId);
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
-            await _store.CreateConversation(conversation);
+            await _store.CreateUserConversation(conversation);
         });
     }
 
 
     [Fact]
 
-    public async Task DeleteConversation()
+    public async Task DeleteUserConversation()
     {
-        await _store.CreateConversation(_conversationList[0]);
-        await _store.DeleteConversation(_conversationList[0]);
+        await _store.CreateUserConversation(_conversationList[0]);
+        await _store.DeleteUserConversation(_conversationList[0]);
         await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
         {
-            await _store.GetConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
+            await _store.GetUserConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
         });
     }
 
     [Fact]
 
-    public async Task DeleteConversation_EmptyId()
+    public async Task DeleteUserConversation_EmptyId()
     {
         var conversation = new UserConversation("", new List<Profile>(), 1000, _conversationList[0].ConversationId);
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
-            await _store.DeleteConversation(conversation);
+            await _store.DeleteUserConversation(conversation);
         });
     }
     
     [Fact]
 
-    public async Task GetAllConversation()
+    public async Task GetAllConversations()
     {
         var expected = new List<UserConversation>();
         foreach (var conversation in _conversationList)
         {
-            await _store.CreateConversation(conversation);
+            await _store.CreateUserConversation(conversation);
             expected.Add(conversation);
         }
 
@@ -196,7 +190,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     {
         foreach (var conversation in _conversationList)
         {
-            await _store.CreateConversation(conversation);
+            await _store.CreateUserConversation(conversation);
         }
 
         var parametersInitialCall = new GetConversationsParameters(_conversationList[0].Username, 2, "", 0);
@@ -218,7 +212,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     {
         foreach (var conversation in _conversationList)
         {
-            await _store.CreateConversation(conversation);
+            await _store.CreateUserConversation(conversation);
         }
         var parameters = new GetConversationsParameters(_conversationList[0].Username, limit, "", 0);
         var actual = await _store.GetConversations(parameters);
@@ -230,7 +224,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     {
         foreach (var conversation in _conversationList)
         {
-            await _store.CreateConversation(conversation);
+            await _store.CreateUserConversation(conversation);
         }
         await Assert.ThrowsAsync<CosmosException>( async () =>
         {
@@ -244,7 +238,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     {
         foreach (var conversation in _conversationList)
         {
-            await _store.CreateConversation(conversation);
+            await _store.CreateUserConversation(conversation);
         }
         var parameters = new GetConversationsParameters(_conversationList[0].Username, 100, "", 1000);
         var actual = await _store.GetConversations(parameters);
