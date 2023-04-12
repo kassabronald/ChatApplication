@@ -12,9 +12,9 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
 
     private readonly IProfileStore _store;
     private readonly Profile _profile = new(
-        username: Guid.NewGuid().ToString(),
-        firstName: "Foo",
-        lastName: "Bar",
+        Username: Guid.NewGuid().ToString(),
+        FirstName: "Foo",
+        LastName: "Bar",
         ProfilePictureId: "123"
     );
     public Task InitializeAsync()
@@ -24,7 +24,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
 
     public async Task DisposeAsync()
     {
-        await _store.DeleteProfile(_profile.username);
+        await _store.DeleteProfile(_profile.Username);
     }
     
     public CosmosProfileStoreTests(WebApplicationFactory<Program> factory)
@@ -38,14 +38,14 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
     public async Task AddProfile()
     {
         await _store.AddProfile(_profile);
-        Assert.Equal(_profile, await _store.GetProfile(_profile.username));
+        Assert.Equal(_profile, await _store.GetProfile(_profile.Username));
     }
     
     [Fact]
     public async Task GetNonExistingProfile()
     {
-        var nonExistingProfileUsername = _profile.username + "1";
-        Assert.Null(await _store.GetProfile(nonExistingProfileUsername));
+        await Assert.ThrowsAsync<ProfileNotFoundException>(async () => await _store.GetProfile(_profile.Username + "1"));
+
     }
     
     [Fact]
@@ -88,8 +88,8 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
     public async Task DeleteProfile()
     {
         await _store.AddProfile(_profile);
-        await _store.DeleteProfile(_profile.username);
-        Assert.Null(await _store.GetProfile(_profile.username));
+        await _store.DeleteProfile(_profile.Username);
+        await Assert.ThrowsAsync<ProfileNotFoundException>(async()=> await _store.GetProfile(_profile.Username));
     }
 
     [Fact]

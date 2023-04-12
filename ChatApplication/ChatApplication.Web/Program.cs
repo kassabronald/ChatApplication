@@ -27,7 +27,8 @@ builder.Services.AddSingleton(sp =>
     return new BlobContainerClient(blobOptions.Value.ConnectionString, blobOptions.Value.ContainerName);
 });
 
-
+builder.Services.AddSingleton<IMessageStore, CosmosMessageStore>();
+builder.Services.AddSingleton<IConversationStore, CosmosConversationStore>();
 builder.Services.AddSingleton<IProfileStore, CosmosProfileStore>();
 builder.Services.AddSingleton(sp =>
 {
@@ -37,8 +38,9 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddSingleton<IImageService, ImageService>();
 builder.Services.AddSingleton<IProfileService, ProfileService>();
+builder.Services.AddSingleton<IConversationService, ConversationService>();
 
-
+builder.Services.AddApplicationInsightsTelemetry();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

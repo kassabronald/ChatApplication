@@ -1,22 +1,13 @@
 ﻿using System.Net;
-using System.Text;
 using ChatApplication.Exceptions;
 using ChatApplication.Services;
-using ChatApplication.Storage;
+using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
-
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Net.Http.Headers;
 using Moq;
-using Newtonsoft.Json;
-using static System.Net.Mime.MediaTypeNames;
-using static Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace ChatApplication.Web.Tests.Controllers;
@@ -47,25 +38,25 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         var image = new byte[] {1, 2, 3, 4, 5};
         var imageId = "123";
         
-        FileContentResult fileContentResultExpected = new(image, "image/jpeg");
-        _imageServiceMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(fileContentResultExpected);
+        Image expectedImage = new(image, "image/jpeg");
+        _imageServiceMock.Setup(m => m.GetImage(imageId)).ReturnsAsync(expectedImage);
         
-        var response = await _httpClient.GetAsync($"/Images/{imageId}");
+        var response = await _httpClient.GetAsync($"/api/Images/{imageId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         
         var contentActual = await response.Content.ReadAsByteArrayAsync();
         var contentTypeActual = response.Content.Headers.ContentType?.ToString();
         
-        Assert.Equal(fileContentResultExpected.FileContents, contentActual);
-        Assert.Equal(fileContentResultExpected.ContentType, contentTypeActual);
+        Assert.Equal(expectedImage.ImageData, contentActual);
+        Assert.Equal(expectedImage.ContentType, contentTypeActual);
         
     }
 
     [Fact]
     public async Task GetImageNotFound()
     {
-        _imageServiceMock.Setup(m => m.GetImage("123")).ThrowsAsync(new ImageNotFoundException());
-        var response = await _httpClient.GetAsync($"/Images/123");
+        _imageServiceMock.Setup(m => m.GetImage("123")).ThrowsAsync(new ImageNotFoundException("Image not Found"));
+        var response = await _httpClient.GetAsync($"/api/Images/123");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -91,7 +82,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
 
         formData.Add(requestContent, "File", uploadRequest.File.FileName);
         
-        var response = await _httpClient.PostAsync("/Images", formData);
+        var response = await _httpClient.PostAsync("/api/Images", formData);
         
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), "image/jpeg"), Times.Once);
@@ -102,7 +93,6 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     public async Task UploadImageBadRequestContentType()
     {
         var image = new byte[] { 1, 2, 3, 4, 5 };
-        var imageId = "123";
         var fileName = "test.pdf";
         var streamFile = new MemoryStream(image);
         IFormFile file = new FormFile(streamFile, 0, streamFile.Length, "id_from_form", fileName)
@@ -116,7 +106,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         using var formData = new MultipartFormDataContent();
         formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
         
-        var response = await _httpClient.PostAsync("/Images", formData);
+        var response = await _httpClient.PostAsync("/api/Images", formData);
         
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -129,7 +119,6 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     public async Task UploadImageBadRequestEmptyFile()
     {
         var image = new byte[] {};
-        var imageId = "123";
         var fileName = "test.jpg";
         var streamFile = new MemoryStream(image);
         IFormFile file = new FormFile(streamFile, 0, streamFile.Length, "id_from_form", fileName)
@@ -143,7 +132,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         using var formData = new MultipartFormDataContent();
         formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
         
-        var response = await _httpClient.PostAsync("/Images", formData);
+        var response = await _httpClient.PostAsync("/api/Images", formData);
         
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -161,7 +150,6 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     public async Task UploadImageBadRequestId(string id)
     {
         var image = new byte[] { 1, 2, 3, 4, 5 };
-        var imageId = id;
         var fileName = "test.png";
         var streamFile = new MemoryStream(image);
         IFormFile file = new FormFile(streamFile, 0, streamFile.Length, "id_from_form", fileName)
@@ -174,7 +162,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
             
         using var formData = new MultipartFormDataContent(); 
         formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
-        var response = await _httpClient.PostAsync("/Images", formData);
+        var response = await _httpClient.PostAsync("/api/Images", formData);
         
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -186,7 +174,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     public async Task GetImageInvalidId()
     {
         _imageServiceMock.Setup(m => m.GetImage("123")).ThrowsAsync(new ArgumentException());
-        var response = await _httpClient.GetAsync($"/Images/123");
+        var response = await _httpClient.GetAsync($"/api/Images/123");
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         
     }
