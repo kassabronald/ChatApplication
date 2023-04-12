@@ -79,7 +79,7 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
     
     [Fact]
 
-    public async Task DeleteProfile()
+    public async Task DeleteImage()
     {
         
         await _store.AddImage(blobName, _data, _contentType);
@@ -92,7 +92,7 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
 
     [Fact]
 
-    public async Task DeleteEmptyProfile()
+    public async Task DeleteEmptyImage()
     {
         await Assert.ThrowsAsync<ArgumentException>(async () =>
         {

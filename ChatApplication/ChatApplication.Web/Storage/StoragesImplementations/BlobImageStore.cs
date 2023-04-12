@@ -54,8 +54,13 @@ public class BlobImageStore : IImageStore
         {
             throw new ArgumentException("Invalid id", nameof(id));
         }
-
+    
         var blobClient = _blobContainerClient.GetBlobClient(id);
+        if (!await blobClient.ExistsAsync())
+        {
+            return;
+        }
         await blobClient.DeleteAsync();
     }
 }
+
