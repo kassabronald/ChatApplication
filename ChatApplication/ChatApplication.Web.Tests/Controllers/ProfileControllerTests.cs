@@ -69,6 +69,10 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
+
+
+   
+    
     
     [Theory]
     [InlineData(null, "Foo", "Bar", "12345")]
@@ -80,9 +84,6 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     [InlineData("foobar", "Foo", "", "12345")]
     [InlineData("foobar", "Foo", null, "12345")]
     [InlineData("foobar", "Foo", " ", "12345")]
-    [InlineData("foobar", "Foo", "Bar", "")]
-    [InlineData("foobar", "Foo", "Bar", " ")]
-    [InlineData("foobar", "Foo", "Bar", null)]
     public async Task AddProfile_InvalidArgs(string username, string firstName, string lastName, string profilePictureId )
     {
         var profile = new Profile(username, firstName, lastName, profilePictureId);

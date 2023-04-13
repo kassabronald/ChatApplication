@@ -5,6 +5,7 @@ using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Cosmos.Linq;
 
 namespace ChatApplication.Controllers;
 
@@ -47,13 +48,15 @@ public class ImagesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<UploadImageResponse>> UploadImage([FromForm] UploadImageRequest request)
     {
+        if (request.File.Length == 0) return new UploadImageResponse("");
         using (_logger.BeginScope("Uploading Image with name {Name}", request.File.FileName))
         {
-            string contentType = request.File.ContentType.ToLower();
-            if (contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/jpg")
-            {
-                return BadRequest($"Only JPEG and PNG and JPG images are supported, not {contentType}");
-            }
+
+            // string contentType = request.File.ContentType.ToLower();
+            // if (contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/jpg")
+            // {
+            //     return BadRequest($"Only JPEG and PNG and JPG images are supported, not {contentType}");
+            // }
 
             using var stream = new MemoryStream();
             await request.File.CopyToAsync(stream);
@@ -61,11 +64,13 @@ public class ImagesController : ControllerBase
             {
                 return BadRequest($"File {request.File.FileName} is empty");
             }
+
             var stopWatch = Stopwatch.StartNew();
             var id = await _imageService.AddImage(stream, request.File.ContentType);
             _telemetryClient.TrackMetric("ImageService.AddImage.Time", stopWatch.ElapsedMilliseconds);
             _telemetryClient.TrackEvent("ImageAdded");
             return CreatedAtAction(nameof(DownloadImage), new { id }, new UploadImageResponse(id));
         }
+
     }
 }
