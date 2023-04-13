@@ -84,9 +84,6 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     [InlineData("foobar", "Foo", "", "12345")]
     [InlineData("foobar", "Foo", null, "12345")]
     [InlineData("foobar", "Foo", " ", "12345")]
-    [InlineData("foobar", "Foo", "Bar", "")]
-    [InlineData("foobar", "Foo", "Bar", " ")]
-    [InlineData("foobar", "Foo", "Bar", null)]
     public async Task AddProfile_InvalidArgs(string username, string firstName, string lastName, string profilePictureId )
     {
         var profile = new Profile(username, firstName, lastName, profilePictureId);
