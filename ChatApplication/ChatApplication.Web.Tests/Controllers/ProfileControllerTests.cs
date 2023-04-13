@@ -69,6 +69,10 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
+
+
+   
+    
     
     [Theory]
     [InlineData(null, "Foo", "Bar", "12345")]

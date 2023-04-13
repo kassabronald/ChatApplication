@@ -17,6 +17,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
         LastName: "Bar",
         ProfilePictureId: "123"
     );
+    
     public Task InitializeAsync()
     {
         return Task.CompletedTask;
@@ -69,9 +70,6 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
     [InlineData("foobar", "Foo", null, "123")]
     [InlineData("foobar", "Foo", "", "123")]
     [InlineData("foobar", "Foo", " ", "123")]
-    [InlineData("foobar", "Foo", "Bar", null)]
-    [InlineData("foobar", "Foo", "Bar", "")]
-    [InlineData("foobar", "Foo", "Bar", " ")]
     public async Task AddProfile_InvalidArgs(string username, string firstName, string lastName,
         string profilePictureId)
     {
@@ -81,6 +79,18 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
 
         });
 
+    }
+
+    [Fact]
+
+    public async Task AddProfile_NoImage()
+    {
+        var profile = new Profile(Guid.NewGuid().ToString(), "Foo", "Bar");
+        await _store.AddProfile(profile);
+        var returnedProfile = await _store.GetProfile(profile.Username);
+        await _store.DeleteProfile(profile.Username);
+        Assert.Equal(profile, returnedProfile);
+        
     }
 
     [Fact]

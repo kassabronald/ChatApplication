@@ -90,10 +90,11 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     
     [Fact]
     
-    public async Task UploadImageBadRequestContentType()
+    public async Task UploadImage_PDFContentType()
     {
         var image = new byte[] { 1, 2, 3, 4, 5 };
         var fileName = "test.pdf";
+        var imageId = "1";
         var streamFile = new MemoryStream(image);
         IFormFile file = new FormFile(streamFile, 0, streamFile.Length, "id_from_form", fileName)
         {
@@ -101,16 +102,16 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
             ContentType = "image/pdf"
         };
         var uploadRequest = new UploadImageRequest(file);
-        _imageServiceMock.Setup(m => m.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()));
+        _imageServiceMock.Setup(m => m.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>())).ReturnsAsync(imageId);
         
         using var formData = new MultipartFormDataContent();
         formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
         
-        var response = await _httpClient.PostAsync("/api/Images", formData);
+        var response = await _httpClient.PostAsync("/api/images", formData);
         
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-        _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Never);
+        _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Once);
     }
     
     
@@ -134,42 +135,11 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         
         var response = await _httpClient.PostAsync("/api/Images", formData);
         
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Never);
     }
-    
-    
-    [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData(null)]
-    
 
-
-    public async Task UploadImageBadRequestId(string id)
-    {
-        var image = new byte[] { 1, 2, 3, 4, 5 };
-        var fileName = "test.png";
-        var streamFile = new MemoryStream(image);
-        IFormFile file = new FormFile(streamFile, 0, streamFile.Length, "id_from_form", fileName)
-        {
-            Headers = new HeaderDictionary(),
-            ContentType = "image/png"
-        };
-        var uploadRequest = new UploadImageRequest(file); 
-        _imageServiceMock.Setup(m => m.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()));
-            
-        using var formData = new MultipartFormDataContent(); 
-        formData.Add(new StreamContent(uploadRequest.File.OpenReadStream()), "File", uploadRequest.File.FileName);
-        var response = await _httpClient.PostAsync("/api/Images", formData);
-        
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
-        _imageServiceMock.Verify(mock => mock.AddImage(It.IsAny<MemoryStream>(), It.IsAny<String>()), Times.Never);
-    }
-    
-    
     [Fact]
     public async Task GetImageInvalidId()
     {

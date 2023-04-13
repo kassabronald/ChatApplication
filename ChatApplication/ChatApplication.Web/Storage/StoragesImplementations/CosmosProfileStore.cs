@@ -23,8 +23,7 @@ public class CosmosProfileStore : IProfileStore
         if (profile == null ||
             string.IsNullOrWhiteSpace(profile.Username) ||
             string.IsNullOrWhiteSpace(profile.FirstName) ||
-            string.IsNullOrWhiteSpace(profile.LastName) ||
-            string.IsNullOrWhiteSpace(profile.ProfilePictureId)
+            string.IsNullOrWhiteSpace(profile.LastName)
            )
         {
             throw new ArgumentException($"Invalid profile {profile}", nameof(profile));

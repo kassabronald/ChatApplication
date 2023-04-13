@@ -17,7 +17,11 @@ public class ProfileService : IProfileService
     
     public async Task AddProfile(Profile profile)
     {
-        await _imageStore.GetImage(profile.ProfilePictureId);
+        if(!string.IsNullOrEmpty(profile.ProfilePictureId))
+        {
+            await _imageStore.GetImage(profile.ProfilePictureId);
+        }
+
         await _profileStore.AddProfile(profile);
     }
 
