@@ -42,22 +42,10 @@ public class CosmosConversationStore : IConversationStore
     
     private async Task UpdateConversationUserLastMessageTime(UserConversation userConversation, long lastMessageTime)
     {
-        try
-        {
-            userConversation.LastMessageTime = lastMessageTime;
-            var entity = toEntity(userConversation);
-            await ConversationContainer.ReplaceItemAsync<ConversationEntity>(entity,entity.id,
-                new PartitionKey(entity.partitionKey));
-        }
-        catch (CosmosException e)
-        {
-            if (e.StatusCode == HttpStatusCode.NotFound)
-            {
-                throw new ConversationNotFoundException($"Could not resolve conversation with id : {userConversation.ConversationId}");
-            }
-
-            throw;
-        }
+        userConversation.LastMessageTime = lastMessageTime;
+        var entity = toEntity(userConversation);
+        await ConversationContainer.ReplaceItemAsync<ConversationEntity>(entity, entity.id,
+            new PartitionKey(entity.partitionKey));
     }
     
     public async Task UpdateConversationLastMessageTime(UserConversation conversation, long lastMessageTime)

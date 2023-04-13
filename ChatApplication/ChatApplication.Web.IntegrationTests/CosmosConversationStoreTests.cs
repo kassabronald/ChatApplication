@@ -111,6 +111,17 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
             await _store.UpdateConversationLastMessageTime(_conversationList[0], 1001);
         });
     }
+    
+    [Fact]
+    
+    public async Task UpdateConversationLastMessageTime_ConversationNotFound()
+    {
+        
+        await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
+        {
+            await _store.UpdateConversationLastMessageTime(_conversationList[0], 1001);
+        });
+    }
 
     [Fact]
 
