@@ -4,6 +4,6 @@ namespace ChatApplication.Web.Dtos;
 
 public record StartConversationRequest(
     [Required] List<string> Participants,
-    SendMessageRequest FirstSendMessage
+    SendMessageRequest FirstMessage
 );
     

@@ -138,7 +138,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         Assert.Equal("http://localhost/api/Conversations/Ronald", response.Headers.GetValues("Location").First());
         var responseString = await response.Content.ReadAsStringAsync();
         var answer = JsonConvert.DeserializeObject<StartConversationResponse>(responseString);
-        Assert.Equal("_Ronald_Farex", answer.ConversationId);
+        Assert.Equal("_Ronald_Farex", answer.Id);
         _conversationServiceMock.Verify(mock => mock.StartConversation(
             It.Is<StartConversationParameters>(r =>  
                 r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
