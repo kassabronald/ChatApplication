@@ -289,18 +289,23 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
          var nextContinuationToken = "frfr";
          var participants1 = new List<Profile>();
          var participants2 = new List<Profile>();
-         participants1.Add(new Profile("jad", "mike", "o hearn", "1234"));
-         participants1.Add(new Profile("karim", "karim", "haddad", "1234"));
-         participants2.Add(new Profile("jad", "mike", "o hearn", "1234"));
-         participants2.Add(new Profile("ronald", "ronald", "haddad", "1234"));
+         var jadProfile = new Profile("jad", "mike", "o hearn", "1234");
+         var karimProfile = new Profile("karim", "karim", "haddad", "1234");
+         var ronaldProfile = new Profile("ronald", "ronald", "haddad", "1234");
+         participants1.Add(jadProfile);
+         participants1.Add(karimProfile);
+         participants2.Add(jadProfile);
+         participants2.Add(ronaldProfile);
          var conversation1 = new UserConversation("_jad_ronald", participants1, 1000, "jad");
          var conversation2 = new UserConversation("_jad_karim", participants2, 1001, "jad");
          var conversations = new List<UserConversation> { conversation1, conversation2 };
          var conversationsMetadata = new List<ConversationMetaData>();
+         var curProfile = karimProfile;
             foreach (var conversation in conversations)
             {
-                var conversationMetaData = new ConversationMetaData(conversation.ConversationId, conversation.LastMessageTime, conversation.Participants);
+                var conversationMetaData = new ConversationMetaData(conversation.ConversationId, conversation.LastMessageTime, curProfile);
                 conversationsMetadata.Add(conversationMetaData);
+                curProfile = ronaldProfile;
             }
             var parameters = new GetConversationsParameters(username, 50, "", 0);
          _conversationServiceMock

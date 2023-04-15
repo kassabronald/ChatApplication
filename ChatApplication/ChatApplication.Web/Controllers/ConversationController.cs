@@ -152,7 +152,7 @@ public class ConversationsController : ControllerBase
         var nextUri =
             $"/api/Conversations/{username}?&limit={limit}&continuationToken={WebUtility.UrlEncode(getConversationsResult.ContinuationToken)}&lastSeenConversationTime={lastSeenConversationTime}";
 
-        var response = new GetConversationsResponse(getConversationsResult.ToMetadata(), nextUri);
+        var response = new GetConversationsResponse(getConversationsResult.ToMetadata(username), nextUri);
 
         return response;
     }
