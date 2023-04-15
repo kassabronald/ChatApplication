@@ -33,6 +33,7 @@ public class ConversationsController : ControllerBase
                    conversationId))
         {
             var time = DateTimeOffset.UtcNow;
+            Console.WriteLine("time of added message is "+time.ToUnixTimeSeconds());
             //TODO: After PR1, use custom serializer.
             var message = new Message(sendMessageRequest.Id, sendMessageRequest.SenderUsername,
                 sendMessageRequest.Text, time.ToUnixTimeSeconds(), conversationId);
@@ -76,6 +77,7 @@ public class ConversationsController : ControllerBase
         try
         {
             var createdTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            Console.WriteLine("Created time is: "+ createdTime);
             var stopWatch = new Stopwatch();
             StartConversationParameters startConversationParameters = new StartConversationParameters(
                 conversationRequest.FirstMessage.Id, conversationRequest.FirstMessage.SenderUsername,
