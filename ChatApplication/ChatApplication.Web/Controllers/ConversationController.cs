@@ -143,15 +143,20 @@ public class ConversationsController : ControllerBase
         string continuationToken = "", long lastSeenConversationTime = 0)
     {
         var stopWatch = new Stopwatch();
-        var decodedContinuationToken = WebUtility.UrlDecode(continuationToken);
+        //var decodedContinuationToken = WebUtility.UrlDecode(continuationToken);
         var getConversationsParameters =
-            new GetConversationsParameters(username, limit, decodedContinuationToken, lastSeenConversationTime);
+            new GetConversationsParameters(username, limit, continuationToken, lastSeenConversationTime);
 
         var getConversationsResult = await _conversationService.GetConversations(getConversationsParameters);
         _telemetryClient.TrackMetric("ConversationService.GetConversations.Time", stopWatch.ElapsedMilliseconds);
-        var nextUri =
-            $"/api/Conversations/{username}?&limit={limit}&continuationToken={WebUtility.UrlEncode(getConversationsResult.ContinuationToken)}&lastSeenConversationTime={lastSeenConversationTime}";
+        
+        var nextUri = "";
 
+        if (getConversationsResult.ContinuationToken != null)
+        {
+            nextUri = $"/api/Conversations?username={username}&limit={limit}&continuationToken={WebUtility.UrlEncode(getConversationsResult.ContinuationToken)}&lastSeenConversationTime={lastSeenConversationTime}";
+        }
+        
         var response = new GetConversationsResponse(getConversationsResult.ToMetadata(username), nextUri);
 
         return response;

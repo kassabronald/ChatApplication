@@ -135,7 +135,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
         var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal("http://localhost/api/Conversations/Ronald", response.Headers.GetValues("Location").First());
+        Assert.Equal("http://localhost/api/Conversations?username=Ronald", response.Headers.GetValues("Location").First());
         var responseString = await response.Content.ReadAsStringAsync();
         var answer = JsonConvert.DeserializeObject<StartConversationResponse>(responseString);
         Assert.Equal("_Ronald_Farex", answer.Id);
@@ -271,7 +271,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
          _conversationServiceMock
              .Setup(x => x.GetMessages(parameters))
              .ReturnsAsync(new GetMessagesResult(messages, nextContinuationToken));
-         var expectedNextUri = $"/api/Conversations/{conversationId}/messages?&limit=50&continuationToken={nextContinuationToken}&lastSeenMessageTime=0";
+         var expectedNextUri = $"/api/Conversations/{conversationId}/messages?limit=50&continuationToken={nextContinuationToken}&lastSeenMessageTime=0";
          var uri = $"/api/conversations/{conversationId}/messages/";
          var response = await _httpClient.GetAsync(uri);
          var responseString = await response.Content.ReadAsStringAsync();
@@ -287,32 +287,27 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
      {
          var username = "jad";
          var nextContinuationToken = "frfr";
-         var participants1 = new List<Profile>();
-         var participants2 = new List<Profile>();
-         var jadProfile = new Profile("jad", "mike", "o hearn", "1234");
+         var recipients1 = new List<Profile>();
+         var recipients2 = new List<Profile>();
          var karimProfile = new Profile("karim", "karim", "haddad", "1234");
          var ronaldProfile = new Profile("ronald", "ronald", "haddad", "1234");
-         participants1.Add(jadProfile);
-         participants1.Add(karimProfile);
-         participants2.Add(jadProfile);
-         participants2.Add(ronaldProfile);
-         var conversation1 = new UserConversation("_jad_ronald", participants1, 1000, "jad");
-         var conversation2 = new UserConversation("_jad_karim", participants2, 1001, "jad");
+         recipients1.Add(karimProfile);
+         recipients2.Add(ronaldProfile);
+         var conversation1 = new UserConversation("_jad_ronald", recipients1, 1000, "jad");
+         var conversation2 = new UserConversation("_jad_karim", recipients2, 1001, "jad");
          var conversations = new List<UserConversation> { conversation1, conversation2 };
          var conversationsMetadata = new List<ConversationMetaData>();
-         var curProfile = karimProfile;
             foreach (var conversation in conversations)
             {
-                var conversationMetaData = new ConversationMetaData(conversation.ConversationId, conversation.LastMessageTime, curProfile);
+                var conversationMetaData = new ConversationMetaData(conversation.ConversationId, conversation.LastMessageTime, conversation.Recipients[0]);
                 conversationsMetadata.Add(conversationMetaData);
-                curProfile = ronaldProfile;
             }
             var parameters = new GetConversationsParameters(username, 50, "", 0);
          _conversationServiceMock
              .Setup(x => x.GetConversations(parameters))
              .ReturnsAsync(new GetConversationsResult(conversations, nextContinuationToken));
-         var expectedNextUri = $"/api/Conversations/{username}?&limit=50&continuationToken={nextContinuationToken}&lastSeenConversationTime=0";
-         var uri = $"/api/conversations/{username}";
+         var expectedNextUri = $"/api/Conversations?username={username}&limit=50&continuationToken={nextContinuationToken}&lastSeenConversationTime=0";
+         var uri = $"/api/conversations?username={username}";
          var response = await _httpClient.GetAsync(uri);
          var responseString = await response.Content.ReadAsStringAsync();
          var getAllConversationsResponseReceived = JsonConvert.DeserializeObject<GetConversationsResponse>(responseString);

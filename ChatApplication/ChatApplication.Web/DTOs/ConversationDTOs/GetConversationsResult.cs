@@ -11,7 +11,7 @@ public record GetConversationsResult(
         foreach (var conversation in Conversations)
         {
             var recipient = new Profile("", "", "", "");
-            foreach (var participant in conversation.Participants.Where(participant => participant.Username != senderUsername))
+            foreach (var participant in conversation.Recipients.Where(participant => participant.Username != senderUsername))
             {
                 recipient = participant;
                 break;

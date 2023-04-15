@@ -48,12 +48,12 @@ public class CosmosConversationStore : IConversationStore
             new PartitionKey(entity.partitionKey));
     }
     
-    public async Task UpdateConversationLastMessageTime(UserConversation conversation, long lastMessageTime)
+    public async Task UpdateConversationLastMessageTime(List<string> participantsUsernames, string conversationId,  long lastMessageTime)
     {
-        foreach (var participant in conversation.Participants)
+        foreach (var username in participantsUsernames)
         {
             var participantConversation =
-                await GetUserConversation(participant.Username, conversation.ConversationId);
+                await GetUserConversation(username, conversationId);
             await UpdateConversationUserLastMessageTime(participantConversation,
                 lastMessageTime);
         }
@@ -122,7 +122,7 @@ public class CosmosConversationStore : IConversationStore
         {
             partitionKey = userConversation.Username,
             id = userConversation.ConversationId,
-            Participants = userConversation.Participants,
+            Participants = userConversation.Recipients,
             lastMessageTime = userConversation.LastMessageTime,
         };
     }
