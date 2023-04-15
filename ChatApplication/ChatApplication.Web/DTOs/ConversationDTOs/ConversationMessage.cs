@@ -4,6 +4,6 @@ namespace ChatApplication.Web.Dtos;
 
 public record ConversationMessage(
     [Required] string SenderUsername,
-    [Required] string MessageContent,
+    [Required] string Text,
     [Required] long UnixTime
 );
