@@ -21,13 +21,9 @@ public class ConversationService : IConversationService
     }
     public async Task AddMessage(Message message)
     {
-        var conversation = await _conversationStore.GetUserConversation(message.SenderUsername, message.ConversationId);
-        var participantsUsername = new List<string> {message.SenderUsername};
-        participantsUsername.AddRange(conversation.Recipients.Select(x => x.Username));
-        await _conversationStore.UpdateConversationLastMessageTime(participantsUsername, message.ConversationId, message.CreatedUnixTime);
+        var senderConversation = await _conversationStore.GetUserConversation(message.SenderUsername, message.ConversationId);
+        await _conversationStore.UpdateConversationLastMessageTime(senderConversation, message.CreatedUnixTime);
         await _messageStore.AddMessage(message);
-        
-        
     }
     
     public async Task<string> StartConversation(StartConversationParameters parameters)
