@@ -48,15 +48,16 @@ public class CosmosConversationStore : IConversationStore
             new PartitionKey(entity.partitionKey));
     }
     
-    public async Task UpdateConversationLastMessageTime(List<string> participantsUsernames, string conversationId,  long lastMessageTime)
+    public async Task UpdateConversationLastMessageTime(UserConversation senderConversation, long lastMessageTime)
     {
-        foreach (var username in participantsUsernames)
-        {
-            var participantConversation =
-                await GetUserConversation(username, conversationId);
-            await UpdateConversationUserLastMessageTime(participantConversation,
-                lastMessageTime);
-        }
+        var participantsUsernames = new List<string> {senderConversation.Username};
+        var conversationId = senderConversation.ConversationId;
+        participantsUsernames.AddRange(senderConversation.Recipients.Select(x => x.Username));
+        
+        var participantsConversation = await Task.WhenAll(participantsUsernames.Select(username =>
+            GetUserConversation(username, conversationId)));
+        
+        await Task.WhenAll(participantsConversation.Select(conversation=> UpdateConversationUserLastMessageTime(conversation, lastMessageTime)));
     }
 
     public async Task CreateUserConversation(UserConversation userConversation)

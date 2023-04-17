@@ -28,7 +28,7 @@ public class ConversationServiceTests
         var senderConversation = new UserConversation("_jad_rizz", new List<Profile>{recipientProfile}, 1000, "jad");
         _conversationStoreMock.Setup(m => m.GetUserConversation("jad", "_jad_rizz")).ReturnsAsync(senderConversation);
         await _conversationService.AddMessage(message);
-        _conversationStoreMock.Verify(mock => mock.UpdateConversationLastMessageTime(participantsUsernames,"_jad_rizz",  message.CreatedUnixTime), Times.Once);
+        _conversationStoreMock.Verify(mock => mock.UpdateConversationLastMessageTime(senderConversation, message.CreatedUnixTime), Times.Once);
         _messageStoreMock.Verify(mock => mock.AddMessage(message), Times.Once);
     }
 
@@ -38,13 +38,11 @@ public class ConversationServiceTests
     public async Task AddMessage_ConversationNotFound()
     {
         var message = new Message("123", "jad", "bro got W rizz", 1000,"_jad_rizz");
-        var participantsUsernames = new List<string> { "jad", "rizz" };
         _conversationStoreMock.Setup(m => m.GetUserConversation("jad", "_jad_rizz")).ThrowsAsync(new ConversationNotFoundException("Conversation not found"));
         await Assert.ThrowsAsync<ConversationNotFoundException> (async()  =>
         {
             await _conversationService.AddMessage(message);
         });
-        _conversationStoreMock.Verify(mock => mock.UpdateConversationLastMessageTime(participantsUsernames,"_jad_rizz",  message.CreatedUnixTime), Times.Never);
         _messageStoreMock.Verify(mock => mock.AddMessage(message), Times.Never);
     }
 

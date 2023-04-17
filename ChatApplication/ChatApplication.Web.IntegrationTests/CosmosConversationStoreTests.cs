@@ -18,9 +18,6 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     private readonly UserConversation _conversation1;
     private readonly UserConversation _conversation2;
     private readonly UserConversation _conversation3;
-    private readonly List<string> participantsUsernames1;
-    private readonly List<string> participantsUsernames2;
-    private readonly List<string> participantsUsernames3;
     private readonly List<UserConversation> _conversationList;
 
     public Task InitializeAsync()
@@ -41,9 +38,6 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
         List<Profile> recipients1 = new() { _profile2 };
         List<Profile> recipients2 = new() { _profile3 };
         List<Profile> recipients3 = new() {  _profile4 };
-        participantsUsernames1 = new List<string> { _profile1.Username, _profile2.Username };
-        participantsUsernames2 = new List<string> { _profile1.Username, _profile3.Username };
-        participantsUsernames3 = new List<string> { _profile1.Username, _profile4.Username };
         _conversation1 = new UserConversation(Guid.NewGuid().ToString(), recipients1, 1002, _profile1.Username);
         _conversation2 = new UserConversation(Guid.NewGuid().ToString(), recipients2, 1001, _profile1.Username);
         _conversation3 = new UserConversation(Guid.NewGuid().ToString(), recipients3, 1000, _profile1.Username);
@@ -101,7 +95,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
         var senderConversation = _conversationList[0];
         await _store.CreateUserConversation(senderConversation);
         await _store.CreateUserConversation(receiverConversation);
-        await _store.UpdateConversationLastMessageTime(participantsUsernames1, _conversationList[0].ConversationId, 1005);
+        await _store.UpdateConversationLastMessageTime(senderConversation, 1005);
         var senderConversationAfterUpdate = await _store.GetUserConversation(senderConversation.Username,senderConversation.ConversationId);
         var receiverConversationAfterUpdate = await _store.GetUserConversation(receiverConversation.Username, receiverConversation.ConversationId);
         Assert.Equal(1005, senderConversationAfterUpdate.LastMessageTime);
@@ -115,7 +109,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
         
         await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
         {
-            await _store.UpdateConversationLastMessageTime(participantsUsernames1, _conversationList[0].ConversationId, 1005);
+            await _store.UpdateConversationLastMessageTime(_conversationList[0], 1005);
         });
     }
 
