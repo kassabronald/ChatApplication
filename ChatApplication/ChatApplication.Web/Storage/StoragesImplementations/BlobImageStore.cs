@@ -37,7 +37,7 @@ public class BlobImageStore : IImageStore
 
         var blobClient = _blobContainerClient.GetBlobClient(id);
         if (!await blobClient.ExistsAsync())
-            throw new ImageNotFoundException("No image found for this id");
+            throw new ImageNotFoundException($"No image found for {id}");
         BlobProperties properties = await blobClient.GetPropertiesAsync();
         var response = await blobClient.DownloadAsync();
 
