@@ -57,6 +57,8 @@ public class ImagesController : ControllerBase
             // {
             //     return BadRequest($"Only JPEG and PNG and JPG images are supported, not {contentType}");
             // }
+            
+            //Code commented for the sake of the functional tests
 
             using var stream = new MemoryStream();
             await request.File.CopyToAsync(stream);

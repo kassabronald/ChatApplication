@@ -105,5 +105,6 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
                 new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
+    
 
 }
