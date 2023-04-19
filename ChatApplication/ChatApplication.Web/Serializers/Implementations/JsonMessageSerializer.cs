@@ -1,4 +1,5 @@
 using ChatApplication.Web.Dtos;
+using Newtonsoft.Json;
 
 namespace ChatApplication.Serializers.Implementations;
 
@@ -6,11 +7,11 @@ public class JsonMessageSerializer : IMessageSerializer
 {
     public string SerializeMessage(Message message)
     {
-        throw new NotImplementedException();
+        return JsonConvert.SerializeObject(message);
     }
 
     public Message DeserializeMessage(string serializedMessage)
     {
-        throw new NotImplementedException();
+        return JsonConvert.DeserializeObject<Message> (serializedMessage);
     }
 }

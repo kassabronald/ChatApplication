@@ -1,4 +1,5 @@
 using ChatApplication.Web.Dtos;
+using Newtonsoft.Json;
 
 namespace ChatApplication.Serializers.Implementations;
 
@@ -6,11 +7,11 @@ public class JsonStartConversationParametersSerializer : IStartConversationParam
 {
     public string SerializeStartConversationParametersSerializer(StartConversationParameters parameters)
     {
-        throw new NotImplementedException();
+        return JsonConvert.SerializeObject(parameters);
     }
 
     public StartConversationParameters DeserializeStartConversationParameters(string serializedStartConversationParameters)
     {
-        throw new NotImplementedException();
+        return JsonConvert.DeserializeObject<StartConversationParameters>(serializedStartConversationParameters);
     }
 }
