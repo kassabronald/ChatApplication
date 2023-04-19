@@ -12,9 +12,9 @@ public class AddMessageServiceBusPublisher : IAddMessageServiceBusPublisher
     private readonly ServiceBusSender _sender;
     private readonly IMessageSerializer _messageSerializer;
     
-    public AddMessageServiceBusPublisher(ServiceBusClient client, IMessageSerializer messageSerializer, IOptions<ServiceBusSettings> options)
+    public AddMessageServiceBusPublisher(ServiceBusClient serviceBusClient, IMessageSerializer messageSerializer, IOptions<ServiceBusSettings> options)
     {
-        _sender = client.CreateSender(options.Value.AddMessageQueueName);
+        _sender = serviceBusClient.CreateSender(options.Value.AddMessageQueueName);
         _messageSerializer = messageSerializer;
     }
     
