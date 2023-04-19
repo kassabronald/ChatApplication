@@ -5,7 +5,6 @@ using ChatApplication.Configuration;
 using ChatApplication.Serializers.Implementations;
 using Microsoft.Extensions.Options;
 
-
 namespace ChatApplication.ServiceBus;
 
 public class AddMessageServiceBusPublisher : IAddMessageServiceBusPublisher
@@ -21,7 +20,6 @@ public class AddMessageServiceBusPublisher : IAddMessageServiceBusPublisher
     
     public Task Send(Message message)
     {
-        
         var serializedMessage = _messageSerializer.SerializeMessage(message);
         return _sender.SendMessageAsync(new ServiceBusMessage(serializedMessage));
     }
