@@ -1,5 +1,6 @@
 using ChatApplication.Exceptions;
 using ChatApplication.Exceptions.ConversationParticipantsExceptions;
+using ChatApplication.ServiceBus.Interfaces;
 using ChatApplication.Storage;
 using ChatApplication.Utils;
 using ChatApplication.Web.Dtos;
@@ -13,12 +14,20 @@ public class ConversationService : IConversationService
     private readonly IMessageStore _messageStore;
     private readonly IConversationStore _conversationStore;
     private readonly IProfileStore _profileStore;
-    public ConversationService(IMessageStore messageStore, IConversationStore conversationStore, IProfileStore profileStore)
+    private readonly IAddMessageServiceBusPublisher _addMessageServiceBusPublisher;
+    public ConversationService(IMessageStore messageStore, IConversationStore conversationStore, IProfileStore profileStore, IAddMessageServiceBusPublisher addMessageServiceBusPublisher)
     {
         _messageStore = messageStore;
         _conversationStore = conversationStore;
         _profileStore = profileStore;
+        _addMessageServiceBusPublisher = addMessageServiceBusPublisher;
     }
+    
+    public async Task EnqueueAddMessage(Message message)
+    {
+        await _addMessageServiceBusPublisher.Send(message);
+    }
+    
     public async Task AddMessage(Message message)
     {
         var senderConversation = await _conversationStore.GetUserConversation(message.SenderUsername, message.ConversationId);

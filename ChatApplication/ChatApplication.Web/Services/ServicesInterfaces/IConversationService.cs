@@ -11,5 +11,7 @@ public interface IConversationService
     public Task<string> StartConversation(StartConversationParameters parameters);
     
     public Task<GetConversationsResult> GetConversations(GetConversationsParameters parameters);
+    
+    public Task EnqueueAddMessage(Message message);
 
 }

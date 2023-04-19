@@ -1,5 +1,9 @@
+using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using ChatApplication.Configuration;
+using ChatApplication.Serializers.Implementations;
+using ChatApplication.ServiceBus;
+using ChatApplication.ServiceBus.Interfaces;
 using ChatApplication.Services;
 using ChatApplication.Storage;
 using Microsoft.Azure.Cosmos;
@@ -39,6 +43,21 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton<IImageService, ImageService>();
 builder.Services.AddSingleton<IProfileService, ProfileService>();
 builder.Services.AddSingleton<IConversationService, ConversationService>();
+
+
+builder.Services.AddSingleton(sp =>
+{
+    var serviceBusOptions = sp.GetRequiredService<IOptions<ServiceBusSettings>>();
+    return new ServiceBusClient(serviceBusOptions.Value.ConnectionString);
+});
+
+builder.Services.AddSingleton<IAddMessageServiceBusPublisher, AddMessageServiceBusPublisher>();
+builder.Services.AddSingleton<IStartConversationServiceBusPublisher, StartConversationServiceBusPublisher>();
+builder.Services.AddSingleton<IMessageSerializer, JsonMessageSerializer>();    
+builder.Services.AddSingleton<IStartConversationParametersSerializer, JsonStartConversationParametersSerializer>();    
+builder.Services.AddHostedService<AddMessageHostedService>();
+builder.Services.AddHostedService<StartConversationHostedService>();
+
 
 builder.Services.AddApplicationInsightsTelemetry();
 var app = builder.Build();

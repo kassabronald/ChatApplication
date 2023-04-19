@@ -1,5 +1,6 @@
 using ChatApplication.Exceptions;
 using ChatApplication.Exceptions.ConversationParticipantsExceptions;
+using ChatApplication.ServiceBus.Interfaces;
 using ChatApplication.Services;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
@@ -12,10 +13,11 @@ public class ConversationServiceTests
     private readonly Mock<IMessageStore> _messageStoreMock = new();
     private readonly Mock<IConversationStore> _conversationStoreMock = new();
     private readonly Mock<IProfileStore> _profileStoreMock = new();
+    private readonly Mock<IAddMessageServiceBusPublisher> _addMessageServiceBusPublisherMock = new();
     private readonly ConversationService _conversationService;
     public ConversationServiceTests()
     {
-        _conversationService = new ConversationService(_messageStoreMock.Object, _conversationStoreMock.Object, _profileStoreMock.Object);
+        _conversationService = new ConversationService(_messageStoreMock.Object, _conversationStoreMock.Object, _profileStoreMock.Object, _addMessageServiceBusPublisherMock.Object);
     }
 
     [Fact]

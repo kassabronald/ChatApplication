@@ -5,13 +5,13 @@ using Microsoft.Extensions.Options;
 
 namespace ChatApplication.Services;
 
-public class StartConversationServiceBusPublisher : IHostedService
+public class StartConversationHostedService : IHostedService
 {
     private readonly IConversationService _conversationService;
     private readonly IStartConversationParametersSerializer _startConversationSerializer;
     private readonly ServiceBusProcessor _startConversationServiceBusProcessor;
     
-    public StartConversationServiceBusPublisher(IConversationService conversationService, IStartConversationParametersSerializer startConversationSerializer, ServiceBusClient serviceBusClient, IOptions<ServiceBusSettings> options)
+    public StartConversationHostedService(IConversationService conversationService, IStartConversationParametersSerializer startConversationSerializer, ServiceBusClient serviceBusClient, IOptions<ServiceBusSettings> options)
     {
         _conversationService = conversationService;
         _startConversationSerializer = startConversationSerializer;

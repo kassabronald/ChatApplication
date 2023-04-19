@@ -41,7 +41,8 @@ public class ConversationsController : ControllerBase
             try
             {
                 var stopWatch = new Stopwatch();
-                await _conversationService.AddMessage(message);
+                //await _conversationService.AddMessage(message);
+                await _conversationService.EnqueueAddMessage(message);
                 _telemetryClient.TrackMetric("ConversationService.AddMessage.Time", stopWatch.ElapsedMilliseconds);
                 _telemetryClient.TrackEvent("MessageAdded");
                 _logger.LogInformation("Message added");
