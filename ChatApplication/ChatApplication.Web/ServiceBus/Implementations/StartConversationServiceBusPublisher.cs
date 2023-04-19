@@ -11,17 +11,17 @@ public class StartConversationServiceBusPublisher
     private readonly ServiceBusSender _sender;
     private readonly IStartConversationParametersSerializer _serializer;
     
-    public StartConversationServiceBusPublisher(ServiceBusSender sender, IStartConversationParametersSerializer serializer,
+    public StartConversationServiceBusPublisher(ServiceBusClient serviceBusClient, IStartConversationParametersSerializer profileSerializer,
         IOptions<ServiceBusSettings> options
     )
     {
-        _sender = sender;
-        _serializer = serializer;
+        _sender = serviceBusClient.CreateSender(options.Value.StartConversationQueueName);
+        _serializer = profileSerializer;
     }
     
-    public async Task Send(StartConversationParameters parameters)
+    public async Task Send(StartConversationParameters startConversationParameters)
     {
-        var serializedParameters = _serializer.SerializeStartConversationParametersSerializer(parameters);
+        var serializedParameters = _serializer.SerializeStartConversationParametersSerializer(startConversationParameters);
         await _sender.SendMessageAsync(new ServiceBusMessage(serializedParameters));
     }
     
