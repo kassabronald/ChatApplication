@@ -23,6 +23,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<CosmosSettings>(builder.Configuration.GetSection("Cosmos"));
 builder.Services.Configure<BlobSettings>(builder.Configuration.GetSection("BlobStorage"));
+builder.Services.Configure<ServiceBusSettings>(builder.Configuration.GetSection("ServiceBus"));
+
 builder.Services.AddSingleton<IImageStore, BlobImageStore>();
 
 builder.Services.AddSingleton(sp =>

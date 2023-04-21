@@ -56,6 +56,28 @@ public class CosmosMessageStore : IMessageStore
         }
     }
 
+    public async Task<Message> GetMessage(string conversationId, string messageId)
+    {
+        try
+        {
+            var message = await MessageContainer.ReadItemAsync<MessageEntity>(messageId,
+                new PartitionKey(conversationId),
+            new ItemRequestOptions
+            {
+                ConsistencyLevel = ConsistencyLevel.Session
+            });
+            return toMessage(message.Resource);
+        }
+        catch(CosmosException e)
+        {
+            if (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new MessageNotFoundException($"A message with id {messageId} does not exist");
+            }
+            throw;
+        }
+    }
+
     public async Task<GetMessagesResult> GetMessages(GetMessagesParameters parameters)
     {
         var options = new QueryRequestOptions

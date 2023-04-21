@@ -15,41 +15,85 @@ public class ConversationService : IConversationService
     private readonly IConversationStore _conversationStore;
     private readonly IProfileStore _profileStore;
     private readonly IAddMessageServiceBusPublisher _addMessageServiceBusPublisher;
-    public ConversationService(IMessageStore messageStore, IConversationStore conversationStore, IProfileStore profileStore, IAddMessageServiceBusPublisher addMessageServiceBusPublisher)
+    private readonly IStartConversationServiceBusPublisher _startConversationServiceBusPublisher;
+    public ConversationService(IMessageStore messageStore, IConversationStore conversationStore, IProfileStore profileStore, 
+        IAddMessageServiceBusPublisher addMessageServiceBusPublisher, IStartConversationServiceBusPublisher startConversationServiceBusPublisher)
     {
         _messageStore = messageStore;
         _conversationStore = conversationStore;
         _profileStore = profileStore;
         _addMessageServiceBusPublisher = addMessageServiceBusPublisher;
+        _startConversationServiceBusPublisher = startConversationServiceBusPublisher;
     }
     
     public async Task EnqueueAddMessage(Message message)
     {
-        await _addMessageServiceBusPublisher.Send(message);
+        await _conversationStore.GetUserConversation(message.SenderUsername, message.ConversationId);
+
+        try
+        {
+            await _messageStore.GetMessage(message.ConversationId, message.MessageId);
+        }
+        catch (MessageNotFoundException)
+        {
+            await _addMessageServiceBusPublisher.Send(message);
+            return;
+        }
+
+        throw new MessageAlreadyExistsException($"Message with id {message.MessageId} already exists");
     }
-    
+
+    public async Task<string> EnqueueStartConversation(StartConversationParameters parameters)
+    {
+        
+        checkIfValidParticipants(parameters.participants, parameters.senderUsername);
+        await Task.WhenAll(parameters.participants.Select(participant => _profileStore.GetProfile(participant)));
+        var id = generateConversationId(parameters.participants);
+        try
+        {
+            await _messageStore.GetMessage(id, parameters.messageId);
+        }
+        catch (MessageNotFoundException)
+        {
+            await _startConversationServiceBusPublisher.Send(parameters);
+            return id;
+        }
+
+        throw new MessageAlreadyExistsException($"Message with id {parameters.messageId} already exists");
+
+
+    }
+
     public async Task AddMessage(Message message)
     {
         var senderConversation = await _conversationStore.GetUserConversation(message.SenderUsername, message.ConversationId);
         await _conversationStore.UpdateConversationLastMessageTime(senderConversation, message.CreatedUnixTime);
-        await _messageStore.AddMessage(message);
+        try
+        {
+            await _messageStore.AddMessage(message);
+        }
+        catch (MessageAlreadyExistsException)
+        {
+            return;
+        }
+        
     }
     
     public async Task<string> StartConversation(StartConversationParameters parameters)
     {
         
-        checkIfValidParticipants(parameters.participants, parameters.senderUsername);
-        var sortedParticipants = new List<string>(parameters.participants);
-        sortedParticipants.Sort();
-        var id = sortedParticipants.Aggregate("", (current, participantUsername) => current + ("_" + participantUsername));
+        //checkIfValidParticipants(parameters.participants, parameters.senderUsername);
+        // var sortedParticipants = new List<string>(parameters.participants);
+        // sortedParticipants.Sort();
+        var id = generateConversationId(parameters.participants);
         
         var message = new Message(parameters.messageId, parameters.senderUsername, parameters.messageContent, parameters.createdTime, id);
         
         await _messageStore.AddMessage(message);
 
         var participantsProfile =
-            await Task.WhenAll(sortedParticipants.Select(participant => _profileStore.GetProfile(participant)));
-        var userConversations = sortedParticipants.Select(participantUsername =>
+            await Task.WhenAll(parameters.participants.Select(participant => _profileStore.GetProfile(participant)));
+        var userConversations = parameters.participants.Select(participantUsername =>
         {
             var recipients = new List<Profile>(participantsProfile);
             recipients.Remove(Array.Find(participantsProfile, x => x.Username == participantUsername));
@@ -92,6 +136,12 @@ public class ConversationService : IConversationService
         {
             throw new DuplicateParticipantException($"Participant(s) {string.Join(", ", duplicates)} is/are duplicated");
         }
+    }
+    
+    private string generateConversationId(List<string> participants)
+    {
+        participants.Sort();
+        return participants.Aggregate("", (current, participant) => current + ("_" + participant));
     }
 
 }

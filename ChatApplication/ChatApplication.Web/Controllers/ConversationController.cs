@@ -58,9 +58,9 @@ public class ConversationsController : ControllerBase
             {
                 return Conflict($"A message with id : {message.MessageId} already exists ");
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return BadRequest("Bad request");
+                return BadRequest(e.Message);
             }
         }
     }
@@ -84,7 +84,7 @@ public class ConversationsController : ControllerBase
                 conversationRequest.FirstMessage.Id, conversationRequest.FirstMessage.SenderUsername,
                 conversationRequest.FirstMessage.Text, createdTime, conversationRequest.Participants);
 
-            var id = await _conversationService.StartConversation(startConversationParameters);
+            var id = await _conversationService.EnqueueStartConversation(startConversationParameters);
 
             _telemetryClient.TrackMetric("ConversationService.StartConversation.Time", stopWatch.ElapsedMilliseconds);
             _telemetryClient.TrackEvent("ConversationStarted");
@@ -105,10 +105,6 @@ public class ConversationsController : ControllerBase
         catch (ProfileNotFoundException e)
         {
             return BadRequest(e.Message);
-        }
-        catch (ConversationAlreadyExistsException e)
-        {
-            return Conflict(e.Message);
         }
         catch (MessageAlreadyExistsException e)
         {

@@ -16,4 +16,6 @@ public interface IMessageStore
     Task<GetMessagesResult> GetMessages(GetMessagesParameters parameters);
 
     Task DeleteMessage(Message message);
+    
+    Task<Message> GetMessage(string conversationId, string messageId);
 }

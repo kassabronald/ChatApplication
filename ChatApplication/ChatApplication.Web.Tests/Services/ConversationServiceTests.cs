@@ -14,10 +14,12 @@ public class ConversationServiceTests
     private readonly Mock<IConversationStore> _conversationStoreMock = new();
     private readonly Mock<IProfileStore> _profileStoreMock = new();
     private readonly Mock<IAddMessageServiceBusPublisher> _addMessageServiceBusPublisherMock = new();
+    private readonly Mock<IStartConversationServiceBusPublisher> _startConversationServiceBusPublisherMock = new();
     private readonly ConversationService _conversationService;
     public ConversationServiceTests()
     {
-        _conversationService = new ConversationService(_messageStoreMock.Object, _conversationStoreMock.Object, _profileStoreMock.Object, _addMessageServiceBusPublisherMock.Object);
+        _conversationService = new ConversationService(_messageStoreMock.Object, _conversationStoreMock.Object, 
+            _profileStoreMock.Object, _addMessageServiceBusPublisherMock.Object, _startConversationServiceBusPublisherMock.Object);
     }
 
     [Fact]

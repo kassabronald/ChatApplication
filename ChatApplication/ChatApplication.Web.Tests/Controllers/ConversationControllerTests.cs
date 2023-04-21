@@ -69,7 +69,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
     {
         var messageRequest = new SendMessageRequest("1234", "ronald", "hey bro wanna hit the gym");
         string conversationId = "456";
-        _conversationServiceMock.Setup(x => x.AddMessage(
+        _conversationServiceMock.Setup(x => x.EnqueueAddMessage(
             It.Is<Message>(m =>
                 m.MessageId == messageRequest.Id &&
                 m.SenderUsername == messageRequest.SenderUsername &&
@@ -89,7 +89,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var messageRequest = new SendMessageRequest("1234", "ronald", "hey bro wanna hit the gym");
         string conversationId = "456";
         var message = new Message(messageRequest.Id, messageRequest.SenderUsername, messageRequest.Text,1000, conversationId);
-        _conversationServiceMock.Setup(x => x.AddMessage(
+        _conversationServiceMock.Setup(x => x.EnqueueAddMessage(
             It.Is<Message>(m =>
                 m.MessageId == messageRequest.Id &&
                 m.SenderUsername == messageRequest.SenderUsername &&
@@ -106,7 +106,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
     {
         var messageRequest = new SendMessageRequest("1234", "ronald", "hey bro wanna hit the gym");
         string conversationId = "456";
-        _conversationServiceMock.Setup(x => x.AddMessage(
+        _conversationServiceMock.Setup(x => x.EnqueueAddMessage(
             It.Is<Message>(m =>
                 m.MessageId == messageRequest.Id &&
                 m.SenderUsername == messageRequest.SenderUsername &&
