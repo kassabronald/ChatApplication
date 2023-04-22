@@ -60,10 +60,10 @@ public class ConversationServiceTests
         var conversation = new UserConversation("1234", recipients, 100000,"jad");
         _conversationStoreMock.Setup(m => m.GetUserConversation("jad",message.ConversationId)).ReturnsAsync(conversation);
         _messageStoreMock.Setup(m => m.AddMessage(message)).ThrowsAsync(new MessageAlreadyExistsException("Message already exists"));
-        await Assert.ThrowsAsync<MessageAlreadyExistsException>(async () =>
-        {
-            await _conversationService.AddMessage(message);
-        });
+        var exception = await Record.ExceptionAsync(async () =>
+            await _conversationService.AddMessage(message));
+        Assert.Null(exception);
+        
         _messageStoreMock.Verify(mock => mock.AddMessage(message), Times.Once);
     }
 
@@ -149,9 +149,12 @@ public class ConversationServiceTests
         var messageContent = "south park vs family guy";
         var createdTime = 10000;
         var participants = new List<string> {"Ronald", "Stewie"};
+        _profileStoreMock.Setup(x => x.GetProfile("Ronald")).ReturnsAsync(senderProfile);
+        _profileStoreMock.Setup(x => x.GetProfile("Stewie")).ReturnsAsync(new Profile("Stewie", "Stewie", "Griffin", "12345"));
         var startConversationParameters = new StartConversationParameters(messageId, senderProfile.Username, messageContent, createdTime, participants);
-        await Assert.ThrowsAsync<SenderNotFoundException>(async()=>
+        var exception = await Record.ExceptionAsync(async()=>
                 await _conversationService.StartConversation(startConversationParameters));
+        Assert.Null(exception);
     }
 
     [Fact]
@@ -162,10 +165,13 @@ public class ConversationServiceTests
         var messageId = "123";
         var messageContent = "south park vs family guy";
         var createdTime = 10000;
-        var participants = new List<string> {"Ronald", "Stewie", "Ronald"};
+        var participants = new List<string> {"Ronald", "Stewie"};
+        _profileStoreMock.Setup(x => x.GetProfile("Ronald")).ReturnsAsync(senderProfile);
+        _profileStoreMock.Setup(x => x.GetProfile("Stewie")).ReturnsAsync(new Profile("Stewie", "Stewie", "Griffin", "12345"));
         var startConversationParameters = new StartConversationParameters(messageId, senderProfile.Username, messageContent, createdTime, participants);
-        await Assert.ThrowsAsync<DuplicateParticipantException>(async()=>
-            await _conversationService.StartConversation(startConversationParameters)); 
+        var exception = await Record.ExceptionAsync(async () =>
+            await _conversationService.StartConversation(startConversationParameters));
+        Assert.Null(exception);
     }
 
     [Fact]
@@ -286,7 +292,6 @@ public class ConversationServiceTests
     }
 
     [Fact]
-
     public async Task GetAllConversations_NoContinuationTokenReturned()
     {
         var username = "jad";
@@ -308,4 +313,112 @@ public class ConversationServiceTests
         var actualResult = await _conversationService.GetConversations(parameters);
         Assert.Equivalent(expectedResult, actualResult);
     }
+    
+    [Fact]
+    public async Task EnqueueMessage_Success()
+    {
+        var conversationId = "_jad_karim";
+        var message = new Message("123", "jad", "hello", 1000, conversationId);
+        _messageStoreMock.Setup(x => x.GetMessage(message.ConversationId, message.MessageId))
+            .ThrowsAsync(new MessageNotFoundException("message not found"));
+        var exception = await Record.ExceptionAsync(
+            async () => await _conversationService.EnqueueAddMessage(message));
+        Assert.Null(exception);
+        _addMessageServiceBusPublisherMock.Verify(x => x.Send(message), Times.Once);
+    }
+    
+    [Fact]
+    public async Task EnqueueMessage_MessageAlreadyExists()
+    {
+        var conversationId = "_jad_karim";
+        var message = new Message("123", "jad", "hello", 1000, conversationId);
+        _messageStoreMock.Setup(x => x.GetMessage(message.ConversationId, message.MessageId))
+            .ReturnsAsync(message);
+        await Assert.ThrowsAsync<MessageAlreadyExistsException> (async () =>
+        {
+            await _conversationService.EnqueueAddMessage(message);
+        });
+        _addMessageServiceBusPublisherMock.Verify(x => x.Send(message), Times.Never);
+    }
+    
+    [Fact]
+    public async Task EnqueueStartConversation_Success()
+    {
+        var conversationId = "_jad_karim";
+        var participantsList = new List<string> { "jad", "karim" };
+        var message = new Message("123", "jad", "hello", 1000, conversationId);
+        _messageStoreMock.Setup(x => x.GetMessage(message.ConversationId, message.MessageId))
+            .ThrowsAsync(new MessageNotFoundException("message not found"));
+        var startConversationParameters = new StartConversationParameters(message.MessageId, "jad", "hello", 1000, participantsList);
+        var exception = await Record.ExceptionAsync(
+            async () => await _conversationService.EnqueueStartConversation(startConversationParameters));
+        Assert.Null(exception);
+        _startConversationServiceBusPublisherMock.Verify(x => x.Send(startConversationParameters), Times.Once);
+    }
+    
+    [Fact]
+    public async Task EnqueueStartConversation_MessageAlreadyExists()
+    {
+        var conversationId = "_jad_karim";
+        var participantsList = new List<string> { "jad", "karim" };
+        var message = new Message("123", "jad", "hello", 1000, conversationId);
+        _messageStoreMock.Setup(x => x.GetMessage(message.ConversationId, message.MessageId))
+            .ReturnsAsync(message);
+        var startConversationParameters = new StartConversationParameters(message.MessageId, "jad", "hello", 1000, participantsList);
+        await Assert.ThrowsAsync<MessageAlreadyExistsException> (async () =>
+        {
+            await _conversationService.EnqueueStartConversation(startConversationParameters);
+        });
+        _startConversationServiceBusPublisherMock.Verify(x => x.Send(startConversationParameters), Times.Never);
+    }
+
+    [Fact]
+    public async Task EnqueueStartConversation_ReceiverNotFound()
+    {
+        var conversationId = "_jad_karim";
+        var participantsList = new List<string> { "jad", "karim" };
+        var message = new Message("123", "jad", "hello", 1000, conversationId);
+        var startConversationParameters = new StartConversationParameters(message.MessageId, "jad", "hello", 1000, participantsList);
+        _profileStoreMock.Setup(x => x.GetProfile("jad"))
+            .ReturnsAsync(new Profile("jad", "mike", "o hearn", "1234"));
+        _profileStoreMock.Setup(x => x.GetProfile("karim"))
+            .ThrowsAsync(new ProfileNotFoundException("profile not found"));
+        await Assert.ThrowsAsync<ProfileNotFoundException> (async () =>
+        {
+            await _conversationService.EnqueueStartConversation(startConversationParameters);
+        });
+        _startConversationServiceBusPublisherMock.Verify(x => x.Send(startConversationParameters), Times.Never);
+    }
+
+    [Fact]
+    public async Task EnqueueStartConversation_SenderNotFound()
+    {
+        var conversationId = "_jad_karim";
+        var participantsList = new List<string> { "jad", "karim" };
+        var message = new Message("123", "jad", "hello", 1000, conversationId);
+        var startConversationParameters = new StartConversationParameters(message.MessageId, "jad", "hello", 1000, participantsList);
+        _profileStoreMock.Setup(x => x.GetProfile("jad"))
+            .ThrowsAsync(new ProfileNotFoundException("profile not found"));
+        await Assert.ThrowsAsync<ProfileNotFoundException> (async () =>
+        {
+            await _conversationService.EnqueueStartConversation(startConversationParameters);
+        });
+        _startConversationServiceBusPublisherMock.Verify(x => x.Send(startConversationParameters), Times.Never);
+    }
+    
+    [Fact]
+    public async Task EnqueueStartConversation_DuplicateParticipants()
+    {
+        var conversationId = "_jad_karim";
+        var participantsList = new List<string> { "jad", "jad" };
+        var message = new Message("123", "jad", "hello", 1000, conversationId);
+        var startConversationParameters = new StartConversationParameters(message.MessageId, "jad", "hello", 1000, participantsList);
+        await Assert.ThrowsAsync<DuplicateParticipantException> (async () =>
+        {
+            await _conversationService.EnqueueStartConversation(startConversationParameters);
+        });
+        _startConversationServiceBusPublisherMock.Verify(x => x.Send(startConversationParameters), Times.Never);
+    }
+    
+    
 }
