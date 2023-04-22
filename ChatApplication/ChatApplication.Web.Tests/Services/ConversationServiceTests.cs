@@ -394,12 +394,10 @@ public class ConversationServiceTests
     public async Task EnqueueStartConversation_SenderNotFound()
     {
         var conversationId = "_jad_karim";
-        var participantsList = new List<string> { "jad", "karim" };
+        var participantsList = new List<string> { "toufic", "karim" };
         var message = new Message("123", "jad", "hello", 1000, conversationId);
         var startConversationParameters = new StartConversationParameters(message.MessageId, "jad", "hello", 1000, participantsList);
-        _profileStoreMock.Setup(x => x.GetProfile("jad"))
-            .ThrowsAsync(new ProfileNotFoundException("profile not found"));
-        await Assert.ThrowsAsync<ProfileNotFoundException> (async () =>
+        await Assert.ThrowsAsync<SenderNotFoundException> (async () =>
         {
             await _conversationService.EnqueueStartConversation(startConversationParameters);
         });
