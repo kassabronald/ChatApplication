@@ -159,60 +159,68 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
-
     public async Task StartConversation_SenderUsernameNotInParticipants()
     {
         var messageRequest = new SendMessageRequest("12345", "Ronald", "Haha Bro farex");
-        var participants = new List<string> {"Farex", "Messi"};
+        var participants = new List<string> { "Farex", "Messi" };
         var conversationRequest = new StartConversationRequest(participants, messageRequest);
         var startConversationParameters = new StartConversationParameters(messageRequest.Id, messageRequest.SenderUsername,
             messageRequest.Text, It.IsAny<long>(), participants);
-        _conversationServiceMock.Setup(x=> x.EnqueueStartConversation(
-            It.Is<StartConversationParameters>(r =>  
+
+        _conversationServiceMock.Setup(x => x.EnqueueStartConversation(
+            It.Is<StartConversationParameters>(r =>
                 r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
-                r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
-            ))).ThrowsAsync(new SenderNotFoundException(messageRequest.SenderUsername));
-        var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
+                r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername)))
+            .ThrowsAsync(new SenderNotFoundException(messageRequest.SenderUsername));
+
+        var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest),
+            Encoding.Default, "application/json");
+
         var response = await _httpClient.PostAsync("api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
-
     public async Task StartConversation_ProfileNotFound()
     {
         var messageRequest = new SendMessageRequest("12345", "Ronald", "Haha Bro farex");
-        var participants = new List<string> {"Ronald", "Farex"};
+        var participants = new List<string> { "Ronald", "Farex" };
         var conversationRequest = new StartConversationRequest(participants, messageRequest);
         var startConversationParameters = new StartConversationParameters(messageRequest.Id, messageRequest.SenderUsername,
             messageRequest.Text, It.IsAny<long>(), participants);
-        _conversationServiceMock.Setup(x=> x.EnqueueStartConversation(
-            It.Is<StartConversationParameters>(r =>  
+
+        _conversationServiceMock.Setup(x => x.EnqueueStartConversation(
+            It.Is<StartConversationParameters>(r =>
                 r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
-                r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
-            ))).ThrowsAsync(new ProfileNotFoundException("Profile does not exists"));
-        var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
+                r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername)))
+            .ThrowsAsync(new ProfileNotFoundException("Profile does not exist"));
+
+        var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest),
+            Encoding.Default, "application/json");
+
+        var response = await _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-    
-    [Fact]
 
+    [Fact]
     public async Task StartConversation_MessageAlreadyExists()
     {
         var messageRequest = new SendMessageRequest("12345", "Ronald", "Haha Bro farex");
-        var participants = new List<string> {"Ronald", "Farex"};
+        var participants = new List<string> { "Ronald", "Farex" };
         var conversationRequest = new StartConversationRequest(participants, messageRequest);
         var startConversationParameters = new StartConversationParameters(messageRequest.Id, messageRequest.SenderUsername,
             messageRequest.Text, It.IsAny<long>(), participants);
-        _conversationServiceMock.Setup(x=> x.EnqueueStartConversation(
-                It.Is<StartConversationParameters>(r =>  
-                    r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
-                    r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
-                )))
+
+        _conversationServiceMock.Setup(x => x.EnqueueStartConversation(
+            It.Is<StartConversationParameters>(r =>
+                r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
+                r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername)))
             .ThrowsAsync(new MessageAlreadyExistsException("Message already exists"));
-        var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
+
+        var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest),
+            Encoding.Default, "application/json");
+
+        var response = await _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
     
@@ -235,85 +243,100 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }*/
-
+    
     [Fact]
 
     public async Task StartConversation_DuplicateParticipant()
     {
         var messageRequest = new SendMessageRequest("12345", "Ronald", "Haha Bro farex");
-        var participants = new List<string> {"Ronald", "Farex", "Ronald"};
+        var participants = new List<string> { "Ronald", "Farex", "Ronald" };
         var conversationRequest = new StartConversationRequest(participants, messageRequest);
-        var startConversationParameters = new StartConversationParameters(messageRequest.Id, messageRequest.SenderUsername,
-            messageRequest.Text, It.IsAny<long>(), participants);
-        _conversationServiceMock.Setup(x=> x.EnqueueStartConversation(
-                It.Is<StartConversationParameters>(r =>  
+        var startConversationParameters = new StartConversationParameters(messageRequest.Id,
+            messageRequest.SenderUsername, messageRequest.Text, It.IsAny<long>(), participants);
+
+        _conversationServiceMock.Setup(x => x.EnqueueStartConversation(
+                It.Is<StartConversationParameters>(r =>
                     r.participants.SequenceEqual(participants) && r.messageContent == messageRequest.Text &&
-                    r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername
-                )))
+                    r.messageId == messageRequest.Id && r.senderUsername == messageRequest.SenderUsername)))
             .ThrowsAsync(new DuplicateParticipantException("Participant is duplicated"));
-        var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest), Encoding.Default, "application/json");
-        var response = await  _httpClient.PostAsync("/api/Conversations", jsonContent);
+
+        var jsonContent = new StringContent(JsonConvert.SerializeObject(conversationRequest),
+            Encoding.Default, "application/json");
+
+        var response = await _httpClient.PostAsync("/api/Conversations", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
+    public async Task GetConversationMessages()
+    {
+        var conversationId = "_Farex_Ronald";
+        var nextContinuationToken = "frfr";
+        var messages = new List<ConversationMessage>
+        {
+            new("12345", "Farex", 0),
+            new("12346", "Ronald", 1)
+        };
+        var parameters = new GetMessagesParameters(conversationId, 50, "", 0);
 
-     public async Task GetConversationMessages()
-     {
-         var conversationId = "_Farex_Ronald";
-         var nextContinuationToken = "frfr";
-         var messages = new List<ConversationMessage>
-            {
-                new("12345", "Farex", 0),
-                new("12346", "Ronald", 1)
-            };
-         var parameters = new GetMessagesParameters(conversationId, 50, "", 0);
-         _conversationServiceMock
-             .Setup(x => x.GetMessages(parameters))
-             .ReturnsAsync(new GetMessagesResult(messages, nextContinuationToken));
-         var expectedNextUri = $"/api/Conversations/{conversationId}/messages?limit=50&continuationToken={nextContinuationToken}&lastSeenMessageTime=0";
-         var uri = $"/api/conversations/{conversationId}/messages/";
-         var response = await _httpClient.GetAsync(uri);
-         var responseString = await response.Content.ReadAsStringAsync();
-         var getConversationMessagesResponseReceived = JsonConvert.DeserializeObject<GetMessagesResponse>(responseString);
-         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-         Assert.Equal(messages, getConversationMessagesResponseReceived.Messages);
-         Assert.Equal(expectedNextUri, getConversationMessagesResponseReceived.NextUri);
-     }
-     
-     [Fact]
+        _conversationServiceMock
+            .Setup(x => x.GetMessages(parameters))
+            .ReturnsAsync(new GetMessagesResult(messages, nextContinuationToken));
 
-     public async Task GetAllConversations()
-     {
-         var username = "jad";
-         var nextContinuationToken = "frfr";
-         var recipients1 = new List<Profile>();
-         var recipients2 = new List<Profile>();
-         var karimProfile = new Profile("karim", "karim", "haddad", "1234");
-         var ronaldProfile = new Profile("ronald", "ronald", "haddad", "1234");
-         recipients1.Add(karimProfile);
-         recipients2.Add(ronaldProfile);
-         var conversation1 = new UserConversation("_jad_ronald", recipients1, 1000, "jad");
-         var conversation2 = new UserConversation("_jad_karim", recipients2, 1001, "jad");
-         var conversations = new List<UserConversation> { conversation1, conversation2 };
-         var conversationsMetadata = new List<ConversationMetaData>();
-            foreach (var conversation in conversations)
-            {
-                var conversationMetaData = new ConversationMetaData(conversation.ConversationId, conversation.LastMessageTime, conversation.Recipients[0]);
-                conversationsMetadata.Add(conversationMetaData);
-            }
-            var parameters = new GetConversationsParameters(username, 50, "", 0);
-         _conversationServiceMock
-             .Setup(x => x.GetConversations(parameters))
-             .ReturnsAsync(new GetConversationsResult(conversations, nextContinuationToken));
-         var expectedNextUri = $"/api/Conversations?username={username}&limit=50&continuationToken={nextContinuationToken}&lastSeenConversationTime=0";
-         var uri = $"/api/conversations?username={username}";
-         var response = await _httpClient.GetAsync(uri);
-         var responseString = await response.Content.ReadAsStringAsync();
-         var getAllConversationsResponseReceived = JsonConvert.DeserializeObject<GetConversationsResponse>(responseString);
-         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-         Assert.Equivalent(conversationsMetadata, getAllConversationsResponseReceived.Conversations);
-         Assert.Equal(expectedNextUri, getAllConversationsResponseReceived.NextUri);
-     }
-    
+        var expectedNextUri = $"/api/Conversations/{conversationId}/messages?limit=50&continuationToken={nextContinuationToken}&lastSeenMessageTime=0";
+        var uri = $"/api/conversations/{conversationId}/messages/";
+        var response = await _httpClient.GetAsync(uri);
+        var responseString = await response.Content.ReadAsStringAsync();
+        var getConversationMessagesResponseReceived = JsonConvert.DeserializeObject<GetMessagesResponse>(responseString);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(messages, getConversationMessagesResponseReceived.Messages);
+        Assert.Equal(expectedNextUri, getConversationMessagesResponseReceived.NextUri);
+    }
+
+    [Fact]
+    public async Task GetAllConversations()
+    {
+        var username = "jad";
+        var nextContinuationToken = "frfr";
+        var recipients1 = new List<Profile>();
+        var recipients2 = new List<Profile>();
+        var karimProfile = new Profile("karim", "karim", "haddad", "1234");
+        var ronaldProfile = new Profile("ronald", "ronald", "haddad", "1234");
+        recipients1.Add(karimProfile);
+        recipients2.Add(ronaldProfile);
+        var conversation1 = new UserConversation("_jad_ronald", recipients1, 1000, "jad");
+        var conversation2 = new UserConversation("_jad_karim", recipients2, 1001, "jad");
+        var conversations = new List<UserConversation> { conversation1, conversation2 };
+        var conversationsMetadata = new List<ConversationMetaData>();
+
+        foreach (var conversation in conversations)
+        {
+            var conversationMetaData = new ConversationMetaData(conversation.ConversationId,
+                conversation.LastMessageTime, conversation.Recipients[0]);
+            conversationsMetadata.Add(conversationMetaData);
+        }
+
+        var parameters = new GetConversationsParameters(username, 50, "", 0);
+        _conversationServiceMock
+            .Setup(x => x.GetConversations(parameters))
+            .ReturnsAsync(new GetConversationsResult(conversations, nextContinuationToken));
+
+        var expectedNextUri =
+            $"/api/Conversations?username={username}&limit=50&continuationToken={nextContinuationToken}&lastSeenConversationTime=0";
+        var uri = $"/api/conversations?username={username}";
+        var response = await _httpClient.GetAsync(uri);
+        var responseString = await response.Content.ReadAsStringAsync();
+        var getAllConversationsResponseReceived =
+            JsonConvert.DeserializeObject<GetConversationsResponse>(responseString);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equivalent(conversationsMetadata, getAllConversationsResponseReceived.Conversations);
+        Assert.Equal(expectedNextUri, getAllConversationsResponseReceived.NextUri);
+    }
+
+
+
+
+
 }
