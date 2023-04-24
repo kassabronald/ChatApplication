@@ -37,4 +37,4 @@ jobs:
       env:
         BlobStorage:ConnectionString: "${{ secrets.BLOBSTORAGE_CONNECTIONSTRING}}"
         Cosmos:ConnectionString: "${{ secrets.COSMOS_CONNECTIONSTRING}}"
-        ServiceBus:ConnectionString: "${{ secrets.SERVICEBUS_CONNECTIONSTRING }}"
+        ServiceBus:ConnectionString: "${{ secrets.SERVICEBUS_CONNECTIONSTRING}}"
