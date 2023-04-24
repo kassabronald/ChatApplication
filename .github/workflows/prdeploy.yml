@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - main
+    - Service-Bus
 
 env:
   AZURE_WEBAPP_NAME: chatservice-jad-ronald
