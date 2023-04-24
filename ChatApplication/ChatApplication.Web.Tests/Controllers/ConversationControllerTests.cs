@@ -335,8 +335,4 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         Assert.Equal(expectedNextUri, getAllConversationsResponseReceived.NextUri);
     }
 
-
-
-
-
 }
