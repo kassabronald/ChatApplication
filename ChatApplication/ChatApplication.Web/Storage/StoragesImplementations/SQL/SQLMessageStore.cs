@@ -5,7 +5,13 @@ namespace ChatApplication.Storage.SQL;
 
 public class SQLMessageStore : IMessageStore
 {
-
+    
+    private readonly SqlConnection _sqlConnection;
+    
+    public SQLMessageStore(SqlConnection sqlConnection)
+    {
+        _sqlConnection = sqlConnection;
+    }
 
     public Task AddMessage(Message message)
     {
