@@ -1,3 +1,4 @@
+using System.Data;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using ChatApplication.Configuration;
@@ -6,8 +7,10 @@ using ChatApplication.ServiceBus;
 using ChatApplication.ServiceBus.Interfaces;
 using ChatApplication.Services;
 using ChatApplication.Storage;
+using ChatApplication.Storage.SQL;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
+using Microsoft.Data.SqlClient;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +26,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<CosmosSettings>(builder.Configuration.GetSection("Cosmos"));
 builder.Services.Configure<BlobSettings>(builder.Configuration.GetSection("BlobStorage"));
+builder.Services.Configure<SQLSettings>(builder.Configuration.GetSection("SQL"));
 builder.Services.Configure<ServiceBusSettings>(builder.Configuration.GetSection("ServiceBus"));
 
 builder.Services.AddSingleton<IImageStore, BlobImageStore>();
@@ -35,7 +39,8 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddSingleton<IMessageStore, CosmosMessageStore>();
 builder.Services.AddSingleton<IConversationStore, CosmosConversationStore>();
-builder.Services.AddSingleton<IProfileStore, CosmosProfileStore>();
+//builder.Services.AddSingleton<IProfileStore, CosmosProfileStore>();
+builder.Services.AddSingleton<IProfileStore, SQLProfileStore>();
 builder.Services.AddSingleton(sp =>
 {
     var cosmosOptions = sp.GetRequiredService<IOptions<CosmosSettings>>();
@@ -51,6 +56,14 @@ builder.Services.AddSingleton(sp =>
 {
     var serviceBusOptions = sp.GetRequiredService<IOptions<ServiceBusSettings>>();
     return new ServiceBusClient(serviceBusOptions.Value.ConnectionString);
+});
+
+
+builder.Services.AddSingleton(sp =>
+{
+    var configuration = sp.GetRequiredService<IOptions<SQLSettings>>();
+    var connectionString = configuration.Value.ConnectionString;
+    return new SqlConnection(connectionString);
 });
 
 builder.Services.AddSingleton<IAddMessageServiceBusPublisher, AddMessageServiceBusPublisher>();

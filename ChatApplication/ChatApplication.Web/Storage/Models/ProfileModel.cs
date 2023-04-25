@@ -1,6 +1,3 @@
 namespace ChatApplication.Storage.Models;
 
-public class ProfileModel
-{
-    
-}
+public record ProfileModel(string Username, string FirstName, string LastName, string ProfilePictureId);
