@@ -1,6 +1,3 @@
 namespace ChatApplication.Storage.Models;
 
-public class ConversationModel
-{
-    
-}
+public record ConversationModel (string ConversationId, long ModifiedUnixTime);
