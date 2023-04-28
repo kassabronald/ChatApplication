@@ -1,30 +1,39 @@
+using ChatApplication.Configuration;
 using ChatApplication.Exceptions;
 using ChatApplication.Web.Dtos;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
 
 namespace ChatApplication.Storage.SQL;
 
 public class SQLProfileStore : IProfileStore
 {
 
-    private readonly SqlConnection _sqlConnection;
+    private readonly string _connectionString;
 
 
-    public SQLProfileStore(SqlConnection sqlConnection)
+    public SQLProfileStore(IOptions<SQLSettings> sqlSettings)
     {
-        _sqlConnection = sqlConnection;
-
+        _connectionString = sqlSettings.Value.ConnectionString;
+    }
+    
+    private SqlConnection GetSqlConnection()
+    {
+        return new SqlConnection(_connectionString);
     }
 
     public async Task AddProfile(Profile profile)
     {
         var query = @"INSERT INTO Profiles (Username, FirstName, LastName, ProfilePictureId)
               VALUES (@Username, @FirstName, @LastName, @ProfilePictureId)";
+        
+        await using var sqlConnection = GetSqlConnection();
+        await sqlConnection.OpenAsync();
 
         try
         {
-            await _sqlConnection.ExecuteAsync(query, profile);
+            await sqlConnection.ExecuteAsync(query, profile);
         }
 
         catch (SqlException ex)
@@ -38,26 +47,39 @@ public class SQLProfileStore : IProfileStore
                 throw;
             }
         }
+        
+        await sqlConnection.CloseAsync();
     }
 
 
     public async Task<Profile> GetProfile(string username)
     {
         var query = "SELECT * FROM Profiles WHERE Username = @Username";
-        var profile = await _sqlConnection.QueryFirstOrDefaultAsync<Profile>(query, new { Username = username });
+        
+        await using var sqlConnection = GetSqlConnection();
+        await sqlConnection.OpenAsync();
+        
+        var profile = await sqlConnection.QueryFirstOrDefaultAsync<Profile>(query, new { Username = username });
 
         if (profile == null)
         {
             throw new ProfileNotFoundException($"A profile with username {username} was not found");
         }
-
+        
+        await sqlConnection.CloseAsync();
         return profile;
     }
 
     public async Task DeleteProfile(string username)
     {
         var query = "DELETE FROM Profiles WHERE Username = @Username";
-
-        await _sqlConnection.ExecuteAsync(query, new { Username = username });
+        
+        await using var sqlConnection = GetSqlConnection();
+        await sqlConnection.OpenAsync();
+        
+        await sqlConnection.ExecuteAsync(query, new { Username = username });
+        
+        await sqlConnection.CloseAsync();
+        
     }
 }

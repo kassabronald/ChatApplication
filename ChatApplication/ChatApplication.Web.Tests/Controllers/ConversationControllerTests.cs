@@ -56,7 +56,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
         string conversationId)
     {
         var messageRequest = new SendMessageRequest(messageId, senderUsername, messageContent);
-        var message = new Message(messageId, senderUsername, messageContent,1000, conversationId);
+        var message = new Message(messageId, senderUsername, conversationId, messageContent,1000);
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageRequest), Encoding.Default, "application/json");
         var response = await _httpClient.PostAsync($"/api/Conversations/{conversationId}/messages", jsonContent);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -88,7 +88,7 @@ public class ConversationControllerTests : IClassFixture<WebApplicationFactory<P
     {
         var messageRequest = new SendMessageRequest("1234", "ronald", "hey bro wanna hit the gym");
         string conversationId = "456";
-        var message = new Message(messageRequest.Id, messageRequest.SenderUsername, messageRequest.Text,1000, conversationId);
+        var message = new Message(messageRequest.Id, messageRequest.SenderUsername, conversationId, messageRequest.Text, 1000);
         _conversationServiceMock.Setup(x => x.EnqueueAddMessage(
             It.Is<Message>(m =>
                 m.MessageId == messageRequest.Id &&

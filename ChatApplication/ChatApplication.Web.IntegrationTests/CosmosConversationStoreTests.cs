@@ -1,9 +1,11 @@
+using ChatApplication.Configuration;
 using ChatApplication.Exceptions;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace ChatApplication.Web.IntegrationTests;
 
@@ -42,7 +44,11 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
         _conversation2 = new UserConversation(Guid.NewGuid().ToString(), recipients2, 1001, _profile1.Username);
         _conversation3 = new UserConversation(Guid.NewGuid().ToString(), recipients3, 1000, _profile1.Username);
         _conversationList = new List<UserConversation>(){_conversation1, _conversation2, _conversation3};
-        _store = factory.Services.GetRequiredService<IConversationStore>();
+        
+        var services = factory.Services;
+        var cosmosSettings = services.GetRequiredService<IOptions<CosmosSettings>>().Value;
+        var cosmosClient = new CosmosClient(cosmosSettings.ConnectionString);
+        _store = new CosmosConversationStore(cosmosClient);
     }
 
 

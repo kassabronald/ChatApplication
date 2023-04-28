@@ -1,3 +1,3 @@
 namespace ChatApplication.Storage.Models;
 
-public record ConversationParticipantsModel(string ConversationId, string Username);
+public record ConversationParticipantsModel(string Username, string ConversationId);

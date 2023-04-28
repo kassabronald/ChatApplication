@@ -35,8 +35,8 @@ public class ConversationsController : ControllerBase
             var time = DateTimeOffset.UtcNow;
             Console.WriteLine("time of added message is "+time.ToUnixTimeMilliseconds());
             //TODO: After PR1, use custom serializer.
-            var message = new Message(sendMessageRequest.Id, sendMessageRequest.SenderUsername,
-                sendMessageRequest.Text, time.ToUnixTimeMilliseconds(), conversationId);
+            var message = new Message(sendMessageRequest.Id, sendMessageRequest.SenderUsername, conversationId,
+                sendMessageRequest.Text, time.ToUnixTimeMilliseconds());
 
             try
             {

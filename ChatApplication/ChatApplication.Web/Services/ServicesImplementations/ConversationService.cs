@@ -48,6 +48,10 @@ public class ConversationService : IConversationService
         
         checkIfValidParticipants(parameters.participants, parameters.senderUsername);
         await Task.WhenAll(parameters.participants.Select(participant => _profileStore.GetProfile(participant)));
+        // foreach(var participant in parameters.participants)
+        // {
+        //     await _profileStore.GetProfile(participant);
+        // }
         var id = generateConversationId(parameters.participants);
         try
         {
@@ -86,10 +90,6 @@ public class ConversationService : IConversationService
         // var sortedParticipants = new List<string>(parameters.participants);
         // sortedParticipants.Sort();
         var id = generateConversationId(parameters.participants);
-        
-        var message = new Message(parameters.messageId, parameters.senderUsername, parameters.messageContent, parameters.createdTime, id);
-        
-        await _messageStore.AddMessage(message);
 
         var participantsProfile =
             await Task.WhenAll(parameters.participants.Select(participant => _profileStore.GetProfile(participant)));
@@ -107,10 +107,13 @@ public class ConversationService : IConversationService
         }
         catch (ConversationAlreadyExistsException)
         {
+            await _messageStore.AddMessage(new Message(parameters.messageId, parameters.senderUsername, id, parameters.messageContent, parameters.createdTime));
             return id;
         }
-
-        //TODO: After PR1 handle possible errors
+        
+        var message = new Message(parameters.messageId, parameters.senderUsername, id, parameters.messageContent, parameters.createdTime);
+        await _messageStore.AddMessage(message);
+        
         return id;
     }
     

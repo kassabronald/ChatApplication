@@ -1,9 +1,11 @@
-﻿using ChatApplication.Exceptions;
+﻿using ChatApplication.Configuration;
+using ChatApplication.Exceptions;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace ChatApplication.Web.IntegrationTests;
 
@@ -18,6 +20,14 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
         ProfilePictureId: "123"
     );
     
+    public CosmosProfileStoreTests(WebApplicationFactory<Program> factory)
+    {
+        var services = factory.Services;
+        var cosmosSettings = services.GetRequiredService<IOptions<CosmosSettings>>().Value;
+        var cosmosClient = new CosmosClient(cosmosSettings.ConnectionString);
+        _store = new CosmosProfileStore(cosmosClient);
+    }
+    
     public Task InitializeAsync()
     {
         return Task.CompletedTask;
@@ -28,12 +38,6 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
         await _store.DeleteProfile(_profile.Username);
     }
     
-    public CosmosProfileStoreTests(WebApplicationFactory<Program> factory)
-    {
-        _store = factory.Services.GetRequiredService<IProfileStore>();
-    }
-    
-
     [Fact]
 
     public async Task AddProfile()
