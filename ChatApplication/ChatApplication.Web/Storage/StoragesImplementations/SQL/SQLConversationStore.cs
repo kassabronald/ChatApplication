@@ -135,6 +135,15 @@ public class SQLConversationStore : IConversationStore
 
         try
         {
+            await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
+                new { ConversationId = userConversation.ConversationId, Username = userConversation.Username },
+                transaction);
+            foreach (var recipient in userConversation.Recipients)
+            {
+                await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
+                    new { ConversationId = userConversation.ConversationId, Username = recipient.Username },
+                    transaction);
+            }
             await sqlConnection.ExecuteAsync(queryConversationTable,
                 new
                 {
@@ -142,16 +151,9 @@ public class SQLConversationStore : IConversationStore
                     ModifiedUnixTime = userConversation.LastMessageTime
                 }, transaction);
 
-            foreach (var recipient in userConversation.Recipients)
-            {
-                await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
-                    new { ConversationId = userConversation.ConversationId, Username = recipient.Username },
-                    transaction);
-            }
             
-            await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
-                new { ConversationId = userConversation.ConversationId, Username = userConversation.Username },
-                transaction);
+            
+            
 
             transaction.Commit();
         }
