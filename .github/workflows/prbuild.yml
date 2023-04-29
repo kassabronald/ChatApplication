@@ -6,7 +6,7 @@ name: .NET
 on:
   workflow_dispatch:
   push:
-    branches: [ "Service-Bus" ]
+    branches: [ "SQL_SB" ]
 
 jobs:
   build:
@@ -16,6 +16,7 @@ jobs:
       BlobStorage:ConnectionString: "${{ secrets.BLOBSTORAGE_CONNECTIONSTRING}}"
       Cosmos:ConnectionString: "${{ secrets.COSMOS_CONNECTIONSTRING}}"
       ServiceBus:ConnectionString: "${{ secrets.SERVICEBUS_CONNECTIONSTRING}}"
+      SQL:ConnectionString: "${{ secrets.SQL_CONNECTIONSTRING}}"
 
     steps:
     - name: Checkout code
