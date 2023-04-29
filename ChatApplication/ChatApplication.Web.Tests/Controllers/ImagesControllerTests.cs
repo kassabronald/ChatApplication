@@ -57,6 +57,7 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
     {
         _imageServiceMock.Setup(m => m.GetImage("123")).ThrowsAsync(new ImageNotFoundException("Image not Found"));
         var response = await _httpClient.GetAsync($"/api/Images/123");
+        
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -79,7 +80,6 @@ public class ImagesControllerTests : IClassFixture<WebApplicationFactory<Program
         using var formData = new MultipartFormDataContent();
         var requestContent = new StreamContent(uploadRequest.File.OpenReadStream());
         requestContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
-
         formData.Add(requestContent, "File", uploadRequest.File.FileName);
         
         var response = await _httpClient.PostAsync("/api/Images", formData);
