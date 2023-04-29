@@ -116,6 +116,11 @@ public class SQLConversationStore : IConversationStore
         }
         catch (SqlException ex)
         {
+            if (ex.Number == 2627)
+            {
+                transaction.Rollback();
+                return;
+            }
             transaction.Rollback();
             throw;
         }
