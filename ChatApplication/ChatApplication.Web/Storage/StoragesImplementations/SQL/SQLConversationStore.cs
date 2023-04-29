@@ -125,12 +125,14 @@ public class SQLConversationStore : IConversationStore
     public async Task DeleteUserConversation(UserConversation userConversation)
     {
         var queryConversationTable = "DELETE FROM Conversations WHERE ConversationId = @ConversationId AND ModifiedUnixTime = @ModifiedUnixTime";
-        var queryConversationParticipantsTable = "DELETE FROM ConversationParticipants WHERE ConversationId = @ConversationId  AND  USERNAME = @Username";
-        
+        var queryConversationParticipantsTable = "DELETE FROM ConversationParticipants WHERE ConversationId = @ConversationId AND USERNAME = @Username";
+
         await using var sqlConnection = GetSqlConnection();
+
         await sqlConnection.OpenAsync();
-        
+
         await using var transaction = sqlConnection.BeginTransaction();
+
         try
         {
             await sqlConnection.ExecuteAsync(queryConversationTable,
@@ -140,28 +142,25 @@ public class SQLConversationStore : IConversationStore
                     ModifiedUnixTime = userConversation.LastMessageTime
                 }, transaction);
 
-            await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
-                new { ConversationId = userConversation.ConversationId, Username = userConversation.Username },
-                transaction);
-            
             foreach (var recipient in userConversation.Recipients)
             {
                 await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
                     new { ConversationId = userConversation.ConversationId, Username = recipient.Username },
                     transaction);
             }
+            
+            await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
+                new { ConversationId = userConversation.ConversationId, Username = userConversation.Username },
+                transaction);
 
             transaction.Commit();
         }
-
-        catch (SqlException ex)
+        catch (Exception ex)
         {
             transaction.Rollback();
         }
-        
-        await sqlConnection.CloseAsync();
-        
     }
+
 
     public async Task<GetConversationsResult> GetConversations(GetConversationsParameters parameters)
     {
