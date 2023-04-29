@@ -5,6 +5,7 @@ using ChatApplication.Storage.SQL;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -57,7 +58,7 @@ public class SQLProfileStoreTests:IClassFixture<WebApplicationFactory<Program>>,
 
     public async Task GetEmptyProfile()
     {
-        await Assert.ThrowsAsync<CosmosException>(async () =>
+        await Assert.ThrowsAsync<SqlException>(async () =>
         {
             await _store.GetProfile("");
         });
@@ -77,7 +78,7 @@ public class SQLProfileStoreTests:IClassFixture<WebApplicationFactory<Program>>,
     public async Task AddProfile_InvalidArgs(string username, string firstName, string lastName,
         string profilePictureId)
     {
-        await Assert.ThrowsAsync<ArgumentException>(async () =>
+        await Assert.ThrowsAsync<SqlException>(async () =>
         {
             await _store.AddProfile(new Profile(username, firstName, lastName, profilePictureId));
 
