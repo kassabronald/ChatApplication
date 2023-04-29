@@ -46,10 +46,10 @@ public class ConversationService : IConversationService
     public async Task<string> EnqueueStartConversation(StartConversationParameters parameters)
     {
         
-        checkIfValidParticipants(parameters.participants, parameters.senderUsername);
+        CheckIfValidParticipants(parameters.participants, parameters.senderUsername);
         await Task.WhenAll(parameters.participants.Select(participant => _profileStore.GetProfile(participant)));
 
-        var id = generateConversationId(parameters.participants);
+        var id = GenerateConversationId(parameters.participants);
         try
         {
             await _messageStore.GetMessage(id, parameters.messageId);
@@ -82,9 +82,10 @@ public class ConversationService : IConversationService
     
     public async Task<string> StartConversation(StartConversationParameters parameters)
     {
-        var id = generateConversationId(parameters.participants);
+        var id = GenerateConversationId(parameters.participants);
         var participantsProfile =
             await Task.WhenAll(parameters.participants.Select(participant => _profileStore.GetProfile(participant)));
+        
         var userConversations = parameters.participants.Select(participantUsername =>
         {
             var recipients = new List<Profile>(participantsProfile);
@@ -119,7 +120,7 @@ public class ConversationService : IConversationService
         return await _conversationStore.GetConversations(parameters);
     }
     
-    private void checkIfValidParticipants(IReadOnlyCollection<string> participants, string senderUsername)
+    private static void CheckIfValidParticipants(IReadOnlyCollection<string> participants, string senderUsername)
     {
         var foundSenderUsername = participants.Aggregate(false, (current, participant) => current || participant == senderUsername);
         if (!foundSenderUsername)
@@ -133,7 +134,7 @@ public class ConversationService : IConversationService
         }
     }
     
-    private string generateConversationId(List<string> participants)
+    private static string GenerateConversationId(List<string> participants)
     {
         participants.Sort();
         return participants.Aggregate("", (current, participant) => current + ("_" + participant));

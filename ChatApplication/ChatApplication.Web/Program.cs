@@ -37,12 +37,15 @@ builder.Services.AddSingleton(sp =>
     return new BlobContainerClient(blobOptions.Value.ConnectionString, blobOptions.Value.ContainerName);
 });
 
-// builder.Services.AddSingleton<IMessageStore, CosmosMessageStore>();
-// builder.Services.AddSingleton<IConversationStore, CosmosConversationStore>();
-// builder.Services.AddSingleton<IProfileStore, CosmosProfileStore>();
-builder.Services.AddSingleton<IMessageStore,SQLMessageStore>();
-builder.Services.AddSingleton<IConversationStore, SQLConversationStore>();
-builder.Services.AddSingleton<IProfileStore, SQLProfileStore>();
+builder.Services.AddSingleton<IMessageStore, CosmosMessageStore>();
+builder.Services.AddSingleton<IConversationStore, CosmosConversationStore>();
+builder.Services.AddSingleton<IProfileStore, CosmosProfileStore>();
+
+//Comment the above and uncomment the below to use SQL
+
+// builder.Services.AddSingleton<IMessageStore,SQLMessageStore>();
+// builder.Services.AddSingleton<IConversationStore, SQLConversationStore>();
+// builder.Services.AddSingleton<IProfileStore, SQLProfileStore>();
 
 
 builder.Services.AddSingleton(sp =>

@@ -34,14 +34,12 @@ public class ConversationsController : ControllerBase
         {
             var time = DateTimeOffset.UtcNow;
             Console.WriteLine("time of added message is "+time.ToUnixTimeMilliseconds());
-            //TODO: After PR1, use custom serializer.
             var message = new Message(sendMessageRequest.Id, sendMessageRequest.SenderUsername, conversationId,
                 sendMessageRequest.Text, time.ToUnixTimeMilliseconds());
 
             try
             {
                 var stopWatch = new Stopwatch();
-                //await _conversationService.AddMessage(message);
                 await _conversationService.EnqueueAddMessage(message);
                 _telemetryClient.TrackMetric("ConversationService.AddMessage.Time", stopWatch.ElapsedMilliseconds);
                 _telemetryClient.TrackEvent("MessageAdded");
@@ -117,7 +115,6 @@ public class ConversationsController : ControllerBase
         string continuationToken = "", long lastSeenMessageTime = 0)
     {
         var stopWatch = new Stopwatch();
-        //var decodedContinuationToken = WebUtility.UrlDecode(continuationToken);
         var getMessagesParameters =
             new GetMessagesParameters(conversationId, limit, continuationToken, lastSeenMessageTime);
 
@@ -140,7 +137,6 @@ public class ConversationsController : ControllerBase
         string continuationToken = "", long lastSeenConversationTime = 0)
     {
         var stopWatch = new Stopwatch();
-        //var decodedContinuationToken = WebUtility.UrlDecode(continuationToken);
         var getConversationsParameters =
             new GetConversationsParameters(username, limit, continuationToken, lastSeenConversationTime);
 
