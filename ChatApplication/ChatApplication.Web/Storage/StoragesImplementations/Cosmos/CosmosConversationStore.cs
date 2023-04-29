@@ -43,7 +43,7 @@ public class CosmosConversationStore : IConversationStore
     private async Task UpdateConversationUserLastMessageTime(UserConversation userConversation, long lastMessageTime)
     {
         userConversation.LastMessageTime = lastMessageTime;
-        var entity = toEntity(userConversation);
+        var entity = ToEntity(userConversation);
         await ConversationContainer.ReplaceItemAsync<ConversationEntity>(entity, entity.id,
             new PartitionKey(entity.partitionKey));
     }
@@ -62,7 +62,7 @@ public class CosmosConversationStore : IConversationStore
 
     public async Task CreateUserConversation(UserConversation userConversation)
     {
-        var entity = toEntity(userConversation);
+        var entity = ToEntity(userConversation);
         try
         {
             await ConversationContainer.CreateItemAsync(entity);
@@ -117,7 +117,7 @@ public class CosmosConversationStore : IConversationStore
     }
     
 
-    private ConversationEntity toEntity(UserConversation userConversation)
+    private static ConversationEntity ToEntity(UserConversation userConversation)
     {
         return new ConversationEntity
         {
@@ -128,7 +128,7 @@ public class CosmosConversationStore : IConversationStore
         };
     }
 
-    private UserConversation ToConversation(ConversationEntity conversationEntity)
+    private static UserConversation ToConversation(ConversationEntity conversationEntity)
     {
         return new UserConversation(
             conversationEntity.id,
