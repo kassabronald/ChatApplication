@@ -1,6 +1,7 @@
 using ChatApplication.Configuration;
 using ChatApplication.Exceptions;
 using ChatApplication.Storage;
+using ChatApplication.Storage.SQL;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
@@ -23,9 +24,8 @@ public class SQLProfileStoreTests:IClassFixture<WebApplicationFactory<Program>>,
     public SQLProfileStoreTests(WebApplicationFactory<Program> factory)
     {
         var services = factory.Services;
-        var cosmosSettings = services.GetRequiredService<IOptions<CosmosSettings>>().Value;
-        var cosmosClient = new CosmosClient(cosmosSettings.ConnectionString);
-        _store = new CosmosProfileStore(cosmosClient);
+        var sqlSettings = services.GetRequiredService<IOptions<SQLSettings>>();
+        _store = new SQLProfileStore(sqlSettings);
     }
     
     public Task InitializeAsync()
@@ -110,10 +110,7 @@ public class SQLProfileStoreTests:IClassFixture<WebApplicationFactory<Program>>,
 
     public async Task DeleteEmptyProfile()
     {
-        await Assert.ThrowsAsync<CosmosException>(async () =>
-        {
-            await _store.DeleteProfile("");
-        });
+        await _store.DeleteProfile("");
     }
 
 
