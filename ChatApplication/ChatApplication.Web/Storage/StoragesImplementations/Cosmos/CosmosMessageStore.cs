@@ -20,7 +20,7 @@ public class CosmosMessageStore : IMessageStore
 
     public async Task AddMessage(Message message)
     {
-        var entity = toEntity(message);
+        var entity = ToEntity(message);
         try
         {
             await MessageContainer.CreateItemAsync(entity);
@@ -66,7 +66,7 @@ public class CosmosMessageStore : IMessageStore
             {
                 ConsistencyLevel = ConsistencyLevel.Session
             });
-            return toMessage(message.Resource);
+            return ToMessage(message.Resource);
         }
         catch(CosmosException e)
         {
@@ -91,7 +91,7 @@ public class CosmosMessageStore : IMessageStore
 
         using var iterator = query.ToFeedIterator();
         var response = await iterator.ReadNextAsync();
-        var receivedMessages = response.Select(toMessage).ToList();
+        var receivedMessages = response.Select(ToMessage).ToList();
         var newContinuationToken = response.ContinuationToken;
         var conversationMessages = receivedMessages.Select(message =>
                 new ConversationMessage(message.SenderUsername, message.Text, message.CreatedUnixTime))
@@ -99,7 +99,7 @@ public class CosmosMessageStore : IMessageStore
         return new GetMessagesResult(conversationMessages, newContinuationToken);
     }
 
-    private Message toMessage(MessageEntity entity)
+    private static Message ToMessage(MessageEntity entity)
     {
         return new Message(
             MessageId: entity.id,
@@ -109,7 +109,7 @@ public class CosmosMessageStore : IMessageStore
             ConversationId: entity.partitionKey);
     }
 
-    private MessageEntity toEntity(Message message)
+    private static MessageEntity ToEntity(Message message)
     {
         return new MessageEntity(
             partitionKey: message.ConversationId,

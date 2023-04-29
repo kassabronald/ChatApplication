@@ -30,7 +30,7 @@ public class BlobImageStore : IImageStore
 
     public async Task<Image?> GetImage(string id)
     {
-        if (String.IsNullOrWhiteSpace(id))
+        if (string.IsNullOrWhiteSpace(id))
         {
             throw new ArgumentException("Invalid id", nameof(id));
         }
@@ -50,7 +50,7 @@ public class BlobImageStore : IImageStore
 
     public async Task DeleteImage(string id)
     {
-        if (String.IsNullOrWhiteSpace(id))
+        if (string.IsNullOrWhiteSpace(id))
         {
             throw new ArgumentException("Invalid id", nameof(id));
         }

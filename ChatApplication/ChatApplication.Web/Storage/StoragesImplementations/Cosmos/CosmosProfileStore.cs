@@ -90,7 +90,7 @@ public class CosmosProfileStore : IProfileStore
         }
     }
 
-    private ProfileEntity ToEntity(Profile profile)
+    private static ProfileEntity ToEntity(Profile profile)
     {
         return new ProfileEntity(
             partitionKey: profile.Username,
@@ -101,7 +101,7 @@ public class CosmosProfileStore : IProfileStore
         );
     }
 
-    private Profile ToProfile(ProfileEntity entity)
+    private static Profile ToProfile(ProfileEntity entity)
     {
         return new Profile(
             entity.id,
