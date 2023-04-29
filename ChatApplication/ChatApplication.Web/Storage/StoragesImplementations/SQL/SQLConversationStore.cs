@@ -67,25 +67,19 @@ public class SQLConversationStore : IConversationStore
         
         await using var sqlConnection = GetSqlConnection();
         await sqlConnection.OpenAsync();
+        
+        var checkQuery = "SELECT COUNT(*) FROM Conversations WHERE ConversationId = @ConversationId";
+        int conversationCount = await sqlConnection.ExecuteScalarAsync<int>(checkQuery, new { ConversationId = conversationId });
+
+        if (conversationCount == 0)
+        {
+            throw new ConversationNotFoundException($"A conversation with id {senderConversation.ConversationId} does not exist");
+        }
+        
+        
         var query = "UPDATE Conversations SET ModifiedUnixTime = @lastMessageTime WHERE ConversationId = @ConversationId";
         
-        try
-        {
-            await sqlConnection.ExecuteAsync(query, new { lastMessageTime, ConversationId = conversationId });
-        }
-        catch (SqlException ex)
-        {
-            if(ex.Number == 2627)
-            {
-                throw new ConversationNotFoundException($"A conversation with id {senderConversation.ConversationId} does not exist");
-            }
-            else
-            {
-                throw;
-            }
-
-        }
-        
+        await sqlConnection.ExecuteAsync(query, new { lastMessageTime, ConversationId = conversationId });
         await sqlConnection.CloseAsync();
     }
 
@@ -122,16 +116,7 @@ public class SQLConversationStore : IConversationStore
         }
         catch (SqlException ex)
         {
-            if (ex.Number == 2627)
-            {
-                throw new ConversationAlreadyExistsException(
-                    $"A conversation with id {userConversation.ConversationId} already exists");
-            }
-            else
-            {
-                transaction.Rollback();
-                throw;
-            }
+            transaction.Rollback();
         }
         
         await sqlConnection.CloseAsync();
@@ -139,8 +124,8 @@ public class SQLConversationStore : IConversationStore
 
     public async Task DeleteUserConversation(UserConversation userConversation)
     {
-        var queryConversationTable = "DELETE FROM Conversations WHERE (ConversationId, ModifiedUnixTime) = (@ConversationId, @ModifiedUnixTime)";
-        var queryConversationParticipantsTable = "DELETE FROM ConversationParticipants WHERE (ConversationId, Username) = (@ConversationId, @Username)";
+        var queryConversationTable = "DELETE FROM Conversations WHERE ConversationId = @ConversationId AND ModifiedUnixTime = @ModifiedUnixTime";
+        var queryConversationParticipantsTable = "DELETE FROM ConversationParticipants WHERE ConversationId = @ConversationId  AND  USERNAME = @Username";
         
         await using var sqlConnection = GetSqlConnection();
         await sqlConnection.OpenAsync();
@@ -158,17 +143,20 @@ public class SQLConversationStore : IConversationStore
             await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
                 new { ConversationId = userConversation.ConversationId, Username = userConversation.Username },
                 transaction);
+            
+            foreach (var recipient in userConversation.Recipients)
+            {
+                await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
+                    new { ConversationId = userConversation.ConversationId, Username = recipient.Username },
+                    transaction);
+            }
 
             transaction.Commit();
         }
 
         catch (SqlException ex)
         {
-            if (ex.Number != 2627)
-            {
-                transaction.Rollback(); 
-            }
-            
+            transaction.Rollback();
         }
         
         await sqlConnection.CloseAsync();
