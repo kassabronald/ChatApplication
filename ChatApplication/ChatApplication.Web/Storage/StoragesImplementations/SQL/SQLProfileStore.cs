@@ -26,7 +26,7 @@ public class SQLProfileStore : IProfileStore
     public async Task AddProfile(Profile profile)
     {
         var query = @"INSERT INTO Profiles (Username, FirstName, LastName, ProfilePictureId)
-              VALUES (@Username, @FirstName, @LastName, @ProfilePictureId)";
+              VALUES (TRIM(@Username), TRIM(@FirstName), TRIM(@LastName), TRIM(@ProfilePictureId))";
         
         await using var sqlConnection = GetSqlConnection();
         await sqlConnection.OpenAsync();
