@@ -48,10 +48,7 @@ public class ConversationService : IConversationService
         
         checkIfValidParticipants(parameters.participants, parameters.senderUsername);
         await Task.WhenAll(parameters.participants.Select(participant => _profileStore.GetProfile(participant)));
-        // foreach(var participant in parameters.participants)
-        // {
-        //     await _profileStore.GetProfile(participant);
-        // }
+
         var id = generateConversationId(parameters.participants);
         try
         {
@@ -85,12 +82,7 @@ public class ConversationService : IConversationService
     
     public async Task<string> StartConversation(StartConversationParameters parameters)
     {
-        
-        //checkIfValidParticipants(parameters.participants, parameters.senderUsername);
-        // var sortedParticipants = new List<string>(parameters.participants);
-        // sortedParticipants.Sort();
         var id = generateConversationId(parameters.participants);
-
         var participantsProfile =
             await Task.WhenAll(parameters.participants.Select(participant => _profileStore.GetProfile(participant)));
         var userConversations = parameters.participants.Select(participantUsername =>
