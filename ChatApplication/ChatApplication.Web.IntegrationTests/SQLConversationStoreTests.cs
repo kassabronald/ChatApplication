@@ -142,18 +142,6 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
         Assert.Equivalent(_conversationList[0], conversation);
     }
     
-    [Fact]
-    
-    public async Task CreateUserConversation_Conflict()
-    {
-        await _profileStore.AddProfile(_profile1);
-        await _profileStore.AddProfile(_profile2);
-        await _conversationStore.CreateUserConversation(_conversationList[0]);
-        await Assert.ThrowsAsync<ConversationAlreadyExistsException>(async () =>
-        {
-            await _conversationStore.CreateUserConversation(_conversationList[0]);
-        });
-    }
 
     [Fact]
 

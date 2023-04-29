@@ -117,6 +117,7 @@ public class SQLConversationStore : IConversationStore
         catch (SqlException ex)
         {
             transaction.Rollback();
+            throw;
         }
         
         await sqlConnection.CloseAsync();
