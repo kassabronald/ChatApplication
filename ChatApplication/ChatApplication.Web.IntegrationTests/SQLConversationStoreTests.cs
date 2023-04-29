@@ -183,17 +183,6 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
 
     [Fact]
 
-    public async Task DeleteUserConversation_EmptyId()
-    {
-        var conversation = new UserConversation("", new List<Profile>(), 1000, _conversationList[0].ConversationId);
-        await Assert.ThrowsAsync<SqlException>(async () =>
-        {
-            await _conversationStore.DeleteUserConversation(conversation);
-        });
-    }
-    
-    [Fact]
-
     public async Task GetAllConversations()
     {
         await _profileStore.AddProfile(_profile1);

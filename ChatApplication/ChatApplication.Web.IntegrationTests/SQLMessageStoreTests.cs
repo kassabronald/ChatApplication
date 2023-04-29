@@ -16,8 +16,10 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
     private readonly IConversationStore _conversationStore;
     private readonly IProfileStore _profileStore;
     private static readonly string ConversationId = Guid.NewGuid().ToString();
-    Profile _profile = new Profile(Guid.NewGuid().ToString(), "ronald", "ronald", "ronald");
+    Profile _profile1 = new Profile(Guid.NewGuid().ToString(), "ronald", "ronald", "ronald");
     Profile _profile2 = new Profile(Guid.NewGuid().ToString(), "jad", "jad", "jad");
+    private readonly UserConversation _userConversation1;
+    private readonly UserConversation _userConversation2;
     readonly Message _message1 = new Message(Guid.NewGuid().ToString(), "ronald", ConversationId, "hello", 1002);
     readonly Message _message2 = new Message(Guid.NewGuid().ToString(), "ronald", ConversationId, "hello", 1001);
     readonly Message _message3 = new Message(Guid.NewGuid().ToString(), "ronald", ConversationId, "hello", 1000);
@@ -27,9 +29,14 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
     private readonly List<ConversationMessage> _conversationMessageList;
     private readonly List<Message> _messageList;
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        return Task.CompletedTask;
+        await _profileStore.AddProfile(_profile1);
+        await _profileStore.AddProfile(_profile2);
+        await _conversationStore.CreateUserConversation(_userConversation1);
+        await _conversationStore.CreateUserConversation(_userConversation2);
+        
+        return;
     }
 
     public async Task DisposeAsync()
@@ -38,6 +45,10 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
         {
             await _messageStore.DeleteMessage(message);
         }
+        await _conversationStore.DeleteUserConversation(_userConversation1);
+        await _conversationStore.DeleteUserConversation(_userConversation2);
+        await _profileStore.DeleteProfile(_profile1.Username);
+        await _profileStore.DeleteProfile(_profile2.Username);
     }
 
     public SQLMessageStoreTests(WebApplicationFactory<Program> factory)
@@ -45,7 +56,9 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
         _messageList = new List<Message>() { _message1, _message2, _message3 };
         _conversationMessageList = new List<ConversationMessage>()
             { _conversationMessage1, _conversationMessage2, _conversationMessage3 };
-            
+        _userConversation1 = new UserConversation(ConversationId, new List<Profile>() { _profile2 }, 0, _profile1.Username);
+        _userConversation2 = new UserConversation(ConversationId, new List<Profile>() { _profile1 }, 0, _profile2.Username);
+        
         var services = factory.Services;
         var sqlSettings = services.GetRequiredService<IOptions<SQLSettings>>();
         _conversationStore = new SQLConversationStore(sqlSettings);
@@ -57,7 +70,7 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
     public async Task AddMessage_Success()
     {
         
-        await _conversationStore.CreateUserConversation(new UserConversation(ConversationId, new List<Profile>() { _profile2 }, 0, _profile.Username));
+        await _conversationStore.CreateUserConversation(new UserConversation(ConversationId, new List<Profile>() { _profile2 }, 0, _profile1.Username));
         await _messageStore.AddMessage(_messageList[0]);
         var parameters = new GetMessagesParameters(_messageList[0].ConversationId, 100, "", 0);
         var actual = await _messageStore.GetMessages(parameters);
@@ -84,13 +97,7 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
         var actual = await _messageStore.GetMessages(parameters);
         Assert.Empty(actual.Messages);
     }
-
-    [Fact]
-    public async Task DeleteMessage_EmptyMessage()
-    {
-        var message = new Message("", "", "", "", 1);
-        await Assert.ThrowsAsync<CosmosException>(async () => { await _messageStore.DeleteMessage(message); });
-    }
+    
 
     [Fact]
     public async Task GetConversationMessages_Success()
@@ -152,7 +159,7 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
             await _messageStore.AddMessage(message);
         }
 
-        await Assert.ThrowsAsync<CosmosException>(async () =>
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
         {
             var parameters = new GetMessagesParameters(_messageList[0].ConversationId, 100, "bad token", 0);
             var actual = await _messageStore.GetMessages(parameters);

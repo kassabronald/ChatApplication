@@ -151,10 +151,6 @@ public class SQLConversationStore : IConversationStore
                     ModifiedUnixTime = userConversation.LastMessageTime
                 }, transaction);
 
-            
-            
-            
-
             transaction.Commit();
         }
         catch (Exception ex)
