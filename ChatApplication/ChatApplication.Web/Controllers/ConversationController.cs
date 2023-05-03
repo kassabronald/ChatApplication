@@ -41,7 +41,7 @@ public class ConversationsController : ControllerBase
             {
                 var stopWatch = new Stopwatch();
                 await _conversationService.EnqueueAddMessage(message);
-                _telemetryClient.TrackMetric("ConversationService.AddMessage.Time", stopWatch.ElapsedMilliseconds);
+                _telemetryClient.TrackMetric("ConversationService.EnqueueAddMessage.Time", stopWatch.ElapsedMilliseconds);
                 _telemetryClient.TrackEvent("MessageAdded");
                 _logger.LogInformation("Message added");
 
@@ -84,7 +84,7 @@ public class ConversationsController : ControllerBase
 
             var id = await _conversationService.EnqueueStartConversation(startConversationParameters);
 
-            _telemetryClient.TrackMetric("ConversationService.StartConversation.Time", stopWatch.ElapsedMilliseconds);
+            _telemetryClient.TrackMetric("ConversationService.EnqueueStartConversation.Time", stopWatch.ElapsedMilliseconds);
             _telemetryClient.TrackEvent("ConversationStarted");
             _logger.LogInformation("Conversation started with id {conversationId}", id);
             var response = new StartConversationResponse(id, createdTime, conversationRequest.Participants);
