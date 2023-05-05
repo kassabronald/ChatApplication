@@ -32,6 +32,11 @@ public class ConversationsController : ControllerBase
         using (_logger.BeginScope("Adding message {Message} to conversation {ConversationId}", sendMessageRequest,
                    conversationId))
         {
+            if (!sendMessageRequest.IsValid(out var error))
+            {
+                return BadRequest(error);
+            }
+            
             var time = DateTimeOffset.UtcNow;
             Console.WriteLine("time of added message is "+time.ToUnixTimeMilliseconds());
             var message = new Message(sendMessageRequest.Id, sendMessageRequest.SenderUsername, conversationId,
@@ -41,7 +46,8 @@ public class ConversationsController : ControllerBase
             {
                 var stopWatch = new Stopwatch();
                 await _conversationService.EnqueueAddMessage(message);
-                _telemetryClient.TrackMetric("ConversationService.EnqueueAddMessage.Time", stopWatch.ElapsedMilliseconds);
+                _telemetryClient.TrackMetric("ConversationService.EnqueueAddMessage.Time",
+                    stopWatch.ElapsedMilliseconds);
                 _telemetryClient.TrackEvent("MessageAdded");
                 _logger.LogInformation("Message added");
 
@@ -56,29 +62,24 @@ public class ConversationsController : ControllerBase
             {
                 return Conflict($"A message with id : {message.MessageId} already exists ");
             }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
         }
     }
 
     [HttpPost]
-    public async Task<ActionResult<StartConversationResponse>> CreateConversation(
+    public async Task<ActionResult<StartConversationResponse>> StartConversation(
         StartConversationRequest conversationRequest)
     {
-        var numberOfParticipants = conversationRequest.Participants.Count;
-
-        if (numberOfParticipants < 2)
-            return BadRequest(
-                $"A conversation must have at least 2 participants but only {numberOfParticipants} were provided");
+        if (!conversationRequest.IsValid(out var error))
+        {
+            return BadRequest(error);
+        }
 
         try
         {
             var createdTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            Console.WriteLine("Created time is: "+ createdTime);
+            Console.WriteLine("Created time is: " + createdTime);
             var stopWatch = new Stopwatch();
-            StartConversationParameters startConversationParameters = new StartConversationParameters(
+            var startConversationParameters = new StartConversationParameters(
                 conversationRequest.FirstMessage.Id, conversationRequest.FirstMessage.SenderUsername,
                 conversationRequest.FirstMessage.Text, createdTime, conversationRequest.Participants);
 
@@ -87,22 +88,19 @@ public class ConversationsController : ControllerBase
             _telemetryClient.TrackMetric("ConversationService.EnqueueStartConversation.Time", stopWatch.ElapsedMilliseconds);
             _telemetryClient.TrackEvent("ConversationStarted");
             _logger.LogInformation("Conversation started with id {conversationId}", id);
+            
             var response = new StartConversationResponse(id, createdTime, conversationRequest.Participants);
 
             return CreatedAtAction(nameof(GetConversations),
                 new { username = conversationRequest.FirstMessage.SenderUsername }, response);
         }
-        catch (SenderNotFoundException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (DuplicateParticipantException e)
+        catch (Exception e) when (e is SenderNotFoundException or DuplicateParticipantException)
         {
             return BadRequest(e.Message);
         }
         catch (ProfileNotFoundException e)
         {
-            return BadRequest(e.Message);
+            return NotFound(e.Message);
         }
         catch (MessageAlreadyExistsException e)
         {
@@ -132,7 +130,7 @@ public class ConversationsController : ControllerBase
         return response;
     }
 
-    [HttpGet()]
+    [HttpGet]
     public async Task<ActionResult<GetConversationsResponse>> GetConversations(string username, int limit = 50,
         string continuationToken = "", long lastSeenConversationTime = 0)
     {

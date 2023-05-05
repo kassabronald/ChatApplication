@@ -1,5 +1,6 @@
 using System.Net;
 using ChatApplication.Exceptions;
+using ChatApplication.Exceptions.StorageExceptions;
 using ChatApplication.Storage.Entities;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
@@ -25,11 +26,16 @@ public class CosmosMessageStore : IMessageStore
         {
             await MessageContainer.CreateItemAsync(entity);
         }
-        catch (Exception e)
+        catch (CosmosException e)
         {
-            if (e is CosmosException cosmosException && cosmosException.StatusCode == HttpStatusCode.Conflict)
+            if (e.StatusCode == HttpStatusCode.Conflict)
             {
                 throw new MessageAlreadyExistsException($"Message with id {message.MessageId} already exists");
+            }
+
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's message store is unavailable");
             }
 
             throw;
@@ -50,6 +56,11 @@ public class CosmosMessageStore : IMessageStore
             if (e.StatusCode == HttpStatusCode.NotFound)
             {
                 return;
+            }
+
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's message store is unavailable");
             }
 
             throw;
@@ -74,6 +85,12 @@ public class CosmosMessageStore : IMessageStore
             {
                 throw new MessageNotFoundException($"A message with id {messageId} does not exist");
             }
+            
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's message store is unavailable");
+            }
+
             throw;
         }
     }
@@ -84,19 +101,33 @@ public class CosmosMessageStore : IMessageStore
         {
             MaxItemCount = int.Min(int.Max(parameters.Limit, 1), 100)
         };
-        var query = MessageContainer.GetItemLinqQueryable<MessageEntity>(true,
-                string.IsNullOrEmpty(parameters.ContinuationToken) ? null : parameters.ContinuationToken, options)
-            .Where(m => m.partitionKey == parameters.ConversationId && m.CreatedUnixTime > parameters.LastSeenMessageTime)
-            .OrderByDescending(m => m.CreatedUnixTime);
 
-        using var iterator = query.ToFeedIterator();
-        var response = await iterator.ReadNextAsync();
-        var receivedMessages = response.Select(ToMessage).ToList();
-        var newContinuationToken = response.ContinuationToken;
-        var conversationMessages = receivedMessages.Select(message =>
-                new ConversationMessage(message.SenderUsername, message.Text, message.CreatedUnixTime))
-            .ToList();
-        return new GetMessagesResult(conversationMessages, newContinuationToken);
+        try
+        {
+            var query = MessageContainer.GetItemLinqQueryable<MessageEntity>(true,
+                    string.IsNullOrEmpty(parameters.ContinuationToken) ? null : parameters.ContinuationToken, options)
+                .Where(m => m.partitionKey == parameters.ConversationId &&
+                            m.CreatedUnixTime > parameters.LastSeenMessageTime)
+                .OrderByDescending(m => m.CreatedUnixTime);
+
+            using var iterator = query.ToFeedIterator();
+            var response = await iterator.ReadNextAsync();
+            var receivedMessages = response.Select(ToMessage).ToList();
+            var newContinuationToken = response.ContinuationToken;
+            var conversationMessages = receivedMessages.Select(message =>
+                    new ConversationMessage(message.SenderUsername, message.Text, message.CreatedUnixTime))
+                .ToList();
+            return new GetMessagesResult(conversationMessages, newContinuationToken);
+        }
+        catch (CosmosException e)
+        {
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's message store is unavailable");
+            }
+
+            throw;
+        }
     }
 
     private static Message ToMessage(MessageEntity entity)

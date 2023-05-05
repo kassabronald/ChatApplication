@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text;
 using ChatApplication.Exceptions;
+using ChatApplication.Exceptions.StorageExceptions;
 using ChatApplication.Services;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -27,39 +28,57 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task GetProfile()
+    public async Task GetProfile_Success_200()
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         _profileServiceMock.Setup(m => m.GetProfile(profile.Username))
             .ReturnsAsync(profile);
+        
         var response = await _httpClient.GetAsync($"/api/Profile/{profile.Username}");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadAsStringAsync();
+        
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(profile, JsonConvert.DeserializeObject<Profile>(json));
     }
     
     [Fact]
-    public async Task GetProfile_NotFound()
+    public async Task GetProfile_NotFound_404()
     {
         _profileServiceMock.Setup(m => m.GetProfile("foobar"))
             .ThrowsAsync(new ProfileNotFoundException("Profile not found"));
+        
         var response = await _httpClient.GetAsync($"/api/Profile/foobar");
+        
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
-    public async Task AddProfile()
+
+    public async Task GetProfile_StorageUnavailable_503()
+    {
+        _profileServiceMock.Setup(m => m.GetProfile("foobar"))
+            .ThrowsAsync(new StorageUnavailableException("database is down"));
+        
+        var response = await _httpClient.GetAsync($"/api/Profile/foobar");
+        
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task AddProfile_Success_201()
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         var response = await _httpClient.PostAsync("/api/Profile",
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
+        
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.Equal("http://localhost/api/Profile/foobar", response.Headers.GetValues("Location").First());
+        
         _profileServiceMock.Verify(mock => mock.AddProfile(profile), Times.Once);
     }
     
     [Fact]
-    public async Task AddProfile_Conflict()
+    public async Task AddProfile_Conflict_409()
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         _profileServiceMock.Setup(m => m.AddProfile(profile))
@@ -67,6 +86,7 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
 
         var response = await _httpClient.PostAsync("/api/Profile",
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
+        
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
@@ -84,27 +104,44 @@ public class ProfileControllerTests: IClassFixture<WebApplicationFactory<Program
     [InlineData("foobar", "Foo", "", "12345")]
     [InlineData("foobar", "Foo", null, "12345")]
     [InlineData("foobar", "Foo", " ", "12345")]
-    public async Task AddProfile_InvalidArgs(string username, string firstName, string lastName, string profilePictureId )
+    public async Task AddProfile_InvalidArgs_400(string username, string firstName, string lastName, string profilePictureId )
     {
         var profile = new Profile(username, firstName, lastName, profilePictureId);
         var response = await _httpClient.PostAsync("/api/Profile",
             new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        
         _profileServiceMock.Verify(mock => mock.AddProfile(profile), Times.Never);
     }
     
     
     [Fact]
-    public async Task AddProfile_InvalidImage()
+    public async Task AddProfile_InvalidImage_400()
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         _profileServiceMock.Setup(m=> m.AddProfile(profile))
             .ThrowsAsync(new ImageNotFoundException("Image not found"));
+        
         var response = await _httpClient.PostAsync("/api/Profile",
                 new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
+        
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
+    
+    [Fact]
+    
+    public async Task AddProfile_StorageUnavailable_503()
+    {
+        var profile = new Profile("foobar", "Foo", "Bar", "12345");
+        _profileServiceMock.Setup(m => m.AddProfile(profile))
+            .ThrowsAsync(new StorageUnavailableException("database is down"));
+        
+        var response = await _httpClient.PostAsync("/api/Profile",
+            new StringContent(JsonConvert.SerializeObject(profile), Encoding.Default, "application/json"));
+        
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
     
 
 }

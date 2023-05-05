@@ -2,6 +2,7 @@ using System.Data;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using ChatApplication.Configuration;
+using ChatApplication.Middleware;
 using ChatApplication.Serializers.Implementations;
 using ChatApplication.ServiceBus;
 using ChatApplication.ServiceBus.Interfaces;
@@ -96,6 +97,9 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseMiddleware<ExceptionMiddleware>();
+
 
 app.Run();
 

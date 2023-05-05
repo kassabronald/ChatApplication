@@ -74,6 +74,27 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
+
+    public async Task GetMessage_Success()
+    {
+        await _store.AddMessage(_messageList[0]);
+        var actual = await _store.GetMessage(_messageList[0].ConversationId, _messageList[0].MessageId);
+        
+        Assert.Equal(_messageList[0], actual);
+    }
+
+    [Fact]
+    
+    public async Task GetMessage_NotFound()
+    {
+        await Assert.ThrowsAsync<MessageNotFoundException>(async () =>
+        {
+            await _store.GetMessage(_messageList[0].ConversationId, _messageList[0].MessageId);
+        });
+    }
+    
+
+    [Fact]
     public async Task DeleteMessage_Success()
     {
         await _store.AddMessage(_messageList[0]);

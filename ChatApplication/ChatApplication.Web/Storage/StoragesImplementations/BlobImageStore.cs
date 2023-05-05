@@ -1,6 +1,8 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using ChatApplication.Exceptions;
+using ChatApplication.Exceptions.StorageExceptions;
 using ChatApplication.Utils;
 
 namespace ChatApplication.Storage;
@@ -25,7 +27,16 @@ public class BlobImageStore : IImageStore
             ContentType = contentType
         };
         data.Position = 0;
-        await blobClient.UploadAsync(data, headers);
+
+        try
+        {
+            await blobClient.UploadAsync(data, headers);
+        }
+        catch (RequestFailedException)
+        {
+            throw new StorageUnavailableException("Blob storage is unavailable");
+        }
+        
     }
 
     public async Task<Image?> GetImage(string id)
@@ -38,14 +49,24 @@ public class BlobImageStore : IImageStore
         var blobClient = _blobContainerClient.GetBlobClient(id);
         if (!await blobClient.ExistsAsync())
             throw new ImageNotFoundException($"No image found for {id}");
+        
         BlobProperties properties = await blobClient.GetPropertiesAsync();
-        var response = await blobClient.DownloadAsync();
 
-        await using var memoryStream = new MemoryStream();
-        await response.Value.Content.CopyToAsync(memoryStream);
-        var bytes = memoryStream.ToArray();
+        try
+        {
+            var response = await blobClient.DownloadAsync();
 
-        return new Image(bytes, properties.ContentType);
+            await using var memoryStream = new MemoryStream();
+            await response.Value.Content.CopyToAsync(memoryStream);
+            var bytes = memoryStream.ToArray();
+
+            return new Image(bytes, properties.ContentType);
+        }
+        catch (RequestFailedException)
+        {
+            throw new StorageUnavailableException("Blob storage is unavailable");
+        }
+        
     }
 
     public async Task DeleteImage(string id)
@@ -60,7 +81,15 @@ public class BlobImageStore : IImageStore
         {
             return;
         }
-        await blobClient.DeleteAsync();
+
+        try
+        {
+            await blobClient.DeleteAsync();
+        }
+        catch (RequestFailedException)
+        {
+            throw new StorageUnavailableException("Blob storage is unavailable");
+        }
     }
 }
 

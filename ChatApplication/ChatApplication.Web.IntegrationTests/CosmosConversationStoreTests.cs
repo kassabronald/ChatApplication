@@ -102,8 +102,10 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
         await _store.CreateUserConversation(senderConversation);
         await _store.CreateUserConversation(receiverConversation);
         await _store.UpdateConversationLastMessageTime(senderConversation, 1005);
+        
         var senderConversationAfterUpdate = await _store.GetUserConversation(senderConversation.Username,senderConversation.ConversationId);
         var receiverConversationAfterUpdate = await _store.GetUserConversation(receiverConversation.Username, receiverConversation.ConversationId);
+        
         Assert.Equal(1005, senderConversationAfterUpdate.LastMessageTime);
         Assert.Equal(1005, receiverConversationAfterUpdate.LastMessageTime);
     }
@@ -118,7 +120,8 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
             await _store.UpdateConversationLastMessageTime(_conversationList[0], 1005);
         });
     }
-
+    
+    
     [Fact]
 
     public async Task CreateUserConversation()

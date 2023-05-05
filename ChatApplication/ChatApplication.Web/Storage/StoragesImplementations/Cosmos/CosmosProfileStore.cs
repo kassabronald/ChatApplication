@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using ChatApplication.Exceptions;
+using ChatApplication.Exceptions.StorageExceptions;
 using ChatApplication.Storage.Entities;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
@@ -34,11 +35,16 @@ public class CosmosProfileStore : IProfileStore
         {
             await Container.CreateItemAsync(entity);
         }
-        catch (Exception e)
+        catch (CosmosException e)
         {
-            if (e is CosmosException cosmosException && cosmosException.StatusCode == HttpStatusCode.Conflict)
+            if (e.StatusCode == HttpStatusCode.Conflict)
             {
                 throw new ProfileAlreadyExistsException($"Profile with username {profile.Username} already exists");
+            }
+            
+            if(e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's profile store is unavailable");
             }
 
             throw;
@@ -66,6 +72,11 @@ public class CosmosProfileStore : IProfileStore
                 throw new ProfileNotFoundException($"Profile with username {username} does not exists");
             }
 
+            if(e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's profile store is unavailable");
+            }
+
             throw;
         }
     }
@@ -84,6 +95,11 @@ public class CosmosProfileStore : IProfileStore
             if (e.StatusCode == HttpStatusCode.NotFound)
             {
                 return;
+            }
+
+            if(e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's profile store is unavailable");
             }
 
             throw;

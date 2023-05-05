@@ -27,11 +27,10 @@ public class ImagesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult?> DownloadImage(string id)
     {
-        Image? image;
         try
         {
             var stopWatch = Stopwatch.StartNew();
-            image = await _imageService.GetImage(id);
+            var image = await _imageService.GetImage(id);
             _telemetryClient.TrackMetric("ImageService.GetImage.Time", stopWatch.ElapsedMilliseconds);
             return new FileContentResult(image!.ImageData, image.ContentType);
         }

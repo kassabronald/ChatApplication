@@ -1,5 +1,6 @@
 using System.Net;
 using ChatApplication.Exceptions;
+using ChatApplication.Exceptions.StorageExceptions;
 using ChatApplication.Storage.Entities;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
@@ -36,6 +37,11 @@ public class CosmosConversationStore : IConversationStore
                 throw new ConversationNotFoundException($"Could not resolve conversation with id : {conversationId}");
             }
 
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's conversation store is unavailable");
+            }
+            
             throw;
         }
     }
@@ -44,8 +50,21 @@ public class CosmosConversationStore : IConversationStore
     {
         userConversation.LastMessageTime = lastMessageTime;
         var entity = ToEntity(userConversation);
-        await ConversationContainer.ReplaceItemAsync<ConversationEntity>(entity, entity.id,
-            new PartitionKey(entity.partitionKey));
+
+        try
+        {
+            await ConversationContainer.ReplaceItemAsync<ConversationEntity>(entity, entity.id,
+                new PartitionKey(entity.partitionKey));
+        }
+        catch (CosmosException e)
+        {
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's conversation store is unavailable");
+            }
+            
+            throw;
+        }
     }
     
     public async Task UpdateConversationLastMessageTime(UserConversation senderConversation, long lastMessageTime)
@@ -69,12 +88,16 @@ public class CosmosConversationStore : IConversationStore
         }
         catch (CosmosException e)
         {
-            //TODO: No issues if conflict
             if (e.StatusCode == HttpStatusCode.Conflict)
             {
                 throw new ConversationAlreadyExistsException(
                     $"Conversation with id :{userConversation.ConversationId} already exists");
             }
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's conversation store is unavailable");
+            }
+            
             throw;
         }        
 
@@ -95,6 +118,11 @@ public class CosmosConversationStore : IConversationStore
             {
                 return;
             }
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's conversation store is unavailable");
+            }
+            
             throw;
         }
     }
@@ -105,15 +133,30 @@ public class CosmosConversationStore : IConversationStore
         {
             MaxItemCount = int.Min(int.Max(parameters.Limit,1), 100)
         };
-        var query = ConversationContainer.GetItemLinqQueryable<ConversationEntity>(true, string.IsNullOrEmpty(parameters.ContinuationToken) ? null : parameters.ContinuationToken, options)
-            .Where(m => m.partitionKey == parameters.Username && m.lastMessageTime > parameters.LastSeenConversationTime)
-            .OrderByDescending(m => m.lastMessageTime);
 
-        using var iterator = query.ToFeedIterator();
-        var response = await iterator.ReadNextAsync();
-        var receivedConversations = response.Select(ToConversation).ToList();
-        var newContinuationToken = response.ContinuationToken;
-        return new GetConversationsResult(receivedConversations, newContinuationToken);
+        try
+        {
+            var query = ConversationContainer.GetItemLinqQueryable<ConversationEntity>(true,
+                    string.IsNullOrEmpty(parameters.ContinuationToken) ? null : parameters.ContinuationToken, options)
+                .Where(m => m.partitionKey == parameters.Username &&
+                            m.lastMessageTime > parameters.LastSeenConversationTime)
+                .OrderByDescending(m => m.lastMessageTime);
+
+            using var iterator = query.ToFeedIterator();
+            var response = await iterator.ReadNextAsync();
+            var receivedConversations = response.Select(ToConversation).ToList();
+            var newContinuationToken = response.ContinuationToken;
+            return new GetConversationsResult(receivedConversations, newContinuationToken);
+        }
+        catch (CosmosException e)
+        {
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException("Cosmos DB's conversation store is unavailable");
+            }
+            
+            throw;
+        }
     }
     
 
