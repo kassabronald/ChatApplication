@@ -12,13 +12,13 @@ namespace ChatApplication.Web.IntegrationTests;
 public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
     private readonly IMessageStore _store;
-    private readonly string ConversationId;
+    private readonly string _conversationId;
     private readonly Message _message1;
     private readonly Message _message2;
     private readonly Message _message3;
-    readonly ConversationMessage _conversationMessage1 = new ConversationMessage("ronald", "hello", 1002);
-    readonly ConversationMessage _conversationMessage2 = new ConversationMessage("ronald", "hello", 1001);
-    readonly ConversationMessage _conversationMessage3 = new ConversationMessage("ronald", "hello", 1000);
+    private readonly ConversationMessage _conversationMessage1 = new ConversationMessage("ronald", "hello", 1002);
+    private readonly ConversationMessage _conversationMessage2 = new ConversationMessage("ronald", "hello", 1001);
+    private readonly ConversationMessage _conversationMessage3 = new ConversationMessage("ronald", "hello", 1000);
     private readonly List<ConversationMessage> _conversationMessageList;
     private readonly List<Message> _messageList;
 
@@ -38,10 +38,10 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     public CosmosMessageStoreTests(WebApplicationFactory<Program> factory)
     {
         
-        ConversationId = Guid.NewGuid().ToString();
-        _message1 = new Message(Guid.NewGuid().ToString(), "ronald", ConversationId, "hello", 1002);
-        _message2 = new Message(Guid.NewGuid().ToString(), "ronald", ConversationId, "hello", 1001);
-        _message3 = new Message(Guid.NewGuid().ToString(), "ronald", ConversationId, "hello", 1000);
+        _conversationId = Guid.NewGuid().ToString();
+        _message1 = new Message(Guid.NewGuid().ToString(), "ronald", _conversationId, "hello", 1002);
+        _message2 = new Message(Guid.NewGuid().ToString(), "ronald", _conversationId, "hello", 1001);
+        _message3 = new Message(Guid.NewGuid().ToString(), "ronald", _conversationId, "hello", 1000);
         
         _messageList = new List<Message>() { _message1, _message2, _message3 };
         _conversationMessageList = new List<ConversationMessage>()

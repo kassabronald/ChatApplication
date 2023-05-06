@@ -44,7 +44,7 @@ public class CosmosProfileStore : IProfileStore
             
             if(e.StatusCode != HttpStatusCode.BadRequest)
             {
-                throw new StorageUnavailableException("Cosmos DB's profile store is unavailable");
+                throw new StorageUnavailableException($"Could not add profile with username {profile.Username}", e);
             }
 
             throw;
@@ -74,7 +74,7 @@ public class CosmosProfileStore : IProfileStore
 
             if(e.StatusCode != HttpStatusCode.BadRequest)
             {
-                throw new StorageUnavailableException("Cosmos DB's profile store is unavailable");
+                throw new StorageUnavailableException($"Could not get profile with username {username}", e);
             }
 
             throw;
@@ -99,7 +99,7 @@ public class CosmosProfileStore : IProfileStore
 
             if(e.StatusCode != HttpStatusCode.BadRequest)
             {
-                throw new StorageUnavailableException("Cosmos DB's profile store is unavailable");
+                throw new StorageUnavailableException($"Could not delete profile with username {username}", e);
             }
 
             throw;

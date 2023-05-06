@@ -54,7 +54,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
 
     [Fact]
 
-    public async Task GetUserConversation()
+    public async Task GetUserConversation_Success()
     {
         await _store.CreateUserConversation(_conversationList[0]);
         var conversation = await _store.GetUserConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
@@ -124,7 +124,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     
     [Fact]
 
-    public async Task CreateUserConversation()
+    public async Task CreateUserConversation_Success()
     {
         await _store.CreateUserConversation(_conversationList[0]);
         var conversation = await _store.GetUserConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
@@ -156,7 +156,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
 
     [Fact]
 
-    public async Task DeleteUserConversation()
+    public async Task DeleteUserConversation_Success()
     {
         await _store.CreateUserConversation(_conversationList[0]);
         await _store.DeleteUserConversation(_conversationList[0]);
@@ -179,7 +179,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     
     [Fact]
 
-    public async Task GetAllConversations()
+    public async Task GetAllConversations_Success()
     {
         var expected = new List<UserConversation>();
         foreach (var conversation in _conversationList)

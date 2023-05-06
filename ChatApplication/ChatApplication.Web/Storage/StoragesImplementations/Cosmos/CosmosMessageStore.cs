@@ -35,7 +35,7 @@ public class CosmosMessageStore : IMessageStore
 
             if (e.StatusCode != HttpStatusCode.BadRequest)
             {
-                throw new StorageUnavailableException("Cosmos DB's message store is unavailable");
+                throw new StorageUnavailableException($"Could not add message with id {message.MessageId}", e);
             }
 
             throw;
@@ -60,7 +60,7 @@ public class CosmosMessageStore : IMessageStore
 
             if (e.StatusCode != HttpStatusCode.BadRequest)
             {
-                throw new StorageUnavailableException("Cosmos DB's message store is unavailable");
+                throw new StorageUnavailableException($"Could not delete message with id {message.MessageId}", e);
             }
 
             throw;
@@ -88,7 +88,7 @@ public class CosmosMessageStore : IMessageStore
             
             if (e.StatusCode != HttpStatusCode.BadRequest)
             {
-                throw new StorageUnavailableException("Cosmos DB's message store is unavailable");
+                throw new StorageUnavailableException($"Could not get message with id {messageId}", e);
             }
 
             throw;
@@ -123,7 +123,7 @@ public class CosmosMessageStore : IMessageStore
         {
             if (e.StatusCode != HttpStatusCode.BadRequest)
             {
-                throw new StorageUnavailableException("Cosmos DB's message store is unavailable");
+                throw new StorageUnavailableException($"Could not get messages for conversation with id {parameters.ConversationId}", e);
             }
 
             throw;

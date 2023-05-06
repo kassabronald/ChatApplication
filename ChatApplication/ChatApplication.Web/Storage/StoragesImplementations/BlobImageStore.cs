@@ -20,7 +20,7 @@ public class BlobImageStore : IImageStore
     {
         if (data == null || data.Length == 0)
             throw new ArgumentException("Data is empty", nameof(data));
-
+    
         BlobClient blobClient = _blobContainerClient.GetBlobClient(blobName);
         BlobHttpHeaders headers = new BlobHttpHeaders
         {
@@ -32,9 +32,9 @@ public class BlobImageStore : IImageStore
         {
             await blobClient.UploadAsync(data, headers);
         }
-        catch (RequestFailedException)
+        catch (RequestFailedException e)
         {
-            throw new StorageUnavailableException("Blob storage is unavailable");
+            throw new StorageUnavailableException($"Could not upload image {blobName}", e);
         }
         
     }
@@ -46,25 +46,25 @@ public class BlobImageStore : IImageStore
             throw new ArgumentException("Invalid id", nameof(id));
         }
 
-        var blobClient = _blobContainerClient.GetBlobClient(id);
-        if (!await blobClient.ExistsAsync())
-            throw new ImageNotFoundException($"No image found for {id}");
-        
-        BlobProperties properties = await blobClient.GetPropertiesAsync();
-
         try
         {
+            
+            var blobClient = _blobContainerClient.GetBlobClient(id);
+            
+            if (!await blobClient.ExistsAsync())
+                throw new ImageNotFoundException($"No image found for {id}");
+            
+            BlobProperties properties = await blobClient.GetPropertiesAsync();
             var response = await blobClient.DownloadAsync();
-
             await using var memoryStream = new MemoryStream();
             await response.Value.Content.CopyToAsync(memoryStream);
             var bytes = memoryStream.ToArray();
 
             return new Image(bytes, properties.ContentType);
         }
-        catch (RequestFailedException)
+        catch (RequestFailedException e)
         {
-            throw new StorageUnavailableException("Blob storage is unavailable");
+            throw new StorageUnavailableException($"Could not download image {id}", e);
         }
         
     }
@@ -76,19 +76,18 @@ public class BlobImageStore : IImageStore
             throw new ArgumentException("Invalid id", nameof(id));
         }
     
-        var blobClient = _blobContainerClient.GetBlobClient(id);
-        if (!await blobClient.ExistsAsync())
-        {
-            return;
-        }
-
         try
         {
+            var blobClient = _blobContainerClient.GetBlobClient(id);
+            if (!await blobClient.ExistsAsync())
+            {
+                return;
+            }
             await blobClient.DeleteAsync();
         }
-        catch (RequestFailedException)
+        catch (RequestFailedException e)
         {
-            throw new StorageUnavailableException("Blob storage is unavailable");
+            throw new StorageUnavailableException($"Could not delete image {id}", e);
         }
     }
 }

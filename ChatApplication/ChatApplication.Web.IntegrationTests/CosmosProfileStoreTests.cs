@@ -40,14 +40,14 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
     
     [Fact]
 
-    public async Task AddProfile()
+    public async Task AddProfile_Success()
     {
         await _store.AddProfile(_profile);
         Assert.Equal(_profile, await _store.GetProfile(_profile.Username));
     }
     
     [Fact]
-    public async Task GetNonExistingProfile()
+    public async Task GetProfile_NotFound()
     {
         await Assert.ThrowsAsync<ProfileNotFoundException>(async () => await _store.GetProfile(_profile.Username + "1"));
 
@@ -55,7 +55,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
     
     [Fact]
 
-    public async Task GetEmptyProfile()
+    public async Task GetProfile_EmptyProfile()
     {
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
@@ -99,7 +99,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
 
     [Fact]
 
-    public async Task DeleteProfile()
+    public async Task DeleteProfile_Success()
     {
         await _store.AddProfile(_profile);
         await _store.DeleteProfile(_profile.Username);
@@ -108,7 +108,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
 
     [Fact]
 
-    public async Task DeleteEmptyProfile()
+    public async Task DeleteProfile_EmptyProfile()
     {
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
@@ -119,7 +119,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
 
     [Fact]
 
-    public async Task AddProfileAlreadyExisting()
+    public async Task AddProfile_Conflict()
     {
         await _store.AddProfile(_profile);
         await Assert.ThrowsAsync<ProfileAlreadyExistsException>(async () =>

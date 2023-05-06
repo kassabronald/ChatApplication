@@ -13,8 +13,8 @@ namespace ChatApplication.Web.IntegrationTests;
 
 public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
-    public readonly IConversationStore _conversationStore;
-    public readonly IProfileStore _profileStore;
+    private readonly IConversationStore _conversationStore;
+    private readonly IProfileStore _profileStore;
     private readonly Profile _profile1 = new Profile(Guid.NewGuid().ToString(), "king", "97", "123");
     private readonly Profile _profile2 = new Profile(Guid.NewGuid().ToString(), "ok", "noob", "1234");
     private readonly Profile _profile3 = new Profile(Guid.NewGuid().ToString(), "k", "rim", "12345");
@@ -65,7 +65,7 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
     }
     
     [Fact]
-    public async Task GetUserConversation()
+    public async Task GetUserConversation_Success()
     {
         await _profileStore.AddProfile(_profile1);
         await _profileStore.AddProfile(_profile2);
@@ -133,7 +133,7 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
 
     [Fact]
 
-    public async Task CreateUserConversation()
+    public async Task CreateUserConversation_Success()
     {
         await _profileStore.AddProfile(_profile1);
         await _profileStore.AddProfile(_profile2);
@@ -157,7 +157,7 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
 
     [Fact]
 
-    public async Task DeleteUserConversation()
+    public async Task DeleteUserConversation_Success()
     {
         await _profileStore.AddProfile(_profile1);
         await _profileStore.AddProfile(_profile2);
@@ -171,7 +171,7 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
 
     [Fact]
 
-    public async Task GetAllConversations()
+    public async Task GetAllConversations_Success()
     {
         await _profileStore.AddProfile(_profile1);
         await _profileStore.AddProfile(_profile2);

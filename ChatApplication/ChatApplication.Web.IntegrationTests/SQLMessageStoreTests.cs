@@ -15,9 +15,9 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
     private readonly IMessageStore _messageStore;
     private readonly IConversationStore _conversationStore;
     private readonly IProfileStore _profileStore;
-    private readonly string ConversationId;
-    Profile _profile1 = new Profile(Guid.NewGuid().ToString(), "ronald", "ronald", "ronald");
-    Profile _profile2 = new Profile(Guid.NewGuid().ToString(), "jad", "jad", "jad");
+    private readonly string _conversationId;
+    private readonly Profile _profile1 = new Profile(Guid.NewGuid().ToString(), "ronald", "ronald", "ronald");
+    private readonly Profile _profile2 = new Profile(Guid.NewGuid().ToString(), "jad", "jad", "jad");
     private readonly UserConversation _userConversation1;
     private readonly UserConversation _userConversation2;
     private readonly Message _message1;
@@ -54,16 +54,16 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
     public SQLMessageStoreTests(WebApplicationFactory<Program> factory)
     {
         
-        ConversationId = Guid.NewGuid().ToString();
-        _message1 = new Message(Guid.NewGuid().ToString(), "ronald", ConversationId, "hello", 1002);
-        _message2 = new Message(Guid.NewGuid().ToString(), "ronald", ConversationId, "hello", 1001);
-        _message3 = new Message(Guid.NewGuid().ToString(), "ronald", ConversationId, "hello", 1000);
+        _conversationId = Guid.NewGuid().ToString();
+        _message1 = new Message(Guid.NewGuid().ToString(), "ronald", _conversationId, "hello", 1002);
+        _message2 = new Message(Guid.NewGuid().ToString(), "ronald", _conversationId, "hello", 1001);
+        _message3 = new Message(Guid.NewGuid().ToString(), "ronald", _conversationId, "hello", 1000);
         
         _messageList = new List<Message>() { _message1, _message2, _message3 };
         _conversationMessageList = new List<ConversationMessage>()
             { _conversationMessage1, _conversationMessage2, _conversationMessage3 };
-        _userConversation1 = new UserConversation(ConversationId, new List<Profile>() { _profile2 }, 0, _profile1.Username);
-        _userConversation2 = new UserConversation(ConversationId, new List<Profile>() { _profile1 }, 0, _profile2.Username);
+        _userConversation1 = new UserConversation(_conversationId, new List<Profile>() { _profile2 }, 0, _profile1.Username);
+        _userConversation2 = new UserConversation(_conversationId, new List<Profile>() { _profile1 }, 0, _profile2.Username);
         
         
         var services = factory.Services;
@@ -77,7 +77,7 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
     public async Task AddMessage_Success()
     {
         
-        await _conversationStore.CreateUserConversation(new UserConversation(ConversationId, new List<Profile>() { _profile2 }, 0, _profile1.Username));
+        await _conversationStore.CreateUserConversation(new UserConversation(_conversationId, new List<Profile>() { _profile2 }, 0, _profile1.Username));
         await _messageStore.AddMessage(_messageList[0]);
         var parameters = new GetMessagesParameters(_messageList[0].ConversationId, 100, "", 0);
         var actual = await _messageStore.GetMessages(parameters);
