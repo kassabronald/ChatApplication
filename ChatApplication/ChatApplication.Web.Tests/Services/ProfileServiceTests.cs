@@ -24,8 +24,10 @@ public class ProfileServiceTests
     public async Task GetProfile()
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
+        
         _profileStoreMock.Setup(m => m.GetProfile(profile.Username))
             .ReturnsAsync(profile);
+        
         var actualProfile = await _profileService.GetProfile(profile.Username);
         
         Assert.Equivalent(profile, actualProfile);
@@ -45,10 +47,13 @@ public class ProfileServiceTests
     {
         var profile = new Profile("foobar", "Foo", "Bar", "12345");
         var image = new byte[]{0,1,2};
+        
         _imageStoreMock.Setup(m => m.GetImage(profile.ProfilePictureId))
             .ReturnsAsync(new Image(image, "image/png"));
         _profileStoreMock.Setup(m => m.AddProfile(profile));
+        
         await _profileService.AddProfile(profile);
+        
         _profileStoreMock.Verify(mock => mock.AddProfile(profile), Times.Once);
     }
     

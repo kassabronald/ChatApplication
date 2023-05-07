@@ -100,12 +100,17 @@ public class ConversationService : IConversationService
         }
         catch (ConversationAlreadyExistsException)
         {
-            await _messageStore.AddMessage(new Message(parameters.messageId, parameters.senderUsername, id, parameters.messageContent, parameters.createdTime));
-            return id;
         }
         
         var message = new Message(parameters.messageId, parameters.senderUsername, id, parameters.messageContent, parameters.createdTime);
-        await _messageStore.AddMessage(message);
+
+        try
+        { 
+            await _messageStore.AddMessage(message); 
+        }
+        catch (MessageAlreadyExistsException)
+        {
+        }  
         
         return id;
     }

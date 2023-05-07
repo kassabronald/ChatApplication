@@ -21,9 +21,12 @@ public class ImageServiceTests
     public async Task GetImage()
     {
         var image = new byte[]{0,1,2};
+        
         _imageStoreMock.Setup(m => m.GetImage("12345"))
             .ReturnsAsync(new Image(image, "image/png"));
+        
         var actualImage = await _imageService.GetImage("12345");
+        
         Assert.Equal(image, actualImage?.ImageData);
     }
     
@@ -32,7 +35,9 @@ public class ImageServiceTests
     {
         _imageStoreMock.Setup(m => m.GetImage("12345"))
             .ReturnsAsync((Image?)null);
+        
         var actualImage = await _imageService.GetImage("12345");
+        
         Assert.Null(actualImage);
     }
     
@@ -41,8 +46,11 @@ public class ImageServiceTests
     {
         var image = new byte[]{0,1,2};
         var stream = new MemoryStream(image);
+        
         _imageStoreMock.Setup(m => m.AddImage(It.IsAny<string>(), stream, "image/png"));
+        
         await _imageService.AddImage(stream, "image/png");
+        
         _imageStoreMock.Verify(mock => mock.AddImage(It.IsAny<string>(), stream, "image/png"), Times.Once);
     }
 }
