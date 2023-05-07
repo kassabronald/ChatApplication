@@ -1,5 +1,6 @@
 using System.Net;
 using ChatApplication.Exceptions;
+using ChatApplication.Exceptions.StorageExceptions;
 using ChatApplication.Storage.Entities;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
@@ -36,6 +37,11 @@ public class CosmosConversationStore : IConversationStore
                 throw new ConversationNotFoundException($"Could not resolve conversation with id : {conversationId}");
             }
 
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException($"Could not get conversation with id : {conversationId} for user {username}", e);
+            }
+            
             throw;
         }
     }
@@ -43,9 +49,22 @@ public class CosmosConversationStore : IConversationStore
     private async Task UpdateConversationUserLastMessageTime(UserConversation userConversation, long lastMessageTime)
     {
         userConversation.LastMessageTime = lastMessageTime;
-        var entity = toEntity(userConversation);
-        await ConversationContainer.ReplaceItemAsync<ConversationEntity>(entity, entity.id,
-            new PartitionKey(entity.partitionKey));
+        var entity = ToEntity(userConversation);
+
+        try
+        {
+            await ConversationContainer.ReplaceItemAsync<ConversationEntity>(entity, entity.id,
+                new PartitionKey(entity.partitionKey));
+        }
+        catch (CosmosException e)
+        {
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException($"Could not update conversation with id {userConversation.ConversationId}'s last message time", e);
+            }
+            
+            throw;
+        }
     }
     
     public async Task UpdateConversationLastMessageTime(UserConversation senderConversation, long lastMessageTime)
@@ -62,19 +81,24 @@ public class CosmosConversationStore : IConversationStore
 
     public async Task CreateUserConversation(UserConversation userConversation)
     {
-        var entity = toEntity(userConversation);
+        var entity = ToEntity(userConversation);
+        
         try
         {
             await ConversationContainer.CreateItemAsync(entity);
         }
         catch (CosmosException e)
         {
-            //TODO: No issues if conflict
             if (e.StatusCode == HttpStatusCode.Conflict)
             {
                 throw new ConversationAlreadyExistsException(
                     $"Conversation with id :{userConversation.ConversationId} already exists");
             }
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException($"Could not create conversation with id : {userConversation.ConversationId} for user {userConversation.Username}", e);
+            }
+            
             throw;
         }        
 
@@ -95,6 +119,11 @@ public class CosmosConversationStore : IConversationStore
             {
                 return;
             }
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException($"Could not delete conversation with id : {userConversation.ConversationId} for user {userConversation.Username}", e);
+            }
+            
             throw;
         }
     }
@@ -105,19 +134,30 @@ public class CosmosConversationStore : IConversationStore
         {
             MaxItemCount = int.Min(int.Max(parameters.Limit,1), 100)
         };
-        var query = ConversationContainer.GetItemLinqQueryable<ConversationEntity>(true, string.IsNullOrEmpty(parameters.ContinuationToken) ? null : parameters.ContinuationToken, options)
-            .Where(m => m.partitionKey == parameters.Username && m.lastMessageTime > parameters.LastSeenConversationTime)
-            .OrderByDescending(m => m.lastMessageTime);
 
-        using var iterator = query.ToFeedIterator();
-        var response = await iterator.ReadNextAsync();
-        var receivedConversations = response.Select(ToConversation).ToList();
-        var newContinuationToken = response.ContinuationToken;
-        return new GetConversationsResult(receivedConversations, newContinuationToken);
+        try
+        {
+            var query = GetFilteredConversations(parameters.Username, parameters.LastSeenConversationTime, parameters.ContinuationToken, options);
+            
+            using var iterator = query.ToFeedIterator();
+            var response = await iterator.ReadNextAsync();
+            var receivedConversations = response.Select(ToConversation).ToList();
+            var newContinuationToken = response.ContinuationToken;
+            return new GetConversationsResult(receivedConversations, newContinuationToken);
+        }
+        catch (CosmosException e)
+        {
+            if (e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException($"Could not get conversations for user {parameters.Username}", e);
+            }
+            
+            throw;
+        }
     }
     
 
-    private ConversationEntity toEntity(UserConversation userConversation)
+    private static ConversationEntity ToEntity(UserConversation userConversation)
     {
         return new ConversationEntity
         {
@@ -128,7 +168,7 @@ public class CosmosConversationStore : IConversationStore
         };
     }
 
-    private UserConversation ToConversation(ConversationEntity conversationEntity)
+    private static UserConversation ToConversation(ConversationEntity conversationEntity)
     {
         return new UserConversation(
             conversationEntity.id,
@@ -136,5 +176,13 @@ public class CosmosConversationStore : IConversationStore
             conversationEntity.lastMessageTime,
             conversationEntity.partitionKey
         );
+    }
+    
+    private IQueryable<ConversationEntity> GetFilteredConversations(string username, long lastSeenConversationTime, string? continuationToken, QueryRequestOptions options)
+    {
+        return ConversationContainer.GetItemLinqQueryable<ConversationEntity>(true, string.IsNullOrEmpty(continuationToken) ? null : continuationToken, options)
+            .Where(m => m.partitionKey == username &&
+                        m.lastMessageTime > lastSeenConversationTime)
+            .OrderByDescending(m => m.lastMessageTime);
     }
 }

@@ -1,9 +1,11 @@
-﻿using ChatApplication.Exceptions;
+﻿using ChatApplication.Configuration;
+using ChatApplication.Exceptions;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace ChatApplication.Web.IntegrationTests;
 
@@ -18,6 +20,14 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
         ProfilePictureId: "123"
     );
     
+    public CosmosProfileStoreTests(WebApplicationFactory<Program> factory)
+    {
+        var services = factory.Services;
+        var cosmosSettings = services.GetRequiredService<IOptions<CosmosSettings>>().Value;
+        var cosmosClient = new CosmosClient(cosmosSettings.ConnectionString);
+        _store = new CosmosProfileStore(cosmosClient);
+    }
+    
     public Task InitializeAsync()
     {
         return Task.CompletedTask;
@@ -28,22 +38,16 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
         await _store.DeleteProfile(_profile.Username);
     }
     
-    public CosmosProfileStoreTests(WebApplicationFactory<Program> factory)
-    {
-        _store = factory.Services.GetRequiredService<IProfileStore>();
-    }
-    
-
     [Fact]
 
-    public async Task AddProfile()
+    public async Task AddProfile_Success()
     {
         await _store.AddProfile(_profile);
         Assert.Equal(_profile, await _store.GetProfile(_profile.Username));
     }
     
     [Fact]
-    public async Task GetNonExistingProfile()
+    public async Task GetProfile_NotFound()
     {
         await Assert.ThrowsAsync<ProfileNotFoundException>(async () => await _store.GetProfile(_profile.Username + "1"));
 
@@ -51,7 +55,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
     
     [Fact]
 
-    public async Task GetEmptyProfile()
+    public async Task GetProfile_EmptyProfile()
     {
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
@@ -95,7 +99,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
 
     [Fact]
 
-    public async Task DeleteProfile()
+    public async Task DeleteProfile_Success()
     {
         await _store.AddProfile(_profile);
         await _store.DeleteProfile(_profile.Username);
@@ -104,7 +108,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
 
     [Fact]
 
-    public async Task DeleteEmptyProfile()
+    public async Task DeleteProfile_EmptyProfile()
     {
         await Assert.ThrowsAsync<CosmosException>(async () =>
         {
@@ -115,7 +119,7 @@ public class CosmosProfileStoreTests:IClassFixture<WebApplicationFactory<Program
 
     [Fact]
 
-    public async Task AddProfileAlreadyExisting()
+    public async Task AddProfile_Conflict()
     {
         await _store.AddProfile(_profile);
         await Assert.ThrowsAsync<ProfileAlreadyExistsException>(async () =>

@@ -31,7 +31,7 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
     
     [Fact]
     
-    public async Task AddImage()
+    public async Task AddImage_Success()
     {
         await _store.AddImage(blobName, _data, _contentType);
         var actual = await _store.GetImage(blobName);
@@ -56,10 +56,9 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
         await Assert.ThrowsAsync<ArgumentException>(() => _store.AddImage(blobName, stream, contentType));
     }
     
-    
     [Fact]
     
-    public async Task GetNonExistingImage()
+    public async Task GetImage_NotFound()
     {
         await Assert.ThrowsAsync<ImageNotFoundException>(
             async () => await _store.GetImage("foobar"));
@@ -79,7 +78,7 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
     
     [Fact]
 
-    public async Task DeleteImage()
+    public async Task DeleteImage_Success()
     {
         
         await _store.AddImage(blobName, _data, _contentType);
@@ -92,7 +91,7 @@ public class BlobImageStoreTests : IClassFixture<WebApplicationFactory<Program>>
 
     [Fact]
 
-    public async Task DeleteEmptyImage()
+    public async Task DeleteImage_EmptyImage()
     {
         await Assert.ThrowsAsync<ArgumentException>(async () =>
         {

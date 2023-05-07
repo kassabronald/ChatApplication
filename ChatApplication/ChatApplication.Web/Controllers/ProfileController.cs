@@ -14,11 +14,9 @@ namespace ChatApplication.Controllers;
 public class ProfileController : ControllerBase
 
 {
-    private readonly IProfileService _profileService; //does the logic
-    private readonly ILogger<ProfileController> _logger; //logs the errors
-
-    private readonly TelemetryClient _telemetryClient; //tracks events and metrics
-    //Single responsibility principle
+    private readonly IProfileService _profileService; 
+    private readonly ILogger<ProfileController> _logger; 
+    private readonly TelemetryClient _telemetryClient; 
     
     public ProfileController(IProfileService profileService, ILogger<ProfileController> logger, TelemetryClient telemetryClient)
     {
@@ -32,9 +30,8 @@ public class ProfileController : ControllerBase
     {
         try
         {
-            Profile profile;
             var stopWatch = Stopwatch.StartNew();
-            profile = await _profileService.GetProfile(username);
+            var profile = await _profileService.GetProfile(username);
             _telemetryClient.TrackMetric("ProfileService.GetProfile.Time", stopWatch.ElapsedMilliseconds);
             return Ok(profile);
         }

@@ -27,11 +27,10 @@ public class ImagesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult?> DownloadImage(string id)
     {
-        Image? image;
         try
         {
             var stopWatch = Stopwatch.StartNew();
-            image = await _imageService.GetImage(id);
+            var image = await _imageService.GetImage(id);
             _telemetryClient.TrackMetric("ImageService.GetImage.Time", stopWatch.ElapsedMilliseconds);
             return new FileContentResult(image!.ImageData, image.ContentType);
         }
@@ -51,15 +50,6 @@ public class ImagesController : ControllerBase
         if (request.File.Length == 0) return new UploadImageResponse("");
         using (_logger.BeginScope("Uploading Image with name {Name}", request.File.FileName))
         {
-
-            // string contentType = request.File.ContentType.ToLower();
-            // if (contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/jpg")
-            // {
-            //     return BadRequest($"Only JPEG and PNG and JPG images are supported, not {contentType}");
-            // }
-            
-            //Code commented for the sake of the functional tests
-
             using var stream = new MemoryStream();
             await request.File.CopyToAsync(stream);
             if (stream.Length == 0)
@@ -69,6 +59,7 @@ public class ImagesController : ControllerBase
 
             var stopWatch = Stopwatch.StartNew();
             var id = await _imageService.AddImage(stream, request.File.ContentType);
+            _logger.LogInformation("Image added with id {Id}", id);
             _telemetryClient.TrackMetric("ImageService.AddImage.Time", stopWatch.ElapsedMilliseconds);
             _telemetryClient.TrackEvent("ImageAdded");
             return CreatedAtAction(nameof(DownloadImage), new { id }, new UploadImageResponse(id));

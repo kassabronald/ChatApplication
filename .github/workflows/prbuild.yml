@@ -10,8 +10,13 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    
+    env:
+      BlobStorage:ConnectionString: "${{ secrets.BLOBSTORAGE_CONNECTIONSTRING}}"
+      Cosmos:ConnectionString: "${{ secrets.COSMOS_CONNECTIONSTRING}}"
+      ServiceBus:ConnectionString: "${{ secrets.SERVICEBUS_CONNECTIONSTRING}}"
+      SQL:ConnectionString: "${{ secrets.SQL_CONNECTIONSTRING}}"
 
     steps:
     - name: Checkout code
@@ -33,7 +38,3 @@ jobs:
       
     - name: Run integration tests
       run: dotnet test ./ChatApplication/ChatApplication.Web.IntegrationTests/bin/Release/net7.0/ChatApplication.Web.IntegrationTests.dll
-      
-      env:
-        BlobStorage:ConnectionString: "${{ secrets.BLOBSTORAGE_CONNECTIONSTRING}}"
-        Cosmos:ConnectionString: "${{ secrets.COSMOS_CONNECTIONSTRING}}"

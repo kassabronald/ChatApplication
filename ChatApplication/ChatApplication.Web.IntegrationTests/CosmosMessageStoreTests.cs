@@ -1,22 +1,24 @@
+using ChatApplication.Configuration;
 using ChatApplication.Exceptions;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace ChatApplication.Web.IntegrationTests;
 
 public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
     private readonly IMessageStore _store;
-    private static readonly string ConversationId = Guid.NewGuid().ToString();
-    readonly Message _message1 = new Message(Guid.NewGuid().ToString(), "ronald", "hello", 1002, ConversationId);
-    readonly Message _message2 = new Message(Guid.NewGuid().ToString(), "ronald", "hello", 1001, ConversationId);
-    readonly Message _message3 = new Message(Guid.NewGuid().ToString(), "ronald", "hello", 1000, ConversationId);
-    readonly ConversationMessage _conversationMessage1 = new ConversationMessage("ronald", "hello", 1002);
-    readonly ConversationMessage _conversationMessage2 = new ConversationMessage("ronald", "hello", 1001);
-    readonly ConversationMessage _conversationMessage3 = new ConversationMessage("ronald", "hello", 1000);
+    private readonly string _conversationId;
+    private readonly Message _message1;
+    private readonly Message _message2;
+    private readonly Message _message3;
+    private readonly ConversationMessage _conversationMessage1 = new ConversationMessage("ronald", "hello", 1002);
+    private readonly ConversationMessage _conversationMessage2 = new ConversationMessage("ronald", "hello", 1001);
+    private readonly ConversationMessage _conversationMessage3 = new ConversationMessage("ronald", "hello", 1000);
     private readonly List<ConversationMessage> _conversationMessageList;
     private readonly List<Message> _messageList;
 
@@ -35,10 +37,20 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
 
     public CosmosMessageStoreTests(WebApplicationFactory<Program> factory)
     {
+        
+        _conversationId = Guid.NewGuid().ToString();
+        _message1 = new Message(Guid.NewGuid().ToString(), "ronald", _conversationId, "hello", 1002);
+        _message2 = new Message(Guid.NewGuid().ToString(), "ronald", _conversationId, "hello", 1001);
+        _message3 = new Message(Guid.NewGuid().ToString(), "ronald", _conversationId, "hello", 1000);
+        
         _messageList = new List<Message>() { _message1, _message2, _message3 };
         _conversationMessageList = new List<ConversationMessage>()
             { _conversationMessage1, _conversationMessage2, _conversationMessage3 };
-        _store = factory.Services.GetRequiredService<IMessageStore>();
+        
+        var services = factory.Services;
+        var cosmosSettings = services.GetRequiredService<IOptions<CosmosSettings>>().Value;
+        var cosmosClient = new CosmosClient(cosmosSettings.ConnectionString);
+        _store = new CosmosMessageStore(cosmosClient);
     }
 
     [Fact]
@@ -62,6 +74,27 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
+
+    public async Task GetMessage_Success()
+    {
+        await _store.AddMessage(_messageList[0]);
+        var actual = await _store.GetMessage(_messageList[0].ConversationId, _messageList[0].MessageId);
+        
+        Assert.Equal(_messageList[0], actual);
+    }
+
+    [Fact]
+    
+    public async Task GetMessage_NotFound()
+    {
+        await Assert.ThrowsAsync<MessageNotFoundException>(async () =>
+        {
+            await _store.GetMessage(_messageList[0].ConversationId, _messageList[0].MessageId);
+        });
+    }
+    
+
+    [Fact]
     public async Task DeleteMessage_Success()
     {
         await _store.AddMessage(_messageList[0]);
@@ -74,7 +107,7 @@ public class CosmosMessageStoreTests : IClassFixture<WebApplicationFactory<Progr
     [Fact]
     public async Task DeleteMessage_EmptyMessage()
     {
-        var message = new Message("", "", "", 1, "");
+        var message = new Message("", "", "", "", 1);
         await Assert.ThrowsAsync<CosmosException>(async () => { await _store.DeleteMessage(message); });
     }
 

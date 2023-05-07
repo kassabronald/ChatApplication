@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using ChatApplication.Exceptions;
+using ChatApplication.Exceptions.StorageExceptions;
 using ChatApplication.Storage.Entities;
 using ChatApplication.Web.Dtos;
 using Microsoft.Azure.Cosmos;
@@ -34,11 +35,16 @@ public class CosmosProfileStore : IProfileStore
         {
             await Container.CreateItemAsync(entity);
         }
-        catch (Exception e)
+        catch (CosmosException e)
         {
-            if (e is CosmosException cosmosException && cosmosException.StatusCode == HttpStatusCode.Conflict)
+            if (e.StatusCode == HttpStatusCode.Conflict)
             {
                 throw new ProfileAlreadyExistsException($"Profile with username {profile.Username} already exists");
+            }
+            
+            if(e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException($"Could not add profile with username {profile.Username}", e);
             }
 
             throw;
@@ -66,6 +72,11 @@ public class CosmosProfileStore : IProfileStore
                 throw new ProfileNotFoundException($"Profile with username {username} does not exists");
             }
 
+            if(e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException($"Could not get profile with username {username}", e);
+            }
+
             throw;
         }
     }
@@ -86,11 +97,16 @@ public class CosmosProfileStore : IProfileStore
                 return;
             }
 
+            if(e.StatusCode != HttpStatusCode.BadRequest)
+            {
+                throw new StorageUnavailableException($"Could not delete profile with username {username}", e);
+            }
+
             throw;
         }
     }
 
-    private ProfileEntity ToEntity(Profile profile)
+    private static ProfileEntity ToEntity(Profile profile)
     {
         return new ProfileEntity(
             partitionKey: profile.Username,
@@ -101,7 +117,7 @@ public class CosmosProfileStore : IProfileStore
         );
     }
 
-    private Profile ToProfile(ProfileEntity entity)
+    private static Profile ToProfile(ProfileEntity entity)
     {
         return new Profile(
             entity.id,

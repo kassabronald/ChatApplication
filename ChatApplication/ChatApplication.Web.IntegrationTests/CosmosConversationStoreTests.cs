@@ -1,9 +1,11 @@
+using ChatApplication.Configuration;
 using ChatApplication.Exceptions;
 using ChatApplication.Storage;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace ChatApplication.Web.IntegrationTests;
 
@@ -42,13 +44,17 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
         _conversation2 = new UserConversation(Guid.NewGuid().ToString(), recipients2, 1001, _profile1.Username);
         _conversation3 = new UserConversation(Guid.NewGuid().ToString(), recipients3, 1000, _profile1.Username);
         _conversationList = new List<UserConversation>(){_conversation1, _conversation2, _conversation3};
-        _store = factory.Services.GetRequiredService<IConversationStore>();
+        
+        var services = factory.Services;
+        var cosmosSettings = services.GetRequiredService<IOptions<CosmosSettings>>().Value;
+        var cosmosClient = new CosmosClient(cosmosSettings.ConnectionString);
+        _store = new CosmosConversationStore(cosmosClient);
     }
 
 
     [Fact]
 
-    public async Task GetUserConversation()
+    public async Task GetUserConversation_Success()
     {
         await _store.CreateUserConversation(_conversationList[0]);
         var conversation = await _store.GetUserConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
@@ -96,8 +102,10 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
         await _store.CreateUserConversation(senderConversation);
         await _store.CreateUserConversation(receiverConversation);
         await _store.UpdateConversationLastMessageTime(senderConversation, 1005);
+        
         var senderConversationAfterUpdate = await _store.GetUserConversation(senderConversation.Username,senderConversation.ConversationId);
         var receiverConversationAfterUpdate = await _store.GetUserConversation(receiverConversation.Username, receiverConversation.ConversationId);
+        
         Assert.Equal(1005, senderConversationAfterUpdate.LastMessageTime);
         Assert.Equal(1005, receiverConversationAfterUpdate.LastMessageTime);
     }
@@ -112,10 +120,11 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
             await _store.UpdateConversationLastMessageTime(_conversationList[0], 1005);
         });
     }
-
+    
+    
     [Fact]
 
-    public async Task CreateUserConversation()
+    public async Task CreateUserConversation_Success()
     {
         await _store.CreateUserConversation(_conversationList[0]);
         var conversation = await _store.GetUserConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
@@ -147,7 +156,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
 
     [Fact]
 
-    public async Task DeleteUserConversation()
+    public async Task DeleteUserConversation_Success()
     {
         await _store.CreateUserConversation(_conversationList[0]);
         await _store.DeleteUserConversation(_conversationList[0]);
@@ -170,7 +179,7 @@ public class CosmosConversationStoreTests : IClassFixture<WebApplicationFactory<
     
     [Fact]
 
-    public async Task GetAllConversations()
+    public async Task GetAllConversations_Success()
     {
         var expected = new List<UserConversation>();
         foreach (var conversation in _conversationList)
