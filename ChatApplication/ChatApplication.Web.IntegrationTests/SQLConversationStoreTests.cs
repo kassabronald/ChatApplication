@@ -50,6 +50,7 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
             }
         }
     }
+
     
     public SQLConversationStoreTests(WebApplicationFactory<Program> factory)
     {
