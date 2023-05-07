@@ -163,6 +163,8 @@ public class SQLConversationStore : IConversationStore
         {
             transaction.Rollback();
         }
+        
+        await sqlConnection.CloseAsync();
     }
 
 
