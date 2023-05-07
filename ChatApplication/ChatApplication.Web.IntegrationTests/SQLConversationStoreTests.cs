@@ -24,9 +24,12 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
     private readonly UserConversation _conversation3;
     private readonly List<UserConversation> _conversationList;
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        return Task.CompletedTask;
+        await _profileStore.AddProfile(_profile1);
+        await _profileStore.AddProfile(_profile2);
+        await _profileStore.AddProfile(_profile3);
+        await _profileStore.AddProfile(_profile4);
     }
 
     public async Task DisposeAsync()
@@ -52,10 +55,12 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
     {
         List<Profile> recipients1 = new() { _profile2 };
         List<Profile> recipients2 = new() { _profile3 };
-        List<Profile> recipients3 = new() {  _profile4 };
+        List<Profile> recipients3 = new() { _profile4 };
+        
         _conversation1 = new UserConversation(Guid.NewGuid().ToString(), recipients1, 1002, _profile1.Username);
         _conversation2 = new UserConversation(Guid.NewGuid().ToString(), recipients2, 1001, _profile1.Username);
         _conversation3 = new UserConversation(Guid.NewGuid().ToString(), recipients3, 1000, _profile1.Username);
+        
         _conversationList = new List<UserConversation>(){_conversation1, _conversation2, _conversation3};
         
         var services = factory.Services;
@@ -67,8 +72,6 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
     [Fact]
     public async Task GetUserConversation_Success()
     {
-        await _profileStore.AddProfile(_profile1);
-        await _profileStore.AddProfile(_profile2);
         await _conversationStore.CreateUserConversation(_conversationList[0]);
         var conversation = await _conversationStore.GetUserConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
         Assert.Equivalent(_conversationList[0], conversation);
@@ -107,15 +110,16 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
     [Fact]
     public async Task UpdateConversationLastMessageTime_Success()
     {
-        await _profileStore.AddProfile(_profile1);
-        await _profileStore.AddProfile(_profile2);
         var receiverConversation = new UserConversation(_conversationList[0].ConversationId, new List<Profile>{_profile1}, _conversationList[0].LastMessageTime, _conversationList[0].Recipients[0].Username);
         var senderConversation = _conversationList[0];
+        
         await _conversationStore.CreateUserConversation(senderConversation);
         await _conversationStore.CreateUserConversation(receiverConversation);
         await _conversationStore.UpdateConversationLastMessageTime(senderConversation, 1005);
+        
         var senderConversationAfterUpdate = await _conversationStore.GetUserConversation(senderConversation.Username,senderConversation.ConversationId);
         var receiverConversationAfterUpdate = await _conversationStore.GetUserConversation(receiverConversation.Username, receiverConversation.ConversationId);
+        
         Assert.Equal(1005, senderConversationAfterUpdate.LastMessageTime);
         Assert.Equal(1005, receiverConversationAfterUpdate.LastMessageTime);
     }
@@ -135,10 +139,10 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
 
     public async Task CreateUserConversation_Success()
     {
-        await _profileStore.AddProfile(_profile1);
-        await _profileStore.AddProfile(_profile2);
         await _conversationStore.CreateUserConversation(_conversationList[0]);
+        
         var conversation = await _conversationStore.GetUserConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
+        
         Assert.Equivalent(_conversationList[0], conversation);
     }
     
@@ -148,6 +152,7 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
     public async Task CreateUserConversation_EmptyId()
     {
         var conversation = new UserConversation("", new List<Profile>(), 1000, _conversationList[0].ConversationId);
+        
         await Assert.ThrowsAsync<SqlException>(async () =>
         {
             await _conversationStore.CreateUserConversation(conversation);
@@ -159,10 +164,9 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
 
     public async Task DeleteUserConversation_Success()
     {
-        await _profileStore.AddProfile(_profile1);
-        await _profileStore.AddProfile(_profile2);
         await _conversationStore.CreateUserConversation(_conversationList[0]);
         await _conversationStore.DeleteUserConversation(_conversationList[0]);
+        
         await Assert.ThrowsAsync<ConversationNotFoundException>(async () =>
         {
             await _conversationStore.GetUserConversation(_conversationList[0].Username, _conversationList[0].ConversationId);
@@ -173,10 +177,6 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
 
     public async Task GetAllConversations_Success()
     {
-        await _profileStore.AddProfile(_profile1);
-        await _profileStore.AddProfile(_profile2);
-        await _profileStore.AddProfile(_profile3);
-        await _profileStore.AddProfile(_profile4);
         var expected = new List<UserConversation>();
         foreach (var conversation in _conversationList)
         {
@@ -186,6 +186,7 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
 
         var parameters = new GetConversationsParameters(_conversationList[0].Username, 100, "", 0);
         var actual = await _conversationStore.GetConversations(parameters);
+        
         Assert.Equivalent(expected, actual.Conversations);
     }
     
@@ -193,11 +194,6 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
     [Fact]
     public async Task GetConversationMessages_WithContinuationToken()
     {
-        await _profileStore.AddProfile(_profile1);
-        await _profileStore.AddProfile(_profile2);
-        await _profileStore.AddProfile(_profile3);
-        await _profileStore.AddProfile(_profile4);
-        
         foreach (var conversation in _conversationList)
         {
             await _conversationStore.CreateUserConversation(conversation);
@@ -205,10 +201,13 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
 
         var parametersInitialCall = new GetConversationsParameters(_conversationList[0].Username, 2, "", 0);
         var actualInitialCall = await _conversationStore.GetConversations(parametersInitialCall);
+        
         Assert.Equivalent(_conversationList[0], actualInitialCall.Conversations[0]);
         Assert.Equivalent(_conversationList[1], actualInitialCall.Conversations[1]);
+        
         var parametersSecondCall = new GetConversationsParameters(_conversationList[0].Username, 2, actualInitialCall.ContinuationToken, 0);
         var actualSecondCall = await _conversationStore.GetConversations(parametersSecondCall);
+        
         Assert.Equivalent(_conversationList[2], actualSecondCall.Conversations[0]);
     }
 
@@ -220,27 +219,20 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
     [InlineData(null, 1)]
     public async Task GetConversationMessages_WithBadLimit(int limit, int actualCount)
     {
-        await _profileStore.AddProfile(_profile1);
-        await _profileStore.AddProfile(_profile2);
-        await _profileStore.AddProfile(_profile3);
-        await _profileStore.AddProfile(_profile4);
-        
         foreach (var conversation in _conversationList)
         {
             await _conversationStore.CreateUserConversation(conversation);
         }
+        
         var parameters = new GetConversationsParameters(_conversationList[0].Username, limit, "", 0);
         var actual = await _conversationStore.GetConversations(parameters);
+        
         Assert.Equal(actualCount, actual.Conversations.Count);
     }
     
     [Fact]
     public async Task GetConversationMessages_WithBadContinuationToken()
     {
-        await _profileStore.AddProfile(_profile1);
-        await _profileStore.AddProfile(_profile2);
-        await _profileStore.AddProfile(_profile3);
-        await _profileStore.AddProfile(_profile4);
         foreach (var conversation in _conversationList)
         {
             await _conversationStore.CreateUserConversation(conversation);
@@ -255,16 +247,14 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
     [Fact]
     public async Task GetConversationMessages_WithUnixTime()
     {
-        await _profileStore.AddProfile(_profile1);
-        await _profileStore.AddProfile(_profile2);
-        await _profileStore.AddProfile(_profile3);
-        await _profileStore.AddProfile(_profile4);
         foreach (var conversation in _conversationList)
         {
             await _conversationStore.CreateUserConversation(conversation);
         }
+        
         var parameters = new GetConversationsParameters(_conversationList[0].Username, 100, "", 1000);
         var actual = await _conversationStore.GetConversations(parameters);
+        
         Assert.Equivalent(_conversationList[0], actual.Conversations[0]);
         Assert.Equivalent(_conversationList[1], actual.Conversations[1]);
     }
