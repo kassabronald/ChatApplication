@@ -43,12 +43,6 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
 
     public async Task DisposeAsync()
     {
-        foreach (var message in _messageList)
-        {
-            await _messageStore.DeleteMessage(message);
-        }
-        await _conversationStore.DeleteUserConversation(_userConversation1);
-        await _conversationStore.DeleteUserConversation(_userConversation2);
         await _profileStore.DeleteProfile(_profile1.Username);
         await _profileStore.DeleteProfile(_profile2.Username);
     }

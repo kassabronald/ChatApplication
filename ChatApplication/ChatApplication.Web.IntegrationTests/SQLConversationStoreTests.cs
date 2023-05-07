@@ -34,10 +34,6 @@ public class SQLConversationStoreTests: IClassFixture<WebApplicationFactory<Prog
 
     public async Task DisposeAsync()
     {
-        foreach (var conversation in _conversationList)
-        {
-            await _conversationStore.DeleteUserConversation(conversation);
-        }
         foreach(var profile in new List<Profile>(){_profile1, _profile2, _profile3, _profile4})
         {
             try

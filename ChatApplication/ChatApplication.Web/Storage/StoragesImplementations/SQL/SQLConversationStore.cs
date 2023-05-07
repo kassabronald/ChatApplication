@@ -12,8 +12,8 @@ public class SQLConversationStore : IConversationStore
 {
     
     private readonly string _connectionString;
-    
-    public SQLConversationStore(IOptions<SQLSettings> sqlSettings)
+
+    public SQLConversationStore(IOptions<SQLSettings> sqlSettings )
     {
         _connectionString = sqlSettings.Value.ConnectionString;
     }
@@ -136,32 +136,20 @@ public class SQLConversationStore : IConversationStore
         await using var sqlConnection = GetSqlConnection();
 
         await sqlConnection.OpenAsync();
-
-        await using var transaction = sqlConnection.BeginTransaction();
+        
 
         try
         {
-            await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
-                new { ConversationId = userConversation.ConversationId, Username = userConversation.Username },
-                transaction);
-            foreach (var recipient in userConversation.Recipients)
-            {
-                await sqlConnection.ExecuteAsync(queryConversationParticipantsTable,
-                    new { ConversationId = userConversation.ConversationId, Username = recipient.Username },
-                    transaction);
-            }
             await sqlConnection.ExecuteAsync(queryConversationTable,
                 new
                 {
                     ConversationId = userConversation.ConversationId,
                     ModifiedUnixTime = userConversation.LastMessageTime
-                }, transaction);
-
-            transaction.Commit();
+                });
+            
         }
         catch (Exception ex)
         {
-            transaction.Rollback();
         }
     }
 
