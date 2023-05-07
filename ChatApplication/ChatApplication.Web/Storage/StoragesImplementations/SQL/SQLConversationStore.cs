@@ -151,6 +151,8 @@ public class SQLConversationStore : IConversationStore
         catch (Exception ex)
         {
         }
+        
+        await sqlConnection.CloseAsync();
     }
 
 

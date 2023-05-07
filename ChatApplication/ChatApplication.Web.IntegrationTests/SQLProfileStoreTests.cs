@@ -38,6 +38,7 @@ public class SQLProfileStoreTests:IClassFixture<WebApplicationFactory<Program>>,
     {
         await _store.DeleteProfile(_profile.Username);
     }
+
     
     [Fact]
 

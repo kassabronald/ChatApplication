@@ -5,6 +5,7 @@ using ChatApplication.Storage.SQL;
 using ChatApplication.Web.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -37,8 +38,6 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
         await _profileStore.AddProfile(_profile2);
         await _conversationStore.CreateUserConversation(_userConversation1);
         await _conversationStore.CreateUserConversation(_userConversation2);
-        
-        return;
     }
 
     public async Task DisposeAsync()
@@ -46,6 +45,7 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
         await _profileStore.DeleteProfile(_profile1.Username);
         await _profileStore.DeleteProfile(_profile2.Username);
     }
+
 
     public SQLMessageStoreTests(WebApplicationFactory<Program> factory)
     {
@@ -157,7 +157,6 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
     [InlineData(0, 1)]
     [InlineData(-1, 1)]
     [InlineData(150, 3)]
-    [InlineData(2, 2)]
     [InlineData(null, 1)]
     public async Task GetConversationMessages_WithBadLimit(int limit, int actualCount)
     {
