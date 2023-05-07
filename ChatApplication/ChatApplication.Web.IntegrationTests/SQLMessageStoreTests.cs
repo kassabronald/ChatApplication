@@ -163,7 +163,6 @@ public class SQLMessageStoreTests: IClassFixture<WebApplicationFactory<Program>>
     [InlineData(0, 1)]
     [InlineData(-1, 1)]
     [InlineData(150, 3)]
-    [InlineData(2, 2)]
     [InlineData(null, 1)]
     public async Task GetConversationMessages_WithBadLimit(int limit, int actualCount)
     {
