@@ -7,24 +7,6 @@ The Chat Service Backend Application is a C# chat application built using ASP.NE
 
 The Chat Service Backend Application is deployed on Microsoft Azure and can be accessed at the following URL: https://chatservice-jad-ronald.azurewebsites.net/
 
-## Prerequisites
-
-Before running the application locally, ensure that you have the following prerequisites installed:
-
-.NET SDK 7.0
-
-## Getting Started
-
-To get started with the Chat Service Backend Application locally, follow these steps:
-
-1. Clone the repository: https://github.com/kassabronald/ChatApplication.git
-2. Navigate to the project directory: cd ChatApplication
-3. Restore the NuGet packages: dotnet restore
-4. Build the solution: dotnet build
-5. Run the application: dotnet run
-
-The application will start running on http://localhost:5000.
-
 ## Technologies used 
 
 The Chat Service Backend Application is built using the following technologies:
