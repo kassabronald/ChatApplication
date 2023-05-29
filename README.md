@@ -1,7 +1,7 @@
 # ChatApplication
 
 
-The Chat Service Backend Application is a C# chat application built using ASP.NET Core and .NET 7. This application provides the backend functionality for a real-time chat web application. It utilizes Microsoft Azure for deployment and utilizes various Azure services for seamless integration and scalability. It is based on our EECE 503 course at the American University of Beirut : Web Services in the Cloud
+The Chat Service Backend Application is a C# chat application built using ASP.NET Core and .NET 7. This application provides the backend functionality for a real-time chat web application. It utilizes Microsoft Azure for deployment and utilizes various Azure services for seamless integration and scalability. It is based on our EECE 503 course at the American University of Beirut : Web Services in the Cloud.
 
 ## Deployment
 
