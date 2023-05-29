@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>ChatApplication</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.13.1" />
+        <PackageReference Include="Azure.Storage.Blobs" Version="12.15.0-beta.1" />
+        <PackageReference Include="Cake.ESLint" Version="2.1.0" />
+        <PackageReference Include="Dapper" Version="2.0.123" />
+        <PackageReference Include="JetBrains.Annotations" Version="2023.2.0-eap1" />
+        <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.2" />
+        <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.32.0" />
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
+        <PackageReference Include="ReSharper.Annotations" Version="7.1.3" />
+        <PackageReference Include="StyleCop" Version="6.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    </ItemGroup>
+
+</Project>

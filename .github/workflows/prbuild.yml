@@ -1,0 +1,40 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    env:
+      BlobStorage:ConnectionString: "${{ secrets.BLOBSTORAGE_CONNECTIONSTRING}}"
+      Cosmos:ConnectionString: "${{ secrets.COSMOS_CONNECTIONSTRING}}"
+      ServiceBus:ConnectionString: "${{ secrets.SERVICEBUS_CONNECTIONSTRING}}"
+      SQL:ConnectionString: "${{ secrets.SQL_CONNECTIONSTRING}}"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore ./ChatApplication/ChatApplication.sln
+      
+    - name: Build
+      run: dotnet build ./ChatApplication/ChatApplication.sln --configuration Release --no-restore
+      
+    - name: Run unit tests
+      run: dotnet test ./ChatApplication/ChatApplication.Web.Tests/bin/Release/net7.0/ChatApplication.Web.Tests.dll
+      
+    - name: Run integration tests
+      run: dotnet test ./ChatApplication/ChatApplication.Web.IntegrationTests/bin/Release/net7.0/ChatApplication.Web.IntegrationTests.dll
